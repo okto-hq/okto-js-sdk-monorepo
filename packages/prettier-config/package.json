@@ -1,0 +1,10 @@
+{
+  "name": "@okto-sdk/prettier-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
