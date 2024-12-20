@@ -1,0 +1,27 @@
+{
+  "name": "@okto-sdk/core-js",
+  "version": "0.0.1",
+  "description": "Core JS for Okto SDK",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "lint": "eslint .",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
+    "check-types": "tsc --noEmit"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@okto-sdk/eslint-config": "workspace:*",
+    "@okto-sdk/typescript-config": "workspace:*",
+    "@okto-sdk/prettier-config": "workspace:*"
+  },
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
+}
