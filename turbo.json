@@ -22,6 +22,9 @@
     },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "check-exports": {
+      "dependsOn": ["^check-exports"]
     }
   }
 }

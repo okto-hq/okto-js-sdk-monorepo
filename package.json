@@ -7,7 +7,8 @@
     "lint": "turbo lint",
     "check-format": "turbo check-format",
     "format": "turbo format",
-    "check-types": "turbo check-types"
+    "check-types": "turbo check-types",
+    "check-exports": "turbo check-exports"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

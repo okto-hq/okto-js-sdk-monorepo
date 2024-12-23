@@ -3,13 +3,17 @@
   "version": "0.0.1",
   "description": "Core JS for Okto SDK",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
     "lint": "eslint .",
+    "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
     "check-format": "prettier --check .",
     "format": "prettier --write .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm --profile esm-only"
   },
   "exports": {
     ".": {
@@ -18,10 +22,11 @@
     }
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
+    "@arethetypeswrong/cli": "^0.17.2",
     "@okto-sdk/eslint-config": "workspace:*",
+    "@okto-sdk/prettier-config": "workspace:*",
     "@okto-sdk/typescript-config": "workspace:*",
-    "@okto-sdk/prettier-config": "workspace:*"
+    "typescript": "^5.7.2"
   },
   "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
 }
