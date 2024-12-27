@@ -1,6 +1,6 @@
 {
   "name": "@okto-sdk/core-js",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Core JS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -20,6 +20,10 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "axios-retry": "^4.5.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.2",
