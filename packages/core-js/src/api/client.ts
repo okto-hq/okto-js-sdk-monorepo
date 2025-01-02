@@ -1,4 +1,5 @@
 import { globalConfig } from '@/config/index.js';
+import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
@@ -26,6 +27,18 @@ gatewayClient.interceptors.request.use(
   },
 );
 
+gatewayClient.interceptors.response.use(
+  (response) => {
+    if (response.data) {
+      response.data = convertKeysToCamelCase(response.data);
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
 const bffClient = axios.create({
   baseURL: globalConfig.env.bffBaseUrl,
   headers: {
@@ -40,6 +53,18 @@ bffClient.interceptors.request.use(
     );
 
     return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+bffClient.interceptors.response.use(
+  (response) => {
+    if (response.data) {
+      response.data = convertKeysToCamelCase(response.data);
+    }
+    return response;
   },
   (error) => {
     return Promise.reject(error);
