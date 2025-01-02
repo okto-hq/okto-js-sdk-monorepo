@@ -8,9 +8,17 @@
     "check-format": "turbo check-format",
     "format": "turbo format",
     "check-types": "turbo check-types",
-    "check-exports": "turbo check-exports"
+    "check-exports": "turbo check-exports",
+    "prepare": "husky",
+    "commit": "cz"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "lerna": "^8.1.9",
     "prettier": "^3.2.5",
     "turbo": "^2.3.3",
     "typescript": "5.5.4"
@@ -18,5 +26,10 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
