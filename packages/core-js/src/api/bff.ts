@@ -34,6 +34,11 @@ class BffClientRepository {
     const response = await bffClient.get<ApiResponse<Wallet[]>>(
       this.routes.getWallets,
     );
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
     return response.data.data;
   }
 
@@ -54,6 +59,10 @@ class BffClientRepository {
       throw new Error('Failed to retrieve supported networks');
     }
 
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
     return response.data.data.network;
   }
 
@@ -67,6 +76,11 @@ class BffClientRepository {
     const response = await bffClient.get<ApiResponseWithCount<'tokens', Token>>(
       this.routes.getSupportedTokens,
     );
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
     return response.data.data.tokens;
   }
 }

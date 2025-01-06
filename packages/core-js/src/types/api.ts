@@ -1,6 +1,17 @@
+import type { HttpStatusCode } from 'axios';
+
+export type ApiError = {
+  code: HttpStatusCode;
+  errorCode: string;
+  message: string;
+  trace_id: string;
+  details: string;
+};
+
 export type ApiResponse<T> = {
   status: 'success' | 'error';
-  data: T;
+  data?: T;
+  error?: ApiError;
 };
 
 export type ApiResponseWithCount<K extends string, T> = ApiResponse<
