@@ -4,7 +4,7 @@ import type {
   Token,
   Wallet,
 } from '@/types/index.js';
-import type { GetSupportedNetworksResponseData } from '../types/bff.js';
+import type { GetSupportedNetworksResponseData ,UserSessionResponse,EstimateOrderPayload,OrderEstimateResponse} from '../types/bff.js';
 import { bffClient } from './client.js';
 
 class BffClientRepository {
@@ -66,6 +66,22 @@ class BffClientRepository {
     return response.data.data.network;
   }
 
+  public static async verifySession(): Promise<UserSessionResponse> {
+    const response = await bffClient.post<ApiResponse<UserSessionResponse>>(
+      this.routes.verifySession
+    );
+  
+    if (response.data.status === 'error') {
+      throw new Error('Failed to verify user session');
+    }
+  
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+  
+    return response.data.data;
+  }  
+
   /**
    * Retrieves the list of supported tokens from the BFF service.
    *
@@ -83,6 +99,26 @@ class BffClientRepository {
 
     return response.data.data.tokens;
   }
+
+  public static async estimateOrder(payload: EstimateOrderPayload
+  ): Promise<OrderEstimateResponse> {
+    const response = await bffClient.post<ApiResponse<OrderEstimateResponse>>(
+      this.routes.estimateOrder,
+      payload
+    );
+  
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate order');
+    }
+  
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+  
+    return response.data.data;
+  }  
 }
+
+
 
 export default BffClientRepository;
