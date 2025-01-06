@@ -8,6 +8,11 @@ import { gatewayClient } from './client.js';
 class GatewayClientRepository {
   private static rpcRoute = '/rpc';
 
+  private static methods = {
+    authenticate: 'authenticate',
+    execute: 'execute',
+  };
+
   /**
    * Authenticates the user with the Gateway service.
    *
@@ -17,7 +22,7 @@ class GatewayClientRepository {
    */
   public static async authenticate(): Promise<AuthenticateResult> {
     const payload: RpcPayload<AuthenticatePayloadParams[]> = {
-      method: 'authenticate',
+      method: this.methods.authenticate,
       jsonrpc: '2.0',
       id: '1', //TODO: Generate UUID
       params: [],
