@@ -1,10 +1,10 @@
 import type {
   ApiResponse,
   ApiResponseWithCount,
-  Network,
   Token,
   Wallet,
 } from '@/types/index.js';
+import type { GetSupportedNetworksResponseData } from '../types/bff.js';
 import { bffClient } from './client.js';
 
 class BffClientRepository {
@@ -40,13 +40,20 @@ class BffClientRepository {
   /**
    * Retrieves the list of supported networks from the BFF service.
    *
-   * @returns {Promise<Network[]>} A promise that resolves to an array of Network objects.
+   * @returns {Promise<GetSupportedNetworksResponseData[]>} A promise that resolves to an array of GetSupportedNetworksResponseData objects.
    * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getSupportedNetworks(): Promise<Network[]> {
+  public static async getSupportedNetworks(): Promise<
+    GetSupportedNetworksResponseData[]
+  > {
     const response = await bffClient.get<
-      ApiResponseWithCount<'network', Network>
+      ApiResponseWithCount<'network', GetSupportedNetworksResponseData>
     >(this.routes.getSupportedNetworks);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve supported networks');
+    }
+
     return response.data.data.network;
   }
 
