@@ -4,7 +4,7 @@ import type {
   Token,
   Wallet,
 } from '@/types/index.js';
-import type { GetSupportedNetworksResponseData } from '../types/bff.js';
+import type { GetSupportedNetworksResponseData, NFTOrderDetails, Order, UserNFTBalance, UserNFTBalanceResponse, UserPortfolioActivity, UserPortfolioActivityResponse, UserPortfolioData } from '../types/bff.js';
 import { bffClient } from './client.js';
 
 class BffClientRepository {
@@ -83,6 +83,117 @@ class BffClientRepository {
 
     return response.data.data.tokens;
   }
+
+  /**
+   * Retrieves the aggregated portfolio for the authenticated user from the BFF service.
+   *
+   * @returns {Promise<UserPortfolioData>} A promise that resolves to the aggregated portfolio data.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async getPortfolio(): Promise<UserPortfolioData> {
+    const response = await bffClient.get<ApiResponse<UserPortfolioData>>(
+      this.routes.getPortfolio,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve portfolio');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves the portfolio activity for the user.
+   *
+   * @returns {Promise<UserPortfolioActivityResponse>} A promise that resolves to the user's portfolio activity response.
+   * @throws {Error} If the response status is 'error' or if the response data is missing.
+   */
+  public static async getPortfolioActivity(): Promise<UserPortfolioActivityResponse> {
+    const response = await bffClient.get<ApiResponseWithCount<"activity", UserPortfolioActivity >>(
+      this.routes.getPortfolioActivity,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve portfolio activity');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves the NFT portfolio for the authenticated user from the BFF service.
+   *
+   * @returns {Promise<UserNFTBalanceResponse>} A promise that resolves to the NFT portfolio data.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async getPortfolioNft(): Promise<UserNFTBalanceResponse> {
+    const response = await bffClient.get<ApiResponseWithCount<"details", UserNFTBalance>>(
+      this.routes.getPortfolioNft,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve NFT portfolio');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves the list of orders for the authenticated user from the BFF service.
+   *
+   * @returns {Promise<Order[]>} A promise that resolves to an array of Order objects.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async getOrders(): Promise<Order[]> {
+    const response = await bffClient.get<ApiResponseWithCount<'orders', Order>>(
+      this.routes.getOrders,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve orders');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data.orders;
+  }
+
+  /**
+   * Retrieves the details of executed NFT orders from the backend.
+   *
+   * @returns {Promise<NFTOrderDetails[]>} A promise that resolves to an array of NFT order details.
+   * @throws {Error} Throws an error if the response status is 'error' or if the response data is missing.
+   */
+  public static async getNftOrderDetails(): Promise<NFTOrderDetails[]> {
+    const response = await bffClient.get<ApiResponseWithCount<'executed', NFTOrderDetails>>(
+      this.routes.getNftOrderDetails,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve NFT order details');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data.executed;
+  }
+
 }
 
 export default BffClientRepository;
