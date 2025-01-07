@@ -114,6 +114,10 @@ class Auth {
     }
   }
 
+  /**
+   * Returns the user information.
+   * If the user is not logged in, it returns undefined.
+   */
   get userInfo(): User | undefined {
     return this.user;
   }

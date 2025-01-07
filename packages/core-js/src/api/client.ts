@@ -1,4 +1,5 @@
 import { globalConfig } from '@/config/index.js';
+import { getAuthorizationToken } from '@/utils/auth.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
@@ -15,11 +16,7 @@ gatewayClient.interceptors.request.use(
     if (config.headers['Skip-Authorization'] === true) {
       return config;
     }
-
-    config.headers.setAuthorization(
-      `Bearer ${globalConfig.authOptions?.sessionPubKey}`,
-    );
-
+    config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
     return config;
   },
   (error) => {
@@ -48,10 +45,7 @@ const bffClient = axios.create({
 
 bffClient.interceptors.request.use(
   (config) => {
-    config.headers.setAuthorization(
-      `Bearer ${globalConfig.authOptions?.sessionPubKey}`,
-    );
-
+    config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
     return config;
   },
   (error) => {
