@@ -1,15 +1,15 @@
 export type GetSupportedNetworksResponseData = {
-  caip_id: string;
-  network_name: string;
-  chain_id: string;
+  caipId: string;
+  networkName: string;
+  chainId: string;
   logo: string;
 };
 
 export type UserSessionResponse = {
-  user_id: string;
-  user_address: string;
-  vendor_id: string;
-  vendor_address: string;
+  userId: string;
+  userAddress: string;
+  vendorId: string;
+  vendorAddress: string;
 };
 
 export type EstimateOrderPayload = {
@@ -52,7 +52,7 @@ export type OrderEstimateResponse = {
     };
     fees: {
       transactionFees: Record<string, string>;
-      approxTransactionFeesInUSDT: string;
+      approxTransactionFeesInUsdt: string;
     };
   };
   callData: {
@@ -72,7 +72,7 @@ export type OrderEstimateResponse = {
           networkId: string;
           address: string;
           amount: string;
-          amountInUSDT: string;
+          amountInUsdt: string;
         }[];
       };
     };
@@ -84,4 +84,3 @@ export type OrderEstimateResponse = {
     };
   };
 };
-
