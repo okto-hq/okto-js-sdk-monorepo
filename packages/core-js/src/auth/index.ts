@@ -113,6 +113,10 @@ class Auth {
       return false;
     }
   }
+
+  get userInfo(): User | undefined {
+    return this.user;
+  }
 }
 
 export default Auth;
