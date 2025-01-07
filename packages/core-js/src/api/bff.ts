@@ -4,7 +4,7 @@ import type {
   Token,
   Wallet,
 } from '@/types/index.js';
-import type { GetSupportedNetworksResponseData, NFTOrderDetails, Order, UserNFTBalance, UserNFTBalanceResponse, UserPortfolioActivity, UserPortfolioActivityResponse, UserPortfolioData } from '../types/bff.js';
+import type { GetSupportedNetworksResponseData, NFTOrderDetails, Order, UserNFTBalance, UserPortfolioActivity, UserPortfolioData } from '../types/bff.js';
 import { bffClient } from './client.js';
 
 class BffClientRepository {
@@ -107,13 +107,13 @@ class BffClientRepository {
   }
 
   /**
-   * Retrieves the portfolio activity for the user.
+   * Retrieves the portfolio activity for the authenticated user from the BFF service.
    *
-   * @returns {Promise<UserPortfolioActivityResponse>} A promise that resolves to the user's portfolio activity response.
-   * @throws {Error} If the response status is 'error' or if the response data is missing.
+   * @returns {Promise<UserPortfolioActivity[]>} A promise that resolves to an array of UserPortfolioActivity objects.
+   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getPortfolioActivity(): Promise<UserPortfolioActivityResponse> {
-    const response = await bffClient.get<ApiResponseWithCount<"activity", UserPortfolioActivity >>(
+  public static async getPortfolioActivity(): Promise<UserPortfolioActivity[]> {
+    const response = await bffClient.get<ApiResponseWithCount<"activity", UserPortfolioActivity>>(
       this.routes.getPortfolioActivity,
     );
 
@@ -125,16 +125,16 @@ class BffClientRepository {
       throw new Error('Response data is missing');
     }
 
-    return response.data.data;
+    return response.data.data.activity;
   }
 
   /**
    * Retrieves the NFT portfolio for the authenticated user from the BFF service.
    *
-   * @returns {Promise<UserNFTBalanceResponse>} A promise that resolves to the NFT portfolio data.
+   * @returns {Promise<UserNFTBalance[]>} A promise that resolves to an array of UserNFTBalance objects.
    * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getPortfolioNft(): Promise<UserNFTBalanceResponse> {
+  public static async getPortfolioNft(): Promise<UserNFTBalance[]> {
     const response = await bffClient.get<ApiResponseWithCount<"details", UserNFTBalance>>(
       this.routes.getPortfolioNft,
     );
@@ -147,7 +147,7 @@ class BffClientRepository {
       throw new Error('Response data is missing');
     }
 
-    return response.data.data;
+    return response.data.data.details;
   }
 
   /**
