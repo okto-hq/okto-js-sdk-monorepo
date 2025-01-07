@@ -65,7 +65,7 @@ class GatewayClientRepository {
       method: this.methods.getWhitelistedCollections,
       jsonrpc: '2.0',
       id: uuidv4(),
-      params: [], //check with params once
+      params: [], /// TODO: check with params once
     };
     const response = await gatewayClient.post<RpcResponse<WhitelistedCollection[]>>(
       this.rpcRoute,
