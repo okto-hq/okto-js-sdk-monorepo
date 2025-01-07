@@ -10,7 +10,8 @@
     "check-types": "turbo check-types",
     "check-exports": "turbo check-exports",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "changeset": "changeset"
   },
   "dependencies": {
     "@changesets/cli": "^2.27.11"

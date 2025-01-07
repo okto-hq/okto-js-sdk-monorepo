@@ -14,11 +14,13 @@ class GlobalConfig {
   private readonly sandboxEnv: EnvConfig = {
     gatewayBaseUrl: 'https://okto-gateway.oktostage.com',
     bffBaseUrl: 'https://apigw.oktostage.com',
+    paymasterAddress: '0x73C3894de9727bDf2E5Db7d90A1AB4FF7eBACa19',
   };
 
   private readonly productionEnv: EnvConfig = {
     gatewayBaseUrl: 'https://okto-gateway.okto.tech',
     bffBaseUrl: 'https://apigw.okto.tech',
+    paymasterAddress: '0x73C3894de9727bDf2E5Db7d90A1AB4FF7eBACa19',
   };
 
   /**

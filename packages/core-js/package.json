@@ -23,14 +23,19 @@
     }
   },
   "dependencies": {
+    "@noble/curves": "^1.8.0",
+    "@noble/hashes": "^1.7.0",
     "axios": "^1.7.9",
-    "axios-retry": "^4.5.0"
+    "axios-retry": "^4.5.0",
+    "uuid": "^11.0.4",
+    "viem": "^2.22.2"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.2",
     "@okto-sdk/eslint-config": "workspace:*",
     "@okto-sdk/prettier-config": "workspace:*",
     "@okto-sdk/typescript-config": "workspace:*",
+    "@types/node": "^22.10.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
