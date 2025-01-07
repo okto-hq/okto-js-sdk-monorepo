@@ -17,7 +17,7 @@ gatewayClient.interceptors.request.use(
     }
 
     config.headers.setAuthorization(
-      `Bearer ${globalConfig.authOptions?.userSessionKey}`,
+      `Bearer ${globalConfig.authOptions?.sessionPubKey}`,
     );
 
     return config;
@@ -49,7 +49,7 @@ const bffClient = axios.create({
 bffClient.interceptors.request.use(
   (config) => {
     config.headers.setAuthorization(
-      `Bearer ${globalConfig.authOptions?.userSessionKey}`,
+      `Bearer ${globalConfig.authOptions?.sessionPubKey}`,
     );
 
     return config;

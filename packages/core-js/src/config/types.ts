@@ -7,5 +7,8 @@ export interface EnvConfig {
 }
 
 export interface AuthOptions {
-  userSessionKey: string;
+  sessionPubKey?: string;
+  sessionPrivKey?: string;
+  vendorPubKey: string;
+  vendorPrivKey: string;
 }
