@@ -14,8 +14,31 @@ import {
 } from '@/utils/index.js';
 
 class Auth {
+  // -------------------- Constants  -------------------- //
   private HOURS_IN_MS = 60 * 60 * 1000;
 
+  // -------------------- Callbacks Definitions -------------------- //
+  private _updateSessionKeyPair: (pub: string, priv: string) => void;
+  private _getVendorPrivateKey: string;
+  private _getVendorPublicKey: string;
+  private _getSessionPrivateKey: string | undefined;
+  private _getSessionPublicKey: string | undefined;
+
+  constructor(
+    updateSessionKeyPairCallback: (pub: string, priv: string) => void,
+    getVendorPrivateKey: string,
+    getVendorPublicKey: string,
+    getSessionPrivateKey: string | undefined,
+    getSessionPublicKey: string | undefined,
+  ) {
+    this._updateSessionKeyPair = updateSessionKeyPairCallback;
+    this._getVendorPrivateKey = getVendorPrivateKey;
+    this._getVendorPublicKey = getVendorPublicKey;
+    this._getSessionPrivateKey = getSessionPrivateKey;
+    this._getSessionPublicKey = getSessionPublicKey;
+  }
+
+  // -------------------- Private Methods -------------------- //
   private _generateAuthenticatePayload(
     authData: AuthData,
     sessionPub: string,
@@ -52,7 +75,13 @@ class Auth {
     return payload;
   }
 
-  async loginUsingOAuth(authData: AuthData, vendorPrivateKey: string) {
+  // -------------------- Public Methods -------------------- //
+  async loginUsingOAuth(authData: AuthData) {
+    const vendorPrivateKey = this._getVendorPrivateKey;
+    if (!vendorPrivateKey) {
+      throw new Error('Vendor Private Key is not set');
+    }
+
     const { uncompressedPublicKeyHex, privateKeyHex } = createSessionKeyPair();
 
     const authPayload = this._generateAuthenticatePayload(
@@ -64,7 +93,9 @@ class Auth {
 
     const authRes = await GatewayClientRepository.authenticate(authPayload);
 
-    //TODO: Check if the response is valid and store the session key pair in the global store or return it [TBD]
+    //TODO: Check if the response is valid
+
+    this._updateSessionKeyPair(uncompressedPublicKeyHex, privateKeyHex);
 
     return authRes;
   }
