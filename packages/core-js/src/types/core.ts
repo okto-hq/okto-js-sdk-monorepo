@@ -40,3 +40,13 @@ export type NftMetadata = {
   nftName: string;
   description: string;
 };
+
+// ---
+
+export type User = {
+  userId: string;
+  userAddress: string;
+  ecdsaPublicKey: string;
+  eddsaPublicKey: string;
+  sessionExpiry: string;
+};

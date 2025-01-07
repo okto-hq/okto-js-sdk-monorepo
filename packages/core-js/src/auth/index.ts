@@ -1,10 +1,10 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { globalConfig } from '@/config/index.js';
+import type { User } from '@/types/core.js';
 import type {
   AuthData,
   AuthenticatePayloadParam,
-  AuthenticateResult,
   AuthSessionData,
 } from '@/types/gateway/authenticate.js';
 import {
@@ -15,11 +15,10 @@ import {
   signPayload,
 } from '@/utils/index.js';
 
-class Auth {
-  // -------------------- Constants  -------------------- //
-  private HOURS_IN_MS = 60 * 60 * 1000;
+const HOURS_IN_MS = 60 * 60 * 1000;
 
-  // -------------------- Private Methods -------------------- //
+class Auth {
+  user?: User;
 
   /**
    * Generates the authenticate payload.
@@ -50,7 +49,7 @@ class Auth {
     payload.sessionData.paymaster = globalConfig.env.paymasterAddress;
     payload.sessionData.paymasterData = generatePaymasterAndData(
       vendorPriv,
-      new Date(Date.now() + 6 * this.HOURS_IN_MS),
+      new Date(Date.now() + 6 * HOURS_IN_MS),
     );
 
     payload.additionalData = ''; //TODO: Add any additional data needed during testing
@@ -67,17 +66,15 @@ class Auth {
     return payload;
   }
 
-  // -------------------- Public Methods -------------------- //
-
   /**
    * Logs in the user using OAuth.
    * It generates a session key pair, creates an authenticate payload, and sends it to the Gateway service.
    * If the response is valid, it updates the user session.
    *
    * @param {AuthData} authData The authentication data.
-   * @returns {Promise<AuthenticateResult>} A promise that resolves to the authentication result.
+   * @returns {Promise<string>} A promise that resolves to the user address.
    */
-  async loginUsingOAuth(authData: AuthData): Promise<AuthenticateResult> {
+  async loginUsingOAuth(authData: AuthData): Promise<string> {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
     const { uncompressedPublicKeyHex, privateKeyHex } = createSessionKeyPair();
 
@@ -94,7 +91,11 @@ class Auth {
 
     globalConfig.updateUserSession(uncompressedPublicKeyHex, privateKeyHex);
 
-    return authRes;
+    this.user = {
+      ...authRes,
+    };
+
+    return authRes.userAddress;
   }
 
   /**
