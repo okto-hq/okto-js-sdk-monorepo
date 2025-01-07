@@ -67,6 +67,14 @@ class GlobalConfig {
   }
 
   /**
+   * Clears the authentication options.
+   * This method should be called when the user logs out.
+   */
+  clearAuthOptions() {
+    this._authOptions = undefined;
+  }
+
+  /**
    * Retrieves the authentication options.
    *
    * @throws Error if the GlobalConfig is not initialized.
