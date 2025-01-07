@@ -1,8 +1,8 @@
 import type { RpcPayload, RpcResponse } from '@/types/api.js';
 import type {
-  AuthenticatePayloadParams,
+  AuthenticatePayloadParam,
   AuthenticateResult,
-} from '@/types/authenticate.js';
+} from '@/types/gateway/authenticate.js';
 import { gatewayClient } from './client.js';
 
 class GatewayClientRepository {
@@ -20,12 +20,14 @@ class GatewayClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    * @throws {Error} If the user is not authenticated.
    */
-  public static async authenticate(): Promise<AuthenticateResult> {
-    const payload: RpcPayload<AuthenticatePayloadParams[]> = {
+  public static async authenticate(
+    data: AuthenticatePayloadParam,
+  ): Promise<AuthenticateResult> {
+    const payload: RpcPayload<AuthenticatePayloadParam[]> = {
       method: this.methods.authenticate,
       jsonrpc: '2.0',
       id: '1', //TODO: Generate UUID
-      params: [],
+      params: [data],
     };
 
     const response = await gatewayClient.post<RpcResponse<AuthenticateResult>>(
