@@ -36,3 +36,10 @@ export type AuthenticateResult = {
   sessionExpiry: string;
   userAddress: string;
 };
+
+export type UserSessionResponse = {
+  userId: string;
+  userAddress: string;
+  vendorId: string;
+  vendorAddress: string;
+};

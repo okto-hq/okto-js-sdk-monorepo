@@ -4,8 +4,11 @@ import type {
   Token,
   Wallet,
 } from '@/types/index.js';
-import type { GetSupportedNetworksResponseData, NFTOrderDetails, Order, UserNFTBalance, UserPortfolioActivity, UserPortfolioData ,UserSessionResponse,EstimateOrderPayload,OrderEstimateResponse} from '../types/bff.js';
+
 import { bffClient } from './client.js';
+import type { EstimateOrderPayload, NFTOrderDetails, Order, OrderEstimateResponse, UserNFTBalance, UserPortfolioActivity, UserPortfolioData } from '@/types/bff/account.js';
+import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
+import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 
 class BffClientRepository {
   private static routes = {
