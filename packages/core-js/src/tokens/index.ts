@@ -1,8 +1,13 @@
-import BffClientRepository from "@/api/bff";
+import BffClientRepository from "@/api/bff.js"
 
 class Token {
   // -------------------- Callbacks Definitions -------------------- //
   private _getSessionKey: () => string | undefined;
+
+  // -------------------- Constructor -------------------- //
+  constructor(getSessionKey: () => string | undefined) {
+    this._getSessionKey = getSessionKey;
+  }
 
   // -------------------- Public Methods -------------------- //
   async getTokens() {
@@ -30,7 +35,6 @@ class Token {
 
     return response; // {getSupportedNetworks}
   }
-
 }
 
 export default Token;

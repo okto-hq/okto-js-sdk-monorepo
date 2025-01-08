@@ -1,8 +1,13 @@
-import BffClientRepository from "@/api/bff";
+import BffClientRepository from '@/api/bff.js';
 
 class Chain {
   // -------------------- Callbacks Definitions -------------------- //
   private _getSessionKey: () => string | undefined;
+
+  // -------------------- Constructor -------------------- //
+  constructor(getSessionKey: () => string | undefined) {
+    this._getSessionKey = getSessionKey;
+  }
 
   // -------------------- Public Methods -------------------- //
   async getChains() {

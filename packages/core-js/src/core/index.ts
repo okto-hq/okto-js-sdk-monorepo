@@ -35,8 +35,8 @@ class OktoClient {
     );
     this.accountClient = new Account();
     this.userOperationClient = new UserOperation();
-    this.chainClient = new Chain();
-    this.tokenClient = new Token();
+    this.chainClient = new Chain(() => this._getSessionPublicKey);
+    this.tokenClient = new Token(()=> this._getSessionPublicKey);
 
     this.vendorPrivKey = config.vendorPrivKey;
     this.vendorPubKey = getPublicKey(config.vendorPrivKey);
