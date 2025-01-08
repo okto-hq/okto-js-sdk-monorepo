@@ -1,12 +1,5 @@
 // Get type of response data
 
-export type GetSupportedNetworksResponseData = {
-  caipId: string;
-  networkName: string;
-  chainId: string;
-  logo: string;
-};
-
 export type UserSessionResponse = {
   userId: string;
   userAddress: string;
