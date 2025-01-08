@@ -1,3 +1,5 @@
-class Account {}
+class Account {
+    
+}
 
 export default Account;
