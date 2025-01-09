@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import BffClientRepository from '@/api/bff.js';
 import type {
   EstimateOrderPayload,
@@ -16,7 +17,6 @@ class Account {
    * @param {string} networkId The network ID for the transaction.
    * @param {string} tokenAddress The token address involved in the transaction.
    * @param {string} amount The amount to be transferred.
-   * @param {string} jobId The job ID for the order.
    * @param {boolean} useGasDetails Whether to include gas details in the payload (optional).
    * @param {boolean} usePaymaster Whether to include paymaster details in the payload (optional).
    * @returns {EstimateOrderPayload} The generated payload for the order estimate.
@@ -26,12 +26,13 @@ class Account {
     networkId: string,
     tokenAddress: string,
     amount: string,
-    jobId: string,
     useGasDetails: boolean = false,
     usePaymaster: boolean = false,
   ): EstimateOrderPayload {
+    const jobId = uuidv4();
+
     const payload: EstimateOrderPayload = {
-      type: 'order_estimate', //TODO: check for type here (Sparsh)
+      type: 'TOKEN_TRANSFER',
       jobId,
       details: {
         recipientWalletAddress,
@@ -43,15 +44,18 @@ class Account {
 
     if (useGasDetails) {
       payload.gasDetails = {
-        maxFeePerGas: '1000000000', // TODO: add maxFeePerGas (Sparsh)
-        maxPriorityFeePerGas: '2000000000', // TODO : add maxPriorityFeePerGas (Sparsh)
+        maxFeePerGas: '', // TODO: add maxFeePerGas (Sparsh)
+        maxPriorityFeePerGas: '', // TODO : add maxPriorityFeePerGas (Sparsh)
       };
     }
 
     if (usePaymaster) {
+      const currentTime = new Date();
       payload.paymasterDetails = {
-        validUntil: new Date(Date.now() + 3600 * 1000).toISOString(), // Valid for 1 hour. (Sparsh)
-        validAfter: new Date(Date.now()).toISOString(), // Valid from the current time. (Sparsh)
+        validUntil: new Date(
+          currentTime.getTime() + 10 * 60 * 1000,
+        ).toISOString(),
+        validAfter: currentTime.toISOString(),
       };
     }
 
@@ -66,7 +70,6 @@ class Account {
    * @param {string} networkId The network ID for the transaction.
    * @param {string} tokenAddress The token address involved in the transaction.
    * @param {string} amount The amount to be transferred.
-   * @param {string} jobId The job ID for the order.
    * @param {boolean} useGasDetails Whether to include gas details in the payload (optional).
    * @param {boolean} usePaymaster Whether to include paymaster details in the payload (optional).
    * @returns {Promise<OrderEstimateResponse>} The estimated order response.
@@ -76,7 +79,6 @@ class Account {
     networkId: string,
     tokenAddress: string,
     amount: string,
-    jobId: string,
     useGasDetails: boolean = false,
     usePaymaster: boolean = false,
   ): Promise<OrderEstimateResponse> {
@@ -86,7 +88,6 @@ class Account {
       networkId,
       tokenAddress,
       amount,
-      jobId,
       useGasDetails,
       usePaymaster,
     );
