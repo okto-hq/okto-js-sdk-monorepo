@@ -66,6 +66,20 @@ class GlobalConfig {
     this._authOptions.sessionPubKey = sessionPubKey;
   }
 
+  updateVendorSWA(vendorSWA: string) {
+    if (!this._authOptions) {
+      throw new Error('GlobalConfig not initialized');
+    }
+    this._authOptions.vendorSWA = vendorSWA;
+  }
+
+  updateUserSWA(userSWA: string) {
+    if (!this._authOptions) {
+      throw new Error('GlobalConfig not initialized');
+    }
+    this._authOptions.userSWA = userSWA;
+  }
+
   /**
    * Clears the authentication options.
    * This method should be called when the user logs out.

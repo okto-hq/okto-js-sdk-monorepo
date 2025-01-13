@@ -8,14 +8,13 @@ import type {
   AuthSessionData,
 } from '@/types/gateway/authenticate.js';
 import {
+  Constants,
   createSessionKeyPair,
   generatePaymasterAndData,
   generateUUID,
   getPublicKey,
   signPayload,
 } from '@/utils/index.js';
-
-const HOURS_IN_MS = 60 * 60 * 1000;
 
 class Auth {
   user?: User;
@@ -49,7 +48,7 @@ class Auth {
     payload.sessionData.paymaster = globalConfig.env.paymasterAddress;
     payload.sessionData.paymasterData = generatePaymasterAndData(
       vendorPriv,
-      new Date(Date.now() + 6 * HOURS_IN_MS),
+      new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
     );
 
     payload.additionalData = ''; //TODO: Add any additional data needed during testing
@@ -78,6 +77,10 @@ class Auth {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
     const { uncompressedPublicKeyHex, privateKeyHex } = createSessionKeyPair();
 
+    if (!vendorPrivateKey) {
+      throw new Error('Vendor details not found');
+    }
+
     const authPayload = this._generateAuthenticatePayload(
       authData,
       uncompressedPublicKeyHex,
@@ -90,6 +93,8 @@ class Auth {
     //TODO: Check if the response is valid
 
     globalConfig.updateUserSession(uncompressedPublicKeyHex, privateKeyHex);
+    // globalConfig.updateVendorSWA(authRes.vendorAddress);
+    globalConfig.updateUserSWA(authRes.userAddress);
 
     this.user = {
       ...authRes,
