@@ -5,7 +5,8 @@ export function nonceToBigInt(nonce: string): bigint {
   let nonceBigInt = BigInt(0);
 
   for (let i = 0; i < nonceBytes.length; i++) {
-    nonceBigInt = (nonceBigInt << BigInt(8)) | BigInt(nonceBytes[i]);
+    const byte = nonceBytes[i] ?? 0;
+    nonceBigInt = (nonceBigInt << BigInt(8)) | BigInt(byte);
   }
 
   return nonceBigInt;

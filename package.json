@@ -35,5 +35,9 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  }
+  },
+  "workspaces": [
+    "packages/core-js",
+    "packages/react-native-okto-client"
+  ]
 }
