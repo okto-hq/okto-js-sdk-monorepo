@@ -1,0 +1,42 @@
+{
+  "name": "@okto-sdk/react",
+  "version": "0.0.0",
+  "description": "ReactJS for Okto SDK",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "dev:index": "tsx src/index.ts",
+    "lint": "eslint .",
+    "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
+    "check-types": "tsc --noEmit",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm --profile esm-only"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "dependencies": {
+    "@okto-sdk/core-js": "workspace:*"
+  },
+  "devDependencies": {
+    "@okto-sdk/eslint-config": "workspace:*",
+    "@okto-sdk/prettier-config": "workspace:*",
+    "@okto-sdk/typescript-config": "workspace:*",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.7.2",
+    "react": "^18.2.0"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0"
+  },
+  "keywords": [],
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
+}
