@@ -1,14 +1,16 @@
-import { parse, v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 export function nonceToBigInt(nonce: string): bigint {
-  const nonceBytes = parse(nonce);
-  let nonceBigInt = BigInt(0);
+  //TODO: implement this
+  // const nonceBytes = parse(nonce);
+  // let nonceBigInt = BigInt(0);
 
-  for (let i = 0; i < nonceBytes.length; i++) {
-    nonceBigInt = (nonceBigInt << BigInt(8)) | BigInt(nonceBytes[i]);
-  }
+  // for (let i = 0; i < nonceBytes.length; i++) {
+  //   nonceBigInt = (nonceBigInt << BigInt(8)) | BigInt(nonceBytes[i]);
+  // }
 
-  return nonceBigInt;
+  // return nonceBigInt;
+  return BigInt(0);
 }
 
 export function generateNonce(): bigint {
