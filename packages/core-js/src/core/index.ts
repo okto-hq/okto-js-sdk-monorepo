@@ -6,6 +6,11 @@ import type { Env } from '@/config/types.js';
 import Token from '@/tokens/index.js';
 import UserOperation from '@/userop/index.js';
 
+export interface OktoClientConfig {
+  environment: Env;
+  vendorPrivKey: string;
+}
+
 class OktoClient {
   private authClient: Auth;
   private accountClient: Account;
@@ -13,7 +18,7 @@ class OktoClient {
   private chainClient: Chain;
   private tokenClient: Token;
 
-  constructor(config: { environment: Env; vendorPrivKey: string }) {
+  constructor(config: OktoClientConfig) {
     globalConfig.initialize(config.environment, config.vendorPrivKey);
 
     this.authClient = new Auth();
