@@ -1,7 +1,7 @@
 {
-  "name": "@okto-sdk/core-js",
+  "name": "@okto-sdk/react",
   "version": "0.0.0",
-  "description": "Core JS for Okto SDK",
+  "description": "ReactJS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,21 +24,19 @@
     }
   },
   "dependencies": {
-    "@noble/curves": "^1.8.0",
-    "@noble/hashes": "^1.7.0",
-    "axios": "^1.7.9",
-    "axios-retry": "^4.5.0",
-    "uuid": "^11.0.4",
-    "viem": "^2.22.2"
+    "@okto-sdk/core-js": "workspace:*"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.17.2",
     "@okto-sdk/eslint-config": "workspace:*",
     "@okto-sdk/prettier-config": "workspace:*",
     "@okto-sdk/typescript-config": "workspace:*",
-    "@types/node": "^22.10.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@types/react": "^18.2.0",
+    "typescript": "^5.7.2",
+    "react": "^18.2.0"
   },
+  "peerDependencies": {
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0"
+  },
+  "keywords": [],
   "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
 }
