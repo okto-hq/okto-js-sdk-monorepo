@@ -38,6 +38,6 @@
   },
   "workspaces": [
     "packages/core-js",
-    "packages/react-native-okto-client"
+    "packages/react-native"
   ]
 }
