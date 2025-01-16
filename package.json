@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "clean": "turbo clean",
     "lint": "turbo lint",
     "check-format": "turbo check-format",
     "format": "turbo format",
