@@ -4,7 +4,7 @@ import type {
   AuthenticatePayloadParam,
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
-import { gatewayClient } from './client.js';
+import { getGatewayClient } from './client.js';
 
 class GatewayClientRepository {
   private static rpcRoute = '/rpc';
@@ -31,10 +31,9 @@ class GatewayClientRepository {
       params: [data],
     };
 
-    const response = await gatewayClient.post<RpcResponse<AuthenticateResult>>(
-      this.rpcRoute,
-      payload,
-    );
+    const response = await getGatewayClient().post<
+      RpcResponse<AuthenticateResult>
+    >(this.rpcRoute, payload);
 
     //TODO: Check if the user is authenticated and throw an error if not
 
@@ -55,7 +54,7 @@ class GatewayClientRepository {
       params: [data],
     };
 
-    const response = await gatewayClient.post<RpcResponse<string>>(
+    const response = await getGatewayClient().post<RpcResponse<string>>(
       this.rpcRoute,
       payload,
     );
