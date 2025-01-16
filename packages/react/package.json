@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
     "dev:index": "tsx src/index.ts",
     "lint": "eslint .",
     "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
@@ -32,7 +33,8 @@
     "@okto-sdk/typescript-config": "workspace:*",
     "@types/react": "^18.2.0",
     "typescript": "^5.7.2",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "rimraf": "^6.0.1"
   },
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0"
