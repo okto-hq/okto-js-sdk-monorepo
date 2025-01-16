@@ -1,0 +1,27 @@
+{
+  "name": "test-core-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "tsc && node dist/index.js",
+    "clean": "rm -rf dist",
+    "lint": "eslint .",
+    "check-format": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@okto-sdk/core-js": "workspace:*"
+  },
+  "devDependencies": {
+    "@okto-sdk/eslint-config": "workspace:*",
+    "@okto-sdk/prettier-config": "workspace:*",
+    "@okto-sdk/typescript-config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
+}
