@@ -5,10 +5,18 @@ import type {
   Wallet,
 } from '@/types/index.js';
 
-import { bffClient } from './client.js';
-import type { EstimateOrderPayload, NFTOrderDetails, Order, OrderEstimateResponse, UserNFTBalance, UserPortfolioActivity, UserPortfolioData } from '@/types/bff/account.js';
+import type {
+  EstimateOrderPayload,
+  NFTOrderDetails,
+  Order,
+  OrderEstimateResponse,
+  UserNFTBalance,
+  UserPortfolioActivity,
+  UserPortfolioData,
+} from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
+import { getBffClient } from './client.js';
 
 class BffClientRepository {
   private static routes = {
@@ -34,7 +42,7 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getWallets(): Promise<Wallet[]> {
-    const response = await bffClient.get<ApiResponse<Wallet[]>>(
+    const response = await getBffClient().get<ApiResponse<Wallet[]>>(
       this.routes.getWallets,
     );
 
@@ -54,7 +62,7 @@ class BffClientRepository {
   public static async getSupportedNetworks(): Promise<
     GetSupportedNetworksResponseData[]
   > {
-    const response = await bffClient.get<
+    const response = await getBffClient().get<
       ApiResponseWithCount<'network', GetSupportedNetworksResponseData>
     >(this.routes.getSupportedNetworks);
 
@@ -70,20 +78,20 @@ class BffClientRepository {
   }
 
   public static async verifySession(): Promise<UserSessionResponse> {
-    const response = await bffClient.post<ApiResponse<UserSessionResponse>>(
-      this.routes.verifySession
-    );
-  
+    const response = await getBffClient().post<
+      ApiResponse<UserSessionResponse>
+    >(this.routes.verifySession);
+
     if (response.data.status === 'error') {
       throw new Error('Failed to verify user session');
     }
-  
+
     if (!response.data.data) {
       throw new Error('Response data is missing');
     }
-  
+
     return response.data.data;
-  }  
+  }
 
   /**
    * Retrieves the list of supported tokens from the BFF service.
@@ -92,9 +100,9 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getSupportedTokens(): Promise<Token[]> {
-    const response = await bffClient.get<ApiResponseWithCount<'tokens', Token>>(
-      this.routes.getSupportedTokens,
-    );
+    const response = await getBffClient().get<
+      ApiResponseWithCount<'tokens', Token>
+    >(this.routes.getSupportedTokens);
 
     if (!response.data.data) {
       throw new Error('Response data is missing');
@@ -110,7 +118,7 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getPortfolio(): Promise<UserPortfolioData> {
-    const response = await bffClient.get<ApiResponse<UserPortfolioData>>(
+    const response = await getBffClient().get<ApiResponse<UserPortfolioData>>(
       this.routes.getPortfolio,
     );
 
@@ -132,9 +140,9 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getPortfolioActivity(): Promise<UserPortfolioActivity[]> {
-    const response = await bffClient.get<ApiResponseWithCount<"activity", UserPortfolioActivity>>(
-      this.routes.getPortfolioActivity,
-    );
+    const response = await getBffClient().get<
+      ApiResponseWithCount<'activity', UserPortfolioActivity>
+    >(this.routes.getPortfolioActivity);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve portfolio activity');
@@ -154,9 +162,9 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getPortfolioNft(): Promise<UserNFTBalance[]> {
-    const response = await bffClient.get<ApiResponseWithCount<"details", UserNFTBalance>>(
-      this.routes.getPortfolioNft,
-    );
+    const response = await getBffClient().get<
+      ApiResponseWithCount<'details', UserNFTBalance>
+    >(this.routes.getPortfolioNft);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve NFT portfolio');
@@ -176,9 +184,9 @@ class BffClientRepository {
    * @throws {Error} If the API request fails or returns an invalid response.
    */
   public static async getOrders(): Promise<Order[]> {
-    const response = await bffClient.get<ApiResponseWithCount<'orders', Order>>(
-      this.routes.getOrders,
-    );
+    const response = await getBffClient().get<
+      ApiResponseWithCount<'orders', Order>
+    >(this.routes.getOrders);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve orders');
@@ -198,9 +206,9 @@ class BffClientRepository {
    * @throws {Error} Throws an error if the response status is 'error' or if the response data is missing.
    */
   public static async getNftOrderDetails(): Promise<NFTOrderDetails[]> {
-    const response = await bffClient.get<ApiResponseWithCount<'executed', NFTOrderDetails>>(
-      this.routes.getNftOrderDetails,
-    );
+    const response = await getBffClient().get<
+      ApiResponseWithCount<'executed', NFTOrderDetails>
+    >(this.routes.getNftOrderDetails);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve NFT order details');
@@ -213,26 +221,23 @@ class BffClientRepository {
     return response.data.data.executed;
   }
 
-
-  public static async estimateOrder(payload: EstimateOrderPayload
+  public static async estimateOrder(
+    payload: EstimateOrderPayload,
   ): Promise<OrderEstimateResponse> {
-    const response = await bffClient.post<ApiResponse<OrderEstimateResponse>>(
-      this.routes.estimateOrder,
-      payload
-    );
-  
+    const response = await getBffClient().post<
+      ApiResponse<OrderEstimateResponse>
+    >(this.routes.estimateOrder, payload);
+
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
     }
-  
+
     if (!response.data.data) {
       throw new Error('Response data is missing');
     }
-  
+
     return response.data.data;
-  }  
+  }
 }
-
-
 
 export default BffClientRepository;
