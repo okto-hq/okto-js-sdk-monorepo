@@ -1,3 +1,4 @@
+import type { Hash, Hex } from '@/types/core.js';
 import type { Address } from 'viem';
 
 export type Env = 'sandbox' | 'production';
@@ -10,9 +11,9 @@ export interface EnvConfig {
 
 export interface AuthOptions {
   sessionPubKey?: string;
-  sessionPrivKey?: string;
+  sessionPrivKey?: Hash;
   vendorPubKey?: string;
-  vendorPrivKey?: string;
-  userSWA?: string;
-  vendorSWA?: string;
+  vendorPrivKey?: Hash;
+  userSWA?: Hex;
+  vendorSWA?: Hex;
 }

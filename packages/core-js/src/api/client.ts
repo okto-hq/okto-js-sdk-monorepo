@@ -14,7 +14,7 @@ function getGatewayClient() {
 
   client.interceptors.request.use(
     (config) => {
-      if (config.headers['Skip-Authorization'] === true) {
+      if (config.headers['Skip-Authorization'] == 'true') {
         return config;
       }
       config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);

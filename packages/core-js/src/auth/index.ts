@@ -1,7 +1,7 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { globalConfig } from '@/config/index.js';
-import type { User } from '@/types/core.js';
+import type { Hash, Hex, User } from '@/types/core.js';
 import type {
   AuthData,
   AuthenticatePayloadParam,
@@ -9,12 +9,11 @@ import type {
 } from '@/types/gateway/authenticate.js';
 import {
   Constants,
-  createSessionKeyPair,
   generatePaymasterAndData,
   generateUUID,
-  getPublicKey,
-  signPayload,
+  SessionKey,
 } from '@/utils/index.js';
+import { signMessage } from 'viem/accounts';
 
 class Auth {
   user?: User;
@@ -29,38 +28,51 @@ class Auth {
    * @param {string} vendorPriv The vendor private key.
    * @returns {AuthenticatePayloadParam} The authenticate payload.
    */
-  private _generateAuthenticatePayload(
+  private async _generateAuthenticatePayload(
     authData: AuthData,
-    sessionPub: string,
-    sessionPriv: string,
-    vendorPriv: string,
-  ): AuthenticatePayloadParam {
+    sessionKey: SessionKey,
+    vendorSWA: Hex,
+    vendorPriv: Hash,
+  ): Promise<AuthenticatePayloadParam> {
+    const nonce = generateUUID();
+
     const payload: AuthenticatePayloadParam = <AuthenticatePayloadParam>{};
 
     payload.authData = authData;
 
     payload.sessionData = <AuthSessionData>{};
-    payload.sessionData.nonce = generateUUID();
-    payload.sessionData.vendorAddress = getPublicKey(vendorPriv);
-    payload.sessionData.sessionPk = sessionPub;
-    payload.sessionData.maxPriorityFeePerGas = ''; //TODO: Get from Bundler
-    payload.sessionData.maxFeePerGas = ''; //TODO: Get from Bundler
+    payload.sessionData.nonce = nonce;
+    payload.sessionData.vendorSWA = vendorSWA;
+    payload.sessionData.sessionPk = sessionKey.uncompressedPublicKeyHex;
+    payload.sessionData.maxPriorityFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
+    payload.sessionData.maxFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
     payload.sessionData.paymaster = globalConfig.env.paymasterAddress;
-    payload.sessionData.paymasterData = generatePaymasterAndData(
+    payload.sessionData.paymasterData = await generatePaymasterAndData(
+      vendorSWA,
       vendorPriv,
+      nonce,
       new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
     );
 
     payload.additionalData = ''; //TODO: Add any additional data needed during testing
 
-    payload.authDataVendorSign = signPayload(authData, vendorPriv);
-    payload.sessionDataVendorSign = signPayload(
-      payload.sessionData,
-      vendorPriv,
-    );
+    payload.authDataVendorSign = await signMessage({
+      message: JSON.stringify(authData),
+      privateKey: vendorPriv,
+    });
+    payload.sessionDataVendorSign = await signMessage({
+      message: JSON.stringify(payload.sessionData),
+      privateKey: vendorPriv,
+    });
 
-    payload.authDataUserSign = signPayload(authData, sessionPriv);
-    payload.sessionDataUserSign = signPayload(payload.sessionData, sessionPriv);
+    payload.authDataUserSign = await signMessage({
+      message: JSON.stringify(authData),
+      privateKey: sessionKey.privateKeyHexWith0x,
+    });
+    payload.sessionDataUserSign = await signMessage({
+      message: JSON.stringify(payload.sessionData),
+      privateKey: sessionKey.privateKeyHexWith0x,
+    });
 
     return payload;
   }
@@ -75,26 +87,32 @@ class Auth {
    */
   async loginUsingOAuth(authData: AuthData): Promise<string> {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
-    const { uncompressedPublicKeyHex, privateKeyHex } = createSessionKeyPair();
+    const vendorSWA = globalConfig.authOptions.vendorSWA;
+    const session = SessionKey.create();
 
-    if (!vendorPrivateKey) {
+    if (!vendorPrivateKey || !vendorSWA) {
       throw new Error('Vendor details not found');
     }
 
-    const authPayload = this._generateAuthenticatePayload(
+    const authPayload = await this._generateAuthenticatePayload(
       authData,
-      uncompressedPublicKeyHex,
-      privateKeyHex,
+      session,
+      vendorSWA,
       vendorPrivateKey,
     );
+    console.log(authPayload);
 
     const authRes = await GatewayClientRepository.authenticate(authPayload);
 
     //TODO: Check if the response is valid
 
-    globalConfig.updateUserSession(uncompressedPublicKeyHex, privateKeyHex);
+    // TODO: Update with SessionKey Object
+    globalConfig.updateUserSession(
+      session.uncompressedPublicKeyHexWith0x,
+      session.privateKeyHexWith0x,
+    );
     // globalConfig.updateVendorSWA(authRes.vendorAddress);
-    globalConfig.updateUserSWA(authRes.userAddress);
+    globalConfig.updateUserSWA(authRes.userAddress as Hex);
 
     this.user = {
       ...authRes,

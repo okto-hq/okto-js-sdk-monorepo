@@ -1,6 +1,13 @@
-import { encodePacked, type Hash, type Hex } from 'viem';
-import { generateNonce } from './nonce.js';
-import { getPublicKey, signPayload } from './sessionKey.js';
+import {
+  encodeAbiParameters,
+  encodePacked,
+  keccak256,
+  parseAbiParameters,
+  type Hash,
+  type Hex,
+} from 'viem';
+import { signMessage } from 'viem/accounts';
+import { nonceToHex } from './nonce.js';
 
 /**
  * Generates the default paymaster data used for authentication.
@@ -10,38 +17,43 @@ import { getPublicKey, signPayload } from './sessionKey.js';
  * @param validAfter Unix Timestamp in milliseconds of when the paymaster data is valid after.
  * @returns
  */
-export function generatePaymasterAndData(
-  privateKey: string,
+export async function generatePaymasterAndData(
+  address: Hex,
+  privateKey: Hex,
+  nonce: string,
   validUntil: Date | number | bigint,
   validAfter?: Date | number | bigint,
-): Hash {
+): Promise<Hash> {
   if (validUntil instanceof Date) {
-    validUntil = BigInt(validUntil.getTime());
-  } else if (typeof validUntil === 'number') {
-    validUntil = BigInt(validUntil);
+    validUntil = validUntil.getTime();
+  } else if (typeof validUntil === 'bigint') {
+    validUntil = parseInt(validUntil.toString());
   }
 
   if (validAfter instanceof Date) {
-    validAfter = BigInt(validAfter.getTime());
-  } else if (typeof validAfter === 'number') {
-    validAfter = BigInt(validAfter);
+    validAfter = validAfter.getTime();
+  } else if (typeof validAfter === 'bigint') {
+    validAfter = parseInt(validAfter.toString());
   } else if (validAfter === undefined) {
-    validAfter = BigInt(0);
+    validAfter = 0;
   }
 
-  const vendorAddress = getPublicKey(privateKey) as Hex;
-  const nonce = generateNonce();
+  const nonceHex: Hex = nonceToHex(nonce);
 
-  const paymasterDataHash = encodePacked(
-    ['unit256', 'address', 'uint256', 'uint256'],
-    [nonce, vendorAddress, validUntil, validAfter],
+  const pe = encodePacked(
+    ['bytes32', 'address', 'uint48', 'uint48'],
+    [nonceHex, address, validUntil, validAfter],
   );
+  const paymasterDataHash = keccak256(pe);
 
-  const sig = signPayload(paymasterDataHash, privateKey);
+  const sig = await signMessage({
+    message: paymasterDataHash,
+    privateKey: privateKey,
+  });
 
-  const paymasterAndData = encodePacked(
-    ['address', 'uint256', 'uint256', 'bytes'],
-    [vendorAddress, validUntil, validAfter, sig as Hex],
+  const paymasterAndData = encodeAbiParameters(
+    parseAbiParameters('address, uint48, uint48, bytes'),
+    [address, validUntil, validAfter, sig],
   );
 
   return paymasterAndData;

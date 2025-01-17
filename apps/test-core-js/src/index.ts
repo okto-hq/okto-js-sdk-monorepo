@@ -1,1 +1,5 @@
-console.log("TypeScript setup complete!");
+async function main() {
+  console.log('Hello, Okto!');
+}
+
+main();
