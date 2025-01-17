@@ -85,7 +85,7 @@ class Auth {
    * @param {AuthData} authData The authentication data.
    * @returns {Promise<string>} A promise that resolves to the user address.
    */
-  async loginUsingOAuth(authData: AuthData): Promise<string> {
+  async loginUsingOAuth(authData: AuthData): Promise<User | undefined> {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
     const vendorSWA = globalConfig.authOptions.vendorSWA;
     const session = SessionKey.create();
@@ -100,25 +100,26 @@ class Auth {
       vendorSWA,
       vendorPrivateKey,
     );
-    console.log(authPayload);
 
-    const authRes = await GatewayClientRepository.authenticate(authPayload);
+    try {
+      const authRes = await GatewayClientRepository.authenticate(authPayload);
 
-    //TODO: Check if the response is valid
+      // TODO: Update with SessionKey Object
+      globalConfig.updateUserSession(
+        session.uncompressedPublicKeyHexWith0x,
+        session.privateKeyHexWith0x,
+      );
+      globalConfig.updateUserSWA(authRes.userAddress as Hex);
 
-    // TODO: Update with SessionKey Object
-    globalConfig.updateUserSession(
-      session.uncompressedPublicKeyHexWith0x,
-      session.privateKeyHexWith0x,
-    );
-    // globalConfig.updateVendorSWA(authRes.vendorAddress);
-    globalConfig.updateUserSWA(authRes.userAddress as Hex);
+      this.user = {
+        ...authRes,
+      };
 
-    this.user = {
-      ...authRes,
-    };
-
-    return authRes.userAddress;
+      return this.user;
+    } catch (error) {
+      //TODO: Return proper error
+      return undefined;
+    }
   }
 
   /**
