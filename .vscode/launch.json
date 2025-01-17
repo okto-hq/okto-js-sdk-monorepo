@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Current Package",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/packages/${input:package}/src/index.ts",
+      "outFiles": ["${workspaceFolder}/packages/${input:package}/dist/**/*.js"],
+      "preLaunchTask": "build-package",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug App",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/apps/${input:app}/src/index.ts",
+      "outFiles": ["${workspaceFolder}/apps/${input:app}/dist/**/*.js"],
+      "preLaunchTask": "build-app",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "package",
+      "type": "pickString",
+      "description": "Which package do you want to debug?",
+      "options": ["core-js", "react"]
+    },
+    {
+      "id": "app",
+      "type": "pickString",
+      "description": "Which app do you want to debug?",
+      "options": ["test-core-js"]
+    }
+  ]
+}
