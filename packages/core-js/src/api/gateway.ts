@@ -4,6 +4,7 @@ import type {
   AuthenticatePayloadParam,
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
+import { generateUUID } from '@/utils/nonce.js';
 import { getGatewayClient } from './client.js';
 
 class GatewayClientRepository {
@@ -27,13 +28,17 @@ class GatewayClientRepository {
     const payload: RpcPayload<AuthenticatePayloadParam[]> = {
       method: this.methods.authenticate,
       jsonrpc: '2.0',
-      id: '1', //TODO: Generate UUID
+      id: generateUUID(),
       params: [data],
     };
 
     const response = await getGatewayClient().post<
       RpcResponse<AuthenticateResult>
-    >(this.rpcRoute, payload);
+    >(this.rpcRoute, payload, {
+      headers: {
+        'Skip-Authorization': true,
+      },
+    });
 
     //TODO: Check if the user is authenticated and throw an error if not
 
@@ -50,7 +55,7 @@ class GatewayClientRepository {
     const payload: RpcPayload<UserOp[]> = {
       method: this.methods.execute,
       jsonrpc: '2.0',
-      id: '1', //TODO: Generate UUID
+      id: generateUUID(),
       params: [data],
     };
 
