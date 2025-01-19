@@ -10,7 +10,7 @@ export type AuthData =
 
 export type AuthSessionData = {
   nonce: string;
-  vendorAddress: string;
+  vendorSWA: string;
   sessionPk: string;
   maxPriorityFeePerGas: string;
   maxFeePerGas: string;

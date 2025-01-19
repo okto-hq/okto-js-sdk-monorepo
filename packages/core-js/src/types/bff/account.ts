@@ -1,10 +1,8 @@
 import type { Network } from './common.js';
 
-export type Address = string;
-
 export type Wallet = {
   network: Network;
-  address: Address;
+  address: string;
 };
 
 /**

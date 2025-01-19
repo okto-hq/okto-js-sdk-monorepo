@@ -4,11 +4,13 @@ import Chain from '@/chains/index.js';
 import { globalConfig } from '@/config/index.js';
 import type { Env } from '@/config/types.js';
 import Token from '@/tokens/index.js';
+import type { Hash, Hex } from '@/types/core.js';
 import UserOperation from '@/userop/index.js';
 
 export interface OktoClientConfig {
   environment: Env;
-  vendorPrivKey: string;
+  vendorPrivKey: Hash;
+  vendorSWA: Hex;
 }
 
 class OktoClient {
@@ -20,6 +22,7 @@ class OktoClient {
 
   constructor(config: OktoClientConfig) {
     globalConfig.initialize(config.environment, config.vendorPrivKey);
+    globalConfig.updateVendorSWA(config.vendorSWA);
 
     this.authClient = new Auth();
     this.accountClient = new Account();

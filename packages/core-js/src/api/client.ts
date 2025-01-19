@@ -4,70 +4,78 @@ import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
-const gatewayClient = axios.create({
-  baseURL: globalConfig.env.gatewayBaseUrl,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+function getGatewayClient() {
+  const client = axios.create({
+    baseURL: globalConfig.env.gatewayBaseUrl,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-gatewayClient.interceptors.request.use(
-  (config) => {
-    if (config.headers['Skip-Authorization'] === true) {
+  client.interceptors.request.use(
+    (config) => {
+      if (config.headers['Skip-Authorization'] == 'true') {
+        return config;
+      }
+      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
       return config;
-    }
-    config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+    },
+    (error) => {
+      return Promise.reject(error);
+    },
+  );
 
-gatewayClient.interceptors.response.use(
-  (response) => {
-    if (response.data) {
-      response.data = convertKeysToCamelCase(response.data);
-    }
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+  client.interceptors.response.use(
+    (response) => {
+      if (response.data) {
+        response.data = convertKeysToCamelCase(response.data);
+      }
+      return response;
+    },
+    (error) => {
+      return Promise.reject(error);
+    },
+  );
 
-const bffClient = axios.create({
-  baseURL: globalConfig.env.bffBaseUrl,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  return client;
+}
 
-bffClient.interceptors.request.use(
-  (config) => {
-    config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+function getBffClient() {
+  const client = axios.create({
+    baseURL: globalConfig.env.bffBaseUrl,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-bffClient.interceptors.response.use(
-  (response) => {
-    if (response.data) {
-      response.data = convertKeysToCamelCase(response.data);
-    }
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+  client.interceptors.request.use(
+    (config) => {
+      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    },
+  );
 
-axiosRetry(bffClient, {
-  retries: 3,
-  retryDelay: axiosRetry.exponentialDelay,
-});
+  client.interceptors.response.use(
+    (response) => {
+      if (response.data) {
+        response.data = convertKeysToCamelCase(response.data);
+      }
+      return response;
+    },
+    (error) => {
+      return Promise.reject(error);
+    },
+  );
 
-export { bffClient, gatewayClient };
+  axiosRetry(client, {
+    retries: 3,
+    retryDelay: axiosRetry.exponentialDelay,
+  });
+
+  return client;
+}
+
+export { getBffClient, getGatewayClient };

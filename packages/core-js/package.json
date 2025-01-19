@@ -7,20 +7,56 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
     "dev:index": "tsx src/index.ts",
     "lint": "eslint .",
     "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm --profile esm-only"
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./account": {
+      "types": "./dist/account/index.d.ts",
+      "import": "./dist/account/index.js",
+      "require": "./dist/account/index.cjs"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "import": "./dist/auth/index.js",
+      "require": "./dist/auth/index.cjs"
+    },
+    "./chains": {
+      "types": "./dist/chains/index.d.ts",
+      "import": "./dist/chains/index.js",
+      "require": "./dist/chains/index.cjs"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.cjs"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js",
+      "require": "./dist/tokens/index.cjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.cjs"
+    },
+    "./userop": {
+      "types": "./dist/userop/index.d.ts",
+      "import": "./dist/userop/index.js",
+      "require": "./dist/userop/index.cjs"
     }
   },
   "dependencies": {
@@ -37,6 +73,8 @@
     "@okto-sdk/prettier-config": "workspace:*",
     "@okto-sdk/typescript-config": "workspace:*",
     "@types/node": "^22.10.5",
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },

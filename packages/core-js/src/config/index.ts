@@ -1,3 +1,4 @@
+import type { Hash, Hex } from '@/types/core.js';
 import { getPublicKey } from '@/utils/sessionKey.js';
 import type { AuthOptions, Env, EnvConfig } from './types.js';
 
@@ -15,13 +16,13 @@ class GlobalConfig {
   private readonly sandboxEnv: EnvConfig = {
     gatewayBaseUrl: 'https://okto-gateway.oktostage.com',
     bffBaseUrl: 'https://apigw.oktostage.com',
-    paymasterAddress: '0x73C3894de9727bDf2E5Db7d90A1AB4FF7eBACa19',
+    paymasterAddress: '0x9b34131837d534cD199c0b8FdD8347c05E21A2D8',
   };
 
   private readonly productionEnv: EnvConfig = {
     gatewayBaseUrl: 'https://okto-gateway.okto.tech',
     bffBaseUrl: 'https://apigw.okto.tech',
-    paymasterAddress: '0x73C3894de9727bDf2E5Db7d90A1AB4FF7eBACa19',
+    paymasterAddress: '0x9b34131837d534cD199c0b8FdD8347c05E21A2D8',
   };
 
   /**
@@ -37,7 +38,7 @@ class GlobalConfig {
    * globalConfig.initialize(authOptions, 'sandbox');
    * ```
    */
-  initialize(environment: Env, vendorPrivateKey: string) {
+  initialize(environment: Env, vendorPrivateKey: Hash) {
     if (this._initialized) {
       throw new Error('GlobalConfig already initialized');
     }
@@ -58,7 +59,7 @@ class GlobalConfig {
    * @param sessionPrivKey - The private key of the user session.
    * @throws Error if the GlobalConfig is not initialized.
    */
-  updateUserSession(sessionPubKey: string, sessionPrivKey: string) {
+  updateUserSession(sessionPubKey: Hex, sessionPrivKey: Hash) {
     if (!this._authOptions) {
       throw new Error('GlobalConfig not initialized');
     }
@@ -66,14 +67,14 @@ class GlobalConfig {
     this._authOptions.sessionPubKey = sessionPubKey;
   }
 
-  updateVendorSWA(vendorSWA: string) {
+  updateVendorSWA(vendorSWA: Hex) {
     if (!this._authOptions) {
       throw new Error('GlobalConfig not initialized');
     }
     this._authOptions.vendorSWA = vendorSWA;
   }
 
-  updateUserSWA(userSWA: string) {
+  updateUserSWA(userSWA: Hex) {
     if (!this._authOptions) {
       throw new Error('GlobalConfig not initialized');
     }
