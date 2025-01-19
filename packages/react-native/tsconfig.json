@@ -1,15 +1,9 @@
 {
+  "extends": "@okto-sdk/typescript-config/react-library.json",
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "jsx": "react",
-    "baseUrl": ".",
-    "paths": {
-      "@okto-sdk/core-js": ["packages/core-js/src"]
-    },
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
-  },
-  "include": ["src/**/*"]
+    "outDir": "dist",
+    "rootDir": "src"
+  }
 }
