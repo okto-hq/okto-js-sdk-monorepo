@@ -49,7 +49,54 @@ function getGatewayClient() {
     },
   );
 
+  client.interceptors.response.use(
+    (response) => {
+      logCurlCommand(response.config);
+      console.log('Request Data:', JSON.stringify(response.config.data));
+      console.log('\nResponse Data:', JSON.stringify(response.data), '\n');
+      return response;
+    },
+    (error) => {
+      if (error.response) {
+        logCurlCommand(error.response.config);
+        console.log(
+          'Request Data:',
+          JSON.stringify(error.response.config.data),
+        );
+        console.log(
+          '\nResponse Data:',
+          JSON.stringify(error.response.data),
+          '\n',
+        );
+      }
+      return Promise.reject(error);
+    },
+  );
+
   return client;
+}
+
+function logCurlCommand(config: any, token?: string): void {
+  const method = config.method?.toUpperCase() || 'GET';
+  const url = `${config.baseURL || ''}${config.url || ''}`;
+  const headers = Object.entries(config.headers || {})
+    .filter(([key, value]) => value) // Filter out empty headers
+    .map(([key, value]) => `-H "${key}: ${value}"`)
+    .join(' ');
+  const data =
+    config.data && typeof config.data === 'object'
+      ? `--data '${JSON.stringify(config.data)}'`
+      : config.data
+        ? `--data '${config.data}'`
+        : '';
+  const authHeader = token ? `-H "Authorization: Bearer ${token}"` : '';
+
+  const curlCommand =
+    `curl -X ${method} "${url}" ${headers} ${authHeader} ${data}`.trim();
+
+  console.log('\n----- cURL Command Start -----\n');
+  console.log(curlCommand);
+  console.log('\n----- cURL Command End -----\n');
 }
 
 function getBffClient() {
