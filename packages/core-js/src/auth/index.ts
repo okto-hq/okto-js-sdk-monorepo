@@ -1,6 +1,7 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { globalConfig } from '@/config/index.js';
+import { RpcError } from '@/errors/index.js';
 import type { Hash, Hex, User } from '@/types/core.js';
 import type {
   AuthData,
@@ -16,7 +17,7 @@ import {
 import { signMessage } from 'viem/accounts';
 
 class Auth {
-  user?: User;
+  private _user?: User;
 
   /**
    * Generates the authenticate payload.
@@ -85,7 +86,9 @@ class Auth {
    * @param {AuthData} authData The authentication data.
    * @returns {Promise<string>} A promise that resolves to the user address.
    */
-  async loginUsingOAuth(authData: AuthData): Promise<User | undefined> {
+  async loginUsingOAuth(
+    authData: AuthData,
+  ): Promise<User | RpcError | undefined> {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
     const vendorSWA = globalConfig.authOptions.vendorSWA;
     const session = SessionKey.create();
@@ -111,14 +114,19 @@ class Auth {
       );
       globalConfig.updateUserSWA(authRes.userAddress as Hex);
 
-      this.user = {
+      this._user = {
         ...authRes,
       };
 
-      return this.user;
+      return this._user;
     } catch (error) {
       //TODO: Return proper error
-      return undefined;
+
+      if (error instanceof RpcError) {
+        return error;
+      }
+
+      throw error;
     }
   }
 
@@ -132,7 +140,7 @@ class Auth {
     try {
       await BffClientRepository.verifySession();
       return true;
-    } catch {
+    } catch (error) {
       globalConfig.clearAuthOptions();
       return false;
     }
@@ -142,8 +150,8 @@ class Auth {
    * Returns the user information.
    * If the user is not logged in, it returns undefined.
    */
-  get userInfo(): User | undefined {
-    return this.user;
+  get user(): User | undefined {
+    return this._user;
   }
 }
 
