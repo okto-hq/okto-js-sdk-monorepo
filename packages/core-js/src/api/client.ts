@@ -37,7 +37,40 @@ function getGatewayClient() {
     },
   );
 
+  client.interceptors.response.use(
+    (response) => {
+      logCurlCommand(response.config);
+      console.log('Request Data:', JSON.stringify(response.config.data));
+      console.log('\nResponse Data:', JSON.stringify(response.data), '\n');
+      return response;
+    },
+    (error) => {
+      if (error.response) {
+        logCurlCommand(error.response.config);
+        console.log('Request Data:', JSON.stringify(error.response.config.data));
+        console.log('\nResponse Data:', JSON.stringify(error.response.data), '\n');
+      }
+      return Promise.reject(error);
+    },
+  );
+
   return client;
+}
+
+function logCurlCommand(config: any) {
+  const method = config.method.toUpperCase();
+  const url = new URL(config.url, config.baseURL).href;
+  const headers = config.headers;
+  const data = config.data ? `-d '${JSON.stringify(config.data)}'` : '';
+
+  let curl = `curl -X ${method} '${url}'`;
+  for (const [key, value] of Object.entries(headers)) {
+    curl += ` -H '${key}: ${value}'`;
+  }
+  curl += ` ${data}`;
+  console.log('\n----- cURL Command Start -----\n');
+  console.log(curl);
+  console.log('\n----- cURL Command End -----\n');
 }
 
 function getBffClient() {
