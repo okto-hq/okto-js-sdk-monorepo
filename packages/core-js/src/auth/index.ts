@@ -17,7 +17,7 @@ import {
 import { signMessage } from 'viem/accounts';
 
 class Auth {
-  user?: User;
+  private _user?: User;
 
   /**
    * Generates the authenticate payload.
@@ -104,7 +104,6 @@ class Auth {
       vendorPrivateKey,
     );
 
-    // eslint-disable-next-line no-useless-catch
     try {
       const authRes = await GatewayClientRepository.authenticate(authPayload);
 
@@ -115,11 +114,11 @@ class Auth {
       );
       globalConfig.updateUserSWA(authRes.userAddress as Hex);
 
-      this.user = {
+      this._user = {
         ...authRes,
       };
 
-      return this.user;
+      return this._user;
     } catch (error) {
       //TODO: Return proper error
 
@@ -141,7 +140,7 @@ class Auth {
     try {
       await BffClientRepository.verifySession();
       return true;
-    } catch {
+    } catch (error) {
       globalConfig.clearAuthOptions();
       return false;
     }
@@ -151,8 +150,8 @@ class Auth {
    * Returns the user information.
    * If the user is not logged in, it returns undefined.
    */
-  get userInfo(): User | undefined {
-    return this.user;
+  get user(): User | undefined {
+    return this._user;
   }
 }
 

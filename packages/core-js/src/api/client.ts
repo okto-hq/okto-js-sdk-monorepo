@@ -4,6 +4,7 @@ import { getAuthorizationToken } from '@/utils/auth.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
+import { BaseError } from 'viem';
 
 function getGatewayClient() {
   const client = axios.create({
@@ -35,11 +36,13 @@ function getGatewayClient() {
     },
     (error) => {
       if (error instanceof AxiosError) {
-        throw new RpcError(
-          error.response?.data.error.code || -1,
-          error.response?.data.error.message,
-          error.response?.data.error.data,
-        );
+        if (error instanceof BaseError) {
+          throw new RpcError(
+            error.response?.data.error.code || -1,
+            error.response?.data.error.message,
+            error.response?.data.error.data,
+          );
+        }
       }
 
       return Promise.reject(error);
