@@ -39,14 +39,14 @@ function getGatewayClient() {
 
   client.interceptors.response.use(
     (response) => {
-      logCurlCommand(response.config, getAuthorizationToken());
+      logCurlCommand(response.config);
       console.log('Request Data:', JSON.stringify(response.config.data));
       console.log('\nResponse Data:', JSON.stringify(response.data), '\n');
       return response;
     },
     (error) => {
       if (error.response) {
-        logCurlCommand(error.response.config, getAuthorizationToken());
+        logCurlCommand(error.response.config);
         console.log(
           'Request Data:',
           JSON.stringify(error.response.config.data),
