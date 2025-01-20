@@ -1,6 +1,7 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { globalConfig } from '@/config/index.js';
+import { RpcError } from '@/errors/index.js';
 import type { Hash, Hex, User } from '@/types/core.js';
 import type {
   AuthData,
@@ -85,7 +86,9 @@ class Auth {
    * @param {AuthData} authData The authentication data.
    * @returns {Promise<string>} A promise that resolves to the user address.
    */
-  async loginUsingOAuth(authData: AuthData): Promise<User | undefined> {
+  async loginUsingOAuth(
+    authData: AuthData,
+  ): Promise<User | RpcError | undefined> {
     const vendorPrivateKey = globalConfig.authOptions.vendorPrivKey;
     const vendorSWA = globalConfig.authOptions.vendorSWA;
     const session = SessionKey.create();
@@ -101,6 +104,7 @@ class Auth {
       vendorPrivateKey,
     );
 
+    // eslint-disable-next-line no-useless-catch
     try {
       const authRes = await GatewayClientRepository.authenticate(authPayload);
 
@@ -118,7 +122,12 @@ class Auth {
       return this.user;
     } catch (error) {
       //TODO: Return proper error
-      return undefined;
+
+      if (error instanceof RpcError) {
+        return error;
+      }
+
+      throw error;
     }
   }
 
