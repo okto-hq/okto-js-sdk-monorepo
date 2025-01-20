@@ -1,86 +1,107 @@
-import { type AxiosResponse } from 'axios';
+import { AxiosError, type AxiosResponse } from 'axios';
 
 export function createLoggingInterceptor() {
   return [
     (response: AxiosResponse<any, any>) => {
-      logReqRes({
-        response: response,
-      });
+      logResponse(response);
       return response;
     },
 
     (error: any) => {
-      logReqRes({
-        error: error,
-      });
+      if (error instanceof AxiosError) {
+        logError(error);
+      }
       return Promise.reject(error);
     },
   ];
 }
 
-function logReqRes({
-  response,
-  error,
-}: {
-  response?: AxiosResponse<any, any>;
-  error?: any;
-}): void {
-  const reqConfig = response?.request || error?.config;
-  const token =
-    response?.headers['Authorization'] ||
-    error.response?.headers['Authorization'];
-
-  let reqData = JSON.stringify(reqConfig.data, null, 2);
-  if (typeof reqConfig.data == 'string') {
-    reqData = JSON.stringify(JSON.parse(reqConfig.data), null, 2);
-  }
-
-  let resData = JSON.stringify(response?.data, null, 2);
-  if (typeof response?.data == 'string') {
-    resData = JSON.stringify(JSON.parse(response?.data), null, 2);
-  }
-
+function logResponse(response: AxiosResponse<any, any>): void {
   let log = '';
 
   log += '-----------\n';
   log += 'Request\n';
   log += '-----------\n\n';
-  log += 'Method: ' + reqConfig.method + '\n';
-  log += 'URL: ' + reqConfig.url + '\n';
-  log += 'Headers: ' + JSON.stringify(reqConfig.headers, null, 2) + '\n';
-  log += 'Data: ' + reqData + '\n';
+  log += 'Method: ' + response.config.method + '\n';
+  log += 'URL: ' + response.config.baseURL + response.config.url + '\n';
+  log += 'Headers: ' + JSON.stringify(response.config.headers, null, 2) + '\n';
+  log +=
+    'Data: ' +
+    (response.config.data != undefined
+      ? JSON.stringify(JSON.parse(response.config.data || ''), null, 2)
+      : '') +
+    '\n';
   log += '\n';
 
   log += '-----------\n';
   log += 'Response\n';
   log += '-----------\n\n';
-  if (response != undefined) {
-    log += 'Status: ' + response.data.status + '\n';
-    log += 'Status Text: ' + response.data.statusText + '\n';
-    log += 'Headers: ' + JSON.stringify(response.data.headers) + '\n';
-    log += 'Data: ' + resData + '\n';
-    log += '\n';
-  } else {
-    log += 'None\n\n';
-  }
 
-  if (error != undefined) {
-    log += '-----------\n';
-    log += 'Error\n';
-    log += '-----------\n\n';
-    log += 'Message: ' + error.message + '\n';
-    log += 'Stack: ' + error.stack + '\n';
-    log += 'Response Data: ' + resData + '\n';
-    log += '\n';
-  }
+  log += 'Status: ' + response.status + '\n';
+  log += 'Status Text: ' + response.statusText + '\n';
+  log += 'Headers: ' + JSON.stringify(response.headers, null, 2) + '\n';
+  log += 'Data: ' + JSON.stringify(response.data, null, 2) + '\n';
+  log += '\n';
 
   log += '-----------\n';
   log += 'cURL\n';
   log += '-----------\n';
 
-  log += generateCurl(reqConfig, token);
+  log += generateCurl(response.config, response.headers['Authorization'] || '');
 
-  console.log(log);
+  console.info(log);
+}
+
+function logError(error: AxiosError): void {
+  let log = '';
+
+  log += '-----------\n';
+  log += 'Request\n';
+  log += '-----------\n\n';
+  log += 'Method: ' + error.request.method + '\n';
+  log += 'URL: ' + error.config?.baseURL + error.config?.url + '\n';
+  log += 'Headers: ' + JSON.stringify(error.config?.headers, null, 2) + '\n';
+  log +=
+    'Data: ' +
+    (error.config?.data != undefined
+      ? JSON.stringify(JSON.parse(error.config?.data), null, 2)
+      : '') +
+    '\n';
+  log += '\n';
+
+  log += '-----------\n';
+  log += 'Response\n';
+  log += '-----------\n\n';
+
+  if (error.response != undefined) {
+    log += 'Status: ' + error.response.status + '\n';
+    log += 'Status Text: ' + error.response.statusText + '\n';
+    log += 'Headers: ' + JSON.stringify(error.response.headers, null, 2) + '\n';
+    log += 'Data: ' + JSON.stringify(error.response.data, null, 2) + '\n';
+    log += '\n';
+  } else {
+    log += 'None\n\n';
+  }
+
+  log += '-----------\n';
+  log += 'Error\n';
+  log += '-----------\n\n';
+  log += 'Message: ' + error.message + '\n';
+  log += 'Stack: ' + error.stack + '\n';
+  log +=
+    'Response Data: ' + JSON.stringify(error.response?.data, null, 2) + '\n';
+  log += '\n';
+
+  log += '-----------\n';
+  log += 'cURL\n';
+  log += '-----------\n';
+
+  log += generateCurl(
+    error?.config,
+    error?.response?.headers['Authorization'] || '',
+  );
+
+  console.error(log);
 }
 
 function generateCurl(config: any, token?: string): string {
