@@ -1,5 +1,17 @@
+import { OktoClient } from '@okto-sdk/core-js';
 async function main() {
-  console.log('Hello, Okto!');
+  const oktoClient = new OktoClient({
+    environment: 'sandbox',
+    vendorPrivKey:
+      '0xadf2181a7b2dec0f1ed22061ab31bd6182691c619d9e874a956e71ab7ecca413',
+    vendorSWA: '0x6b6Fad2600Bc57075ee560A6fdF362FfefB9dC3C',
+  });
+  await oktoClient.auth.loginUsingOAuth({
+    idToken:
+      'eyJhbGciOiJSUzI1NiIsImtpZCI6ImRkMTI1ZDVmNDYyZmJjNjAxNGFlZGFiODFkZGYzYmNlZGFiNzA4NDciLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDQwNDAxODg3NjczNzI2Mzk0MTEiLCJoZCI6ImNoaXRrYXJhLmVkdS5pbiIsImVtYWlsIjoic3JpamFuMTM4NC5iZTIxQGNoaXRrYXJhLmVkdS5pbiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiOFlVcGRlUUFmR1Nvc3lQcmUxb3gtQSIsIm5hbWUiOiJTcmlqYW4gU2FtcmlkaCIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKSDdZVUxhS2ZpWk5ISzJ5MWJTeWN2VlR3ejgxVDNWSmttcDQzQWJZRUlnekRRbkRUVz1zOTYtYyIsImdpdmVuX25hbWUiOiJTcmlqYW4iLCJmYW1pbHlfbmFtZSI6IlNhbXJpZGgiLCJpYXQiOjE3MzczNzEzMTYsImV4cCI6MTczNzM3NDkxNn0.Wh1S_KQwibg1fmsxx6OPdYgCnpEfrynrHGjjgVYOpGFpoxR83DlOWqceQxJ8O8c2uQDm3aLqD5j7R4gHwPbonS_9FNEGShRfO34xkeanCEpHhmxQaNvhBiZOEjXte4JZK0icpLB9Kp7zJTdyDKs9ytFYZ3wtU0uVcFl8GTmJozAMyQHlnPQ-GQbblKDTUTpAUA8CT0ehDxzFlgLyYv4UptNWUYPWlhj7p2p4gjL65gdlMPdzmWp98IZnvLJCFeLyZFUKDTi9BJ5eSwSglc8gK3rXX8bpz7WlIGal9GPKmvZxwRClIxHtdrYRci7RyXm3Go1fuxQocqvefY7zcTR-Qw',
+    provider: 'google',
+  });
+  // console.log(oktoClient.auth);
+  console.log(`Karan in src ${oktoClient.auth.user?.userAddress}`);
 }
-
 main();
