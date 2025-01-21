@@ -1,4 +1,4 @@
-import { useOktoClient } from "../context/OktoProvider";
+import { useOkto } from "./useOkto.js";
 
 /**
  * Custom hook that provides authentication-related functions from OktoClient.
@@ -12,11 +12,9 @@ import { useOktoClient } from "../context/OktoProvider";
  *   - userInfo: Function to retrieve the current user's information.
  */
 export const useAuth = () => {
-  const oktoClient = useOktoClient();
+  const oktoClient = useOkto();
 
   return {
-    loginUsingOAuth: oktoClient.auth.loginUsingOAuth,
-    verifyLogin: oktoClient.auth.verifyLogin,
-    userInfo: oktoClient.auth.userInfo,
+    ...oktoClient.auth
   };
 };

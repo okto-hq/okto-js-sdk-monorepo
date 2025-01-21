@@ -1,0 +1,224 @@
+Index: packages/react-native/src/context/index.ts
+===================================================================
+diff --git a/packages/react-native/src/context/index.ts b/packages/react-native/src/context/index.ts
+deleted file mode 100644
+--- a/packages/react-native/src/context/index.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ /dev/null	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
+@@ -1,1 +0,0 @@
+-export { OktoProvider, useOktoClient } from "./OktoProvider";
+Index: packages/react-native/src/hooks/useAccount.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useOktoClient } from \"../context/OktoProvider\";\n\n/**\n * Custom hook that provides account-related functions from OktoClient.\n *\n * This hook uses the OktoClient instance to return functions that interact with the user's account.\n * It includes methods for retrieving account information, portfolio details, and order history.\n *\n * @returns An object containing methods for accessing account-related data:\n *   - getAccount: Function to get account details.\n *   - getPortfolio: Function to get portfolio details.\n *   - getOrdersHistory: Function to get the order history.\n */\nexport const useAccount = () => {\n  const oktoClient = useOktoClient();\n  return {\n    getAccount: oktoClient.account.getAccount,\n    getPortfolio: oktoClient.account.getPortfolio,\n    getOrdersHistory: oktoClient.account.getOrdersHistory,\n  };\n};\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/hooks/useAccount.ts b/packages/react-native/src/hooks/useAccount.ts
+--- a/packages/react-native/src/hooks/useAccount.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/hooks/useAccount.ts	(date 1737461872764)
+@@ -1,4 +1,4 @@
+-import { useOktoClient } from "../context/OktoProvider";
++import { useOkto } from "./useOkto.js";
+ 
+ /**
+  * Custom hook that provides account-related functions from OktoClient.
+@@ -12,10 +12,8 @@
+  *   - getOrdersHistory: Function to get the order history.
+  */
+ export const useAccount = () => {
+-  const oktoClient = useOktoClient();
++  const oktoClient = useOkto();
+   return {
+-    getAccount: oktoClient.account.getAccount,
+-    getPortfolio: oktoClient.account.getPortfolio,
+-    getOrdersHistory: oktoClient.account.getOrdersHistory,
++    ...oktoClient.account
+   };
+ };
+Index: packages/react-native/src/hooks/useToken.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useOktoClient } from \"../context/OktoProvider\";\n\n/**\n * Custom hook that provides token and NFT collection-related functions from OktoClient.\n *\n * This hook uses the OktoClient instance to return functions that interact with tokens and NFT collections.\n * It includes methods for fetching a list of available tokens and NFT collections.\n *\n * @returns An object containing methods for fetching token and NFT collection-related data:\n *   - getTokens: Function to retrieve the list of available tokens.\n *   - getNftCollections: Function to retrieve the list of NFT collections.\n */\nexport const useToken = () => {\n  const oktoClient = useOktoClient();\n\n  return {\n    getTokens: oktoClient.token.getTokens,\n    getNftCollections: oktoClient.token.getNftCollections,\n  };\n};\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/hooks/useToken.ts b/packages/react-native/src/hooks/useToken.ts
+--- a/packages/react-native/src/hooks/useToken.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/hooks/useToken.ts	(date 1737461816498)
+@@ -1,4 +1,4 @@
+-import { useOktoClient } from "../context/OktoProvider";
++import { useOkto } from './useOkto.js';
+ 
+ /**
+  * Custom hook that provides token and NFT collection-related functions from OktoClient.
+@@ -11,10 +11,9 @@
+  *   - getNftCollections: Function to retrieve the list of NFT collections.
+  */
+ export const useToken = () => {
+-  const oktoClient = useOktoClient();
++  const oktoClient = useOkto();
+ 
+   return {
+-    getTokens: oktoClient.token.getTokens,
+-    getNftCollections: oktoClient.token.getNftCollections,
++   ...oktoClient.token
+   };
+ };
+Index: packages/react-native/src/hooks/useChain.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useOktoClient } from \"../context/OktoProvider\";\n\n/**\n * Custom hook that provides chain-related functions from OktoClient.\n *\n * This hook uses the OktoClient instance to return functions that interact with blockchain chains.\n * It includes methods for fetching a list of available chains.\n *\n * @returns An object containing methods for fetching chain-related data:\n *   - getChains: Function to retrieve the list of available chains.\n */\nexport const useChain = () => {\n  const oktoClient = useOktoClient();\n\n  return {\n    getChains: oktoClient.chain.getChains,\n  };\n};\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/hooks/useChain.ts b/packages/react-native/src/hooks/useChain.ts
+--- a/packages/react-native/src/hooks/useChain.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/hooks/useChain.ts	(date 1737461840806)
+@@ -1,4 +1,4 @@
+-import { useOktoClient } from "../context/OktoProvider";
++import { useOkto } from "./useOkto.js"
+ 
+ /**
+  * Custom hook that provides chain-related functions from OktoClient.
+@@ -10,9 +10,9 @@
+  *   - getChains: Function to retrieve the list of available chains.
+  */
+ export const useChain = () => {
+-  const oktoClient = useOktoClient();
++  const oktoClient = useOkto();
+ 
+   return {
+-    getChains: oktoClient.chain.getChains,
++    ...oktoClient.chain
+   };
+ };
+Index: packages/react-native/src/context/OktoProvider.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// src/providers/OktoProvider.tsx\nimport React, { createContext, useContext } from 'react';\nimport {OktoClient} from '@okto-sdk/core-js/src/index';\n\nconst OktoContext = createContext<OktoClient | null>(null);\n\nexport const OktoProvider: React.FC<{\n  config: { environment: string; vendorPrivKey: string };\n  children: React.ReactNode;\n}> = ({ config, children }) => {\n  const oktoClient = new OktoClient(config);\n\n  return (\n    <OktoContext.Provider value={oktoClient}>\n      {children}\n    </OktoContext.Provider>\n  );\n};\n\nexport const useOktoClient = () => {\n  const context = useContext(OktoContext);\n  if (!context) {\n    throw new Error('useOktoClient must be used within an OktoProvider');\n  }\n  return context;\n};
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/context/OktoProvider.tsx b/packages/react-native/src/context/OktoProvider.tsx
+--- a/packages/react-native/src/context/OktoProvider.tsx	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/context/OktoProvider.tsx	(date 1737461543650)
+@@ -1,26 +1,17 @@
+-// src/providers/OktoProvider.tsx
+-import React, { createContext, useContext } from 'react';
+-import {OktoClient} from '@okto-sdk/core-js/src/index';
++import { OktoClient, type OktoClientConfig } from '@okto-sdk/core-js';
++import type { ReactNode } from 'react';
++import { OktoContext } from './OktoContext.js';
++// import { OktoContext } from './OktoContext.js';
+ 
+-const OktoContext = createContext<OktoClient | null>(null);
++interface OktoProviderProps {
++  config: OktoClientConfig;
++  children: ReactNode;
++}
+ 
+-export const OktoProvider: React.FC<{
+-  config: { environment: string; vendorPrivKey: string };
+-  children: React.ReactNode;
+-}> = ({ config, children }) => {
+-  const oktoClient = new OktoClient(config);
++export const OktoProvider = ({ config, children }: OktoProviderProps) => {
++  const client = new OktoClient(config);
+ 
+   return (
+-    <OktoContext.Provider value={oktoClient}>
+-      {children}
+-    </OktoContext.Provider>
++    <OktoContext.Provider value={{ client }}>{children}</OktoContext.Provider>
+   );
+ };
+-
+-export const useOktoClient = () => {
+-  const context = useContext(OktoContext);
+-  if (!context) {
+-    throw new Error('useOktoClient must be used within an OktoProvider');
+-  }
+-  return context;
+-};
+\ No newline at end of file
+Index: packages/react-native/src/hooks/useAuth.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useOktoClient } from \"../context/OktoProvider\";\n\n/**\n * Custom hook that provides authentication-related functions from OktoClient.\n *\n * This hook uses the OktoClient instance to return functions that handle authentication tasks.\n * It includes methods for logging in using OAuth, verifying the login status, and retrieving user information.\n *\n * @returns An object containing methods for handling authentication:\n *   - loginUsingOAuth: Function to login using OAuth authentication.\n *   - verifyLogin: Function to verify the login status.\n *   - userInfo: Function to retrieve the current user's information.\n */\nexport const useAuth = () => {\n  const oktoClient = useOktoClient();\n\n  return {\n    loginUsingOAuth: oktoClient.auth.loginUsingOAuth,\n    verifyLogin: oktoClient.auth.verifyLogin,\n    userInfo: oktoClient.auth.userInfo,\n  };\n};\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/hooks/useAuth.ts b/packages/react-native/src/hooks/useAuth.ts
+--- a/packages/react-native/src/hooks/useAuth.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/hooks/useAuth.ts	(date 1737461850154)
+@@ -1,4 +1,4 @@
+-import { useOktoClient } from "../context/OktoProvider";
++import { useOkto } from "./useOkto.js";
+ 
+ /**
+  * Custom hook that provides authentication-related functions from OktoClient.
+@@ -12,11 +12,9 @@
+  *   - userInfo: Function to retrieve the current user's information.
+  */
+ export const useAuth = () => {
+-  const oktoClient = useOktoClient();
++  const oktoClient = useOkto();
+ 
+   return {
+-    loginUsingOAuth: oktoClient.auth.loginUsingOAuth,
+-    verifyLogin: oktoClient.auth.verifyLogin,
+-    userInfo: oktoClient.auth.userInfo,
++    ...oktoClient.auth
+   };
+ };
+Index: packages/react-native/src/hooks/index.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>export { useAccount } from \"./useAccount\";\nexport { useAuth } from \"./useAuth\";\nexport { useChain } from \"./useChain\";\nexport { useToken } from \"./useToken\";\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/src/hooks/index.ts b/packages/react-native/src/hooks/index.ts
+--- a/packages/react-native/src/hooks/index.ts	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/src/hooks/index.ts	(date 1737460988690)
+@@ -1,4 +1,4 @@
+-export { useAccount } from "./useAccount";
+-export { useAuth } from "./useAuth";
+-export { useChain } from "./useChain";
+-export { useToken } from "./useToken";
++export { useAccount } from "./useAccount.js";
++export { useAuth } from "./useAuth.js";
++export { useChain } from "./useChain.js";
++export { useToken } from "./useToken.js";
+Index: packages/react-native/prettier.config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { config } from '@okto-sdk/prettier-config/base';\n\n/**\n * @see https://prettier.io/docs/en/configuration.html\n * @type {import(\"prettier\").Config}\n */\nexport default config;
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/prettier.config.js b/packages/react-native/prettier.config.js
+--- a/packages/react-native/prettier.config.js	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/prettier.config.js	(date 1737460903631)
+@@ -1,4 +1,4 @@
+-import { config } from '@okto-sdk/prettier-config/base';
++import { config } from '@okto-sdk/prettier-config';
+ 
+ /**
+  * @see https://prettier.io/docs/en/configuration.html
+Index: packages/react-native/eslint.config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { config } from \"@okto-sdk/eslint-config/base\";\n\n/** @type {import(\"eslint\").Linter.Config} */\nexport default config;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-native/eslint.config.js b/packages/react-native/eslint.config.js
+--- a/packages/react-native/eslint.config.js	(revision 830247adf4be85dacbf7e81a41534df04725bd87)
++++ b/packages/react-native/eslint.config.js	(date 1737460893555)
+@@ -1,4 +1,4 @@
+-import { config } from "@okto-sdk/eslint-config/base";
++import { config } from "@okto-sdk/eslint-config";
+ 
+ /** @type {import("eslint").Linter.Config} */
+ export default config;
