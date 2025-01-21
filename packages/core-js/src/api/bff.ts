@@ -1,7 +1,6 @@
 import type {
   ApiResponse,
   ApiResponseWithCount,
-  Token,
 } from '@/types/index.js';
 
 import type {
@@ -17,6 +16,7 @@ import type {
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
+import type { Token } from '@/types/bff/tokens.js';
 
 class BffClientRepository {
   private static routes = {

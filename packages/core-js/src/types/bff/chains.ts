@@ -8,5 +8,8 @@ export type GetSupportedNetworksResponseData = {
   networkName: string;
   chainId: string;
   logo: string;
+  sponsorshipEnabled: boolean;
+  gsnEnabled: boolean;
+  type: string;
+  networkId: string;
 };
-
