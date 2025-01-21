@@ -8,11 +8,23 @@ async function main() {
   });
   await oktoClient.auth.loginUsingOAuth({
     idToken:
-      'eyJhbGciOiJSUzI1NiIsImtpZCI6ImRkMTI1ZDVmNDYyZmJjNjAxNGFlZGFiODFkZGYzYmNlZGFiNzA4NDciLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE4MTI5MjU3NTAxMDQ1MzA2NDUiLCJlbWFpbCI6InBhcm1pbmRlcnNpbmdob3V0bGluZXN5c3RlbXNAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJ4LWxWTXRfQnRvUTZVRzIxYTI0aW5RIiwibmFtZSI6IlBhcm1pbmRlciBTaW5naCIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKZklwOVhNaUZJTElWSUE2MXZBQnRNODROQ0FISE5DaUd3VjhXY2lqa1pueWNOeUE9czk2LWMiLCJnaXZlbl9uYW1lIjoiUGFybWluZGVyIiwiZmFtaWx5X25hbWUiOiJTaW5naCIsImlhdCI6MTczNzQ0MTE4MCwiZXhwIjoxNzM3NDQ0NzgwfQ.E7T7-dL65Dbn3SABOZRFAsh5RBG4UCzm2gcEbHw5f5JrgFm43FCMhDb3j2qNNW4c7rTJvlDVwbQLPs6ggISl3XnxB5QHl94A35gfXNQq7maimsdiUu6CjNWQUVkkynM5ZValt6ekWKkFzVpBCvqRLCQk809gX1OQgUbsGEIujzhapqK5IiJM1orJQRe4S9OyXClAKfIwxdhsjWOoGw_QjDu0NTsAbL0vx3Be7IeD-wIxyzbDa0P0CQezOdq_g1Mx9MGcLxyYiO6UAr6oI98ePR2Nvw33u79zAwk5-FDQsx0Ct395zokfpmUB9NLJD-EVcvRfrARaoHRdZ1cdkVZ8hw',
+      'eyJhbGciOiJSUzI1NiIsImtpZCI6ImRkMTI1ZDVmNDYyZmJjNjAxNGFlZGFiODFkZGYzYmNlZGFiNzA4NDciLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE4MTI5MjU3NTAxMDQ1MzA2NDUiLCJlbWFpbCI6InBhcm1pbmRlcnNpbmdob3V0bGluZXN5c3RlbXNAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJlR2RteDhXcVp6eE02ZEZ1dVhnNS1nIiwibmFtZSI6IlBhcm1pbmRlciBTaW5naCIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKZklwOVhNaUZJTElWSUE2MXZBQnRNODROQ0FISE5DaUd3VjhXY2lqa1pueWNOeUE9czk2LWMiLCJnaXZlbl9uYW1lIjoiUGFybWluZGVyIiwiZmFtaWx5X25hbWUiOiJTaW5naCIsImlhdCI6MTczNzQ1NTYyMiwiZXhwIjoxNzM3NDU5MjIyfQ.JK59ranq6nuUvvH3xuVMTxwB17Msf0e8thTrCaeQQtluVxBLltYUu-Pk8oPDZPjJJPVSX6BizZNlCKDD0UAxW1TDtG_bE_PZV3W009x4g1YyZdWBplw4_Ev5yuy4xk3pHYqyg0-fbeNYnsDDMt0z3S8PTu0Zbo6dVPU5wxOA1zR9DUtGqQHTUKhheYHRUm0O2eM_z--5o746d3cEIn21mmjlz2JeZidBYdomhWHCbtHHeP3nY4UJ8etQ2EmQpAanyysQ-IM7ENvjzQ7oJus6CgrzJp7nxyNzEWqXl1ACSLLyw-hPXK00YoXoYuM_ayhA1WsGXlnpb_lgdK3PKPPCfw',
     provider: 'google',
   });
   // console.log(oktoClient.auth);
-  console.log(`Karan in src ${oktoClient.auth.user?.userAddress}`);
-  console.log(`karan is here ${await oktoClient.chain.getChains()}`);
+  // console.log(`Karan in src ${oktoClient.account.getAccount()}`);
+  // console.log(
+  //   `karan is here for getorderhistory ${await oktoClient.account.getOrdersHistory()}`,
+  // );
+
+  console.log(
+    `karan is here for getUserPortfolio NFT ${await oktoClient.account.getPortfolioActivity()}`,
+  );
+
+  console.log(
+    `karan is here for getUserPortfolio NFT ${await oktoClient.account.getOrdersHistory()}`,
+  );
+
+
 }
 main();

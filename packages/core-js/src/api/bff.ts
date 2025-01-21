@@ -21,9 +21,9 @@ import { getBffClient } from './client.js';
 class BffClientRepository {
   private static routes = {
     // GET
-    getWallets: '/api/oc/v1/wallets',
-    getSupportedNetworks: '/api/oc/v1/supported/networks',
-    getSupportedTokens: '/api/oc/v1/supported/tokens',
+    getWallets: '/api/oc/v1/wallets', 
+    getSupportedNetworks: '/api/oc/v1/supported/networks', 
+    getSupportedTokens: '/api/oc/v1/supported/tokens', 
     getPortfolio: '/api/oc/v1/aggregated-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
@@ -167,6 +167,16 @@ class BffClientRepository {
       ApiResponseWithCount<'details', UserNFTBalance>
     >(this.routes.getPortfolioNft);
 
+    // console.log('KARAN :: Response from API:', response.data);
+    console.log(
+      'KARAN :: Retrieved details :',
+      JSON.stringify(response.data.data?.details, null, 2),
+    );
+
+     response.data.data.details.forEach((order, index) => {
+       console.log(`KARAN :: Order ${index + 1} intent id  :`);
+     });
+
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve NFT portfolio');
     }
@@ -186,8 +196,14 @@ class BffClientRepository {
    */
   public static async getOrders(): Promise<Order[]> {
     const response = await getBffClient().get<
-      ApiResponseWithCount<'orders', Order>
+      ApiResponseWithCount<'items', Order>
     >(this.routes.getOrders);
+
+    // console.log('KARAN :: Response from API:', response.data);
+    // console.log(
+    //   'KARAN :: Retrieved Items:',
+    //   JSON.stringify(response.data.data?.items, null, 2),
+    // );
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve orders');
@@ -197,7 +213,18 @@ class BffClientRepository {
       throw new Error('Response data is missing');
     }
 
-    return response.data.data.orders;
+    response.data.data.items.forEach((order, index) => {
+      console.log(`KARAN :: Order ${index + 1} intent id  :`);
+      if (order.gsnParams && Array.isArray(order.gsnParams.tokens)) {
+        order.gsnParams.tokens.forEach((token) => {
+          console.log('Token Amount in USDT:', token.amountInUSDT);
+        });
+      } else {
+        console.log('Tokens are not available or are null.');
+      }
+    });
+
+    return response.data.data.items;
   }
 
   /**

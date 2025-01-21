@@ -15,6 +15,9 @@ class Chain {
     try {
       const supportedNetworks =
         await BffClientRepository.getSupportedNetworks();
+            console.log(
+              `Karan is here in supportedNetworks ${supportedNetworks}`,
+            );
       return supportedNetworks;
     } catch (error) {
       console.error('Failed to retrieve supported networks:', error);

@@ -110,9 +110,8 @@ export type NFTOrderDetails = {
 /**
  * Represents the user's NFT balance.
  */
+
 export type UserNFTBalance = {
-  collectionId: string;
-  networkId: string;
   caipId: string;
   networkName: string;
   entityType: string;
@@ -128,6 +127,7 @@ export type UserNFTBalance = {
   collectionImage: string;
 };
 
+
 /**
  * ========================
  * Order Types
@@ -138,20 +138,26 @@ export type UserNFTBalance = {
  * Represents an order.
  */
 export type Order = {
-  downstreamTransactionHash: string[];
-  transactionHash: string;
-  status: string;
   intentId: string;
-  intentType: string;
-  networkName: string;
-  caipId: string;
-  details: {
-    recipientWalletAddress: string;
-    networkId: string;
-    tokenAddress: string;
-    amount: string;
+  transactionHash: string[];
+  userAddress: string;
+  vendorAddress: string;
+  params: any | null; // If params can be null, use this.
+  gsnParams: {
+    isRequired: boolean;
+    requiredNetworks: string[];
+    tokens:
+      | {
+          amountInUSDT: string;
+          maxAmount: string;
+          networkId: string;
+          tokenAddress: string;
+        }[]
+      | null; // If tokens can be null, use this.
   };
+  status: string;
 };
+
 
 /**
  * ========================

@@ -12,7 +12,7 @@ class GlobalConfig {
   private _authOptions?: AuthOptions;
   private _environment?: Env;
   private _initialized = false;
-  readonly isDev: boolean = false; //* Mark it as true for development environment
+  readonly isDev: boolean = true; //* Mark it as true for development environment
 
   private readonly sandboxEnv: EnvConfig = {
     gatewayBaseUrl: 'https://okto-gateway.oktostage.com',

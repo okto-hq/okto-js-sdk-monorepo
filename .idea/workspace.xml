@@ -5,10 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9ab60e8b-641b-4a7e-9bf7-8a1e9576938f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/launch.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/test-core-js/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/test-core-js/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/core-js/src/account/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/account/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/core-js/src/api/bff.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/api/bff.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/core-js/src/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/api/client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/core-js/src/chains/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/chains/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/core-js/src/config/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/config/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/core-js/src/types/bff/account.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/core-js/src/types/bff/account.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,11 +39,11 @@
                 <list>
                   <RecentBranch>
                     <option name="branchName" value="testing-3p-api" />
-                    <option name="lastUsedInstant" value="1737383279" />
+                    <option name="lastUsedInstant" value="1737441970" />
                   </RecentBranch>
                   <RecentBranch>
                     <option name="branchName" value="development" />
-                    <option name="lastUsedInstant" value="1737383192" />
+                    <option name="lastUsedInstant" value="1737441943" />
                   </RecentBranch>
                 </list>
               </option>
