@@ -1,0 +1,133 @@
+Index: packages/core-js/src/api/bff.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import type {\n  ApiResponse,\n  ApiResponseWithCount,\n  Token,\n  Wallet,\n} from '@/types/index.js';\n\nimport type {\n  EstimateOrderPayload,\n  NFTOrderDetails,\n  Order,\n  OrderEstimateResponse,\n  UserNFTBalance,\n  UserPortfolioActivity,\n  UserPortfolioData,\n} from '@/types/bff/account.js';\nimport type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';\nimport type { UserSessionResponse } from '@/types/gateway/authenticate.js';\nimport { getBffClient } from './client.js';\n\nclass BffClientRepository {\n  private static routes = {\n    // GET\n    getWallets: '/api/oc/v1/wallets',\n    getSupportedNetworks: '/api/oc/v1/supported/networks',\n    getSupportedTokens: '/api/oc/v1/supported/tokens',\n    getPortfolio: '/api/oc/v1/aggregated-portfolio',\n    getPortfolioActivity: '/api/oc/v1/portfolio/activity',\n    getPortfolioNft: '/api/oc/v1/portfolio/nft',\n    getOrders: '/api/oc/v1/orders',\n    getNftOrderDetails: '/api/oc/v1/nft/order-details',\n\n    // POST\n    estimateOrder: '/api/oc/v1/estimate',\n    verifySession: '/api/oc/v1/verify-session',\n  };\n\n  /**\n   * Retrieves the list of wallets for the authenticated user from the BFF service.\n   *\n   * @returns {Promise<Wallet[]>} A promise that resolves to an array of Wallet objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getWallets(): Promise<Wallet[]> {\n    const response = await getBffClient().get<ApiResponse<Wallet[]>>(\n      this.routes.getWallets,\n    );\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data;\n  }\n\n  /**\n   * Retrieves the list of supported networks from the BFF service.\n   *\n   * @returns {Promise<GetSupportedNetworksResponseData[]>} A promise that resolves to an array of GetSupportedNetworksResponseData objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getSupportedNetworks(): Promise<\n    GetSupportedNetworksResponseData[]\n  > {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'network', GetSupportedNetworksResponseData>\n    >(this.routes.getSupportedNetworks);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve supported networks');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.network;\n  }\n\n  public static async verifySession(): Promise<UserSessionResponse> {\n    const response = await getBffClient().post<\n      ApiResponse<UserSessionResponse>\n    >(this.routes.verifySession);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to verify user session');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data;\n  }\n\n  /**\n   * Retrieves the list of supported tokens from the BFF service.\n   *\n   * @returns {Promise<Token[]>} A promise that resolves to an array of Token objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getSupportedTokens(): Promise<Token[]> {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'tokens', Token>\n    >(this.routes.getSupportedTokens);\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.tokens;\n  }\n\n  /**\n   * Retrieves the aggregated portfolio for the authenticated user from the BFF service.\n   *\n   * @returns {Promise<UserPortfolioData>} A promise that resolves to the aggregated portfolio data.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getPortfolio(): Promise<UserPortfolioData> {\n    const response = await getBffClient().get<ApiResponse<UserPortfolioData>>(\n      this.routes.getPortfolio,\n    );\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve portfolio');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data;\n  }\n\n  /**\n   * Retrieves the portfolio activity for the authenticated user from the BFF service.\n   *\n   * @returns {Promise<UserPortfolioActivity[]>} A promise that resolves to an array of UserPortfolioActivity objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getPortfolioActivity(): Promise<UserPortfolioActivity[]> {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'activity', UserPortfolioActivity>\n    >(this.routes.getPortfolioActivity);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve portfolio activity');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.activity;\n  }\n\n  /**\n   * Retrieves the NFT portfolio for the authenticated user from the BFF service.\n   *\n   * @returns {Promise<UserNFTBalance[]>} A promise that resolves to an array of UserNFTBalance objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getPortfolioNft(): Promise<UserNFTBalance[]> {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'details', UserNFTBalance>\n    >(this.routes.getPortfolioNft);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve NFT portfolio');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.details;\n  }\n\n  /**\n   * Retrieves the list of orders for the authenticated user from the BFF service.\n   *\n   * @returns {Promise<Order[]>} A promise that resolves to an array of Order objects.\n   * @throws {Error} If the API request fails or returns an invalid response.\n   */\n  public static async getOrders(): Promise<Order[]> {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'orders', Order>\n    >(this.routes.getOrders);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve orders');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.orders;\n  }\n\n  /**\n   * Retrieves the details of executed NFT orders from the backend.\n   *\n   * @returns {Promise<NFTOrderDetails[]>} A promise that resolves to an array of NFT order details.\n   * @throws {Error} Throws an error if the response status is 'error' or if the response data is missing.\n   */\n  public static async getNftOrderDetails(): Promise<NFTOrderDetails[]> {\n    const response = await getBffClient().get<\n      ApiResponseWithCount<'executed', NFTOrderDetails>\n    >(this.routes.getNftOrderDetails);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to retrieve NFT order details');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data.executed;\n  }\n\n  public static async estimateOrder(\n    payload: EstimateOrderPayload,\n  ): Promise<OrderEstimateResponse> {\n    const response = await getBffClient().post<\n      ApiResponse<OrderEstimateResponse>\n    >(this.routes.estimateOrder, payload);\n\n    if (response.data.status === 'error') {\n      throw new Error('Failed to estimate order');\n    }\n\n    if (!response.data.data) {\n      throw new Error('Response data is missing');\n    }\n\n    return response.data.data;\n  }\n}\n\nexport default BffClientRepository;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/core-js/src/api/bff.ts b/packages/core-js/src/api/bff.ts
+--- a/packages/core-js/src/api/bff.ts	(revision a0e47212af2e297d5ae4237109e16159199ac093)
++++ b/packages/core-js/src/api/bff.ts	(date 1737376134762)
+@@ -66,6 +66,7 @@
+       ApiResponseWithCount<'network', GetSupportedNetworksResponseData>
+     >(this.routes.getSupportedNetworks);
+ 
++    console.log(`Karan is here in response ${response}`);
+     if (response.data.status === 'error') {
+       throw new Error('Failed to retrieve supported networks');
+     }
+Index: .vscode/launch.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\n  \"version\": \"0.2.0\",\n  \"configurations\": [\n    {\n      \"type\": \"node\",\n      \"request\": \"launch\",\n      \"name\": \"Debug Current Package\",\n      \"skipFiles\": [\"<node_internals>/**\"],\n      \"program\": \"${workspaceFolder}/packages/${input:package}/src/index.ts\",\n      \"outFiles\": [\"${workspaceFolder}/packages/${input:package}/dist/**/*.js\"],\n      \"preLaunchTask\": \"build-package\",\n      \"sourceMaps\": true,\n      \"resolveSourceMapLocations\": [\n        \"${workspaceFolder}/**\",\n        \"!**/node_modules/**\"\n      ]\n    },\n    {\n      \"type\": \"node\",\n      \"request\": \"launch\",\n      \"name\": \"Debug App\",\n      \"skipFiles\": [\"<node_internals>/**\"],\n      \"program\": \"${workspaceFolder}/apps/${input:app}/src/index.ts\",\n      \"outFiles\": [\"${workspaceFolder}/apps/${input:app}/dist/**/*.js\"],\n      \"preLaunchTask\": \"build-app\",\n      \"sourceMaps\": true,\n      \"resolveSourceMapLocations\": [\n        \"${workspaceFolder}/**\",\n        \"!**/node_modules/**\"\n      ]\n    }\n  ],\n  \"inputs\": [\n    {\n      \"id\": \"package\",\n      \"type\": \"pickString\",\n      \"description\": \"Which package do you want to debug?\",\n      \"options\": [\"core-js\", \"react\"]\n    },\n    {\n      \"id\": \"app\",\n      \"type\": \"pickString\",\n      \"description\": \"Which app do you want to debug?\",\n      \"options\": [\"test-core-js\"]\n    }\n  ]\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.vscode/launch.json b/.vscode/launch.json
+--- a/.vscode/launch.json	(revision a0e47212af2e297d5ae4237109e16159199ac093)
++++ b/.vscode/launch.json	(date 1737319588977)
+@@ -20,9 +20,9 @@
+       "request": "launch",
+       "name": "Debug App",
+       "skipFiles": ["<node_internals>/**"],
+-      "program": "${workspaceFolder}/apps/${input:app}/src/index.ts",
+-      "outFiles": ["${workspaceFolder}/apps/${input:app}/dist/**/*.js"],
+-      "preLaunchTask": "build-app",
++      "runtimeExecutable": "npx",  // Use npx to run the tsx package
++      "args": ["tsx", "${workspaceFolder}/apps/${input:app}/src/index.ts"],  // Run the TypeScript file using tsx
++      "preLaunchTask": "build-app",  // Ensure build is done before launching
+       "sourceMaps": true,
+       "resolveSourceMapLocations": [
+         "${workspaceFolder}/**",
+@@ -44,4 +44,4 @@
+       "options": ["test-core-js"]
+     }
+   ]
+-}
++}
+\ No newline at end of file
+Index: packages/core-js/src/api/client.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { globalConfig } from '@/config/index.js';\nimport { getAuthorizationToken } from '@/utils/auth.js';\nimport { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';\nimport axios from 'axios';\nimport axiosRetry from 'axios-retry';\n\nfunction getGatewayClient() {\n  const client = axios.create({\n    baseURL: globalConfig.env.gatewayBaseUrl,\n    headers: {\n      'Content-Type': 'application/json',\n    },\n  });\n\n  client.interceptors.request.use(\n    (config) => {\n      if (config.headers['Skip-Authorization'] == 'true') {\n        return config;\n      }\n      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);\n      return config;\n    },\n    (error) => {\n      return Promise.reject(error);\n    },\n  );\n\n  client.interceptors.response.use(\n    (response) => {\n      if (response.data) {\n        response.data = convertKeysToCamelCase(response.data);\n      }\n      return response;\n    },\n    (error) => {\n      return Promise.reject(error);\n    },\n  );\n\n  return client;\n}\n\nfunction getBffClient() {\n  const client = axios.create({\n    baseURL: globalConfig.env.bffBaseUrl,\n    headers: {\n      'Content-Type': 'application/json',\n    },\n  });\n\n  client.interceptors.request.use(\n    (config) => {\n      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);\n      return config;\n    },\n    (error) => {\n      return Promise.reject(error);\n    },\n  );\n\n  client.interceptors.response.use(\n    (response) => {\n      if (response.data) {\n        response.data = convertKeysToCamelCase(response.data);\n      }\n      return response;\n    },\n    (error) => {\n      return Promise.reject(error);\n    },\n  );\n\n  axiosRetry(client, {\n    retries: 3,\n    retryDelay: axiosRetry.exponentialDelay,\n  });\n\n  return client;\n}\n\nexport { getBffClient, getGatewayClient };\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/core-js/src/api/client.ts b/packages/core-js/src/api/client.ts
+--- a/packages/core-js/src/api/client.ts	(revision a0e47212af2e297d5ae4237109e16159199ac093)
++++ b/packages/core-js/src/api/client.ts	(date 1737378678709)
+@@ -1,7 +1,7 @@
+ import { globalConfig } from '@/config/index.js';
+ import { getAuthorizationToken } from '@/utils/auth.js';
+ import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
+-import axios from 'axios';
++import axios, { type AxiosRequestConfig } from 'axios';
+ import axiosRetry from 'axios-retry';
+ 
+ function getGatewayClient() {
+@@ -14,10 +14,17 @@
+ 
+   client.interceptors.request.use(
+     (config) => {
+-      if (config.headers['Skip-Authorization'] == 'true') {
++      if (config.headers && config.headers['Skip-Authorization'] === 'true') {
++        logCurlCommand(config);
+         return config;
+       }
+-      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
++
++      const token = getAuthorizationToken();
++      if (config.headers) {
++        config.headers.Authorization = `Bearer ${token}`;
++      }
++
++      logCurlCommand(config, token);
+       return config;
+     },
+     (error) => {
+@@ -40,6 +47,30 @@
+   return client;
+ }
+ 
++function logCurlCommand(config: AxiosRequestConfig, token?: string): void {
++  const method = config.method?.toUpperCase() || 'GET';
++  const url = `${config.baseURL || ''}${config.url || ''}`;
++
++  const headers = Object.entries(config.headers || {})
++    .filter(([key, value]) => value) // Filter out empty headers
++    .map(([key, value]) => `-H "${key}: ${value}"`)
++    .join(' ');
++
++  const data =
++    config.data && typeof config.data === 'object'
++      ? `--data '${JSON.stringify(config.data)}'`
++      : config.data
++        ? `--data '${config.data}'`
++        : '';
++
++  const authHeader = token ? `-H "Authorization: Bearer ${token}"` : '';
++
++  const curlCommand =
++    `curl -X ${method} "${url}" ${headers} ${authHeader} ${data}`.trim();
++
++  console.log(curlCommand);
++}
++
+ function getBffClient() {
+   const client = axios.create({
+     baseURL: globalConfig.env.bffBaseUrl,
+@@ -50,7 +81,13 @@
+ 
+   client.interceptors.request.use(
+     (config) => {
+-      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
++      const token = getAuthorizationToken();
++      console.log(`karan is here in curl ${token}`);
++      if (config.headers) {
++        config.headers.Authorization = `Bearer ${token}`;
++      }
++      console.log(`Karan is here in bff request abbea`);
++      logCurlCommand(config);
+       return config;
+     },
+     (error) => {

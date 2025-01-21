@@ -66,6 +66,7 @@ class BffClientRepository {
       ApiResponseWithCount<'network', GetSupportedNetworksResponseData>
     >(this.routes.getSupportedNetworks);
 
+    console.log(`Karan is here in response ${response}`);
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve supported networks');
     }

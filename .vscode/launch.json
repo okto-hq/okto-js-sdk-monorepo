@@ -20,9 +20,9 @@
       "request": "launch",
       "name": "Debug App",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/apps/${input:app}/src/index.ts",
-      "outFiles": ["${workspaceFolder}/apps/${input:app}/dist/**/*.js"],
-      "preLaunchTask": "build-app",
+      "runtimeExecutable": "npx",  // Use npx to run the tsx package
+      "args": ["tsx", "${workspaceFolder}/apps/${input:app}/src/index.ts"],  // Run the TypeScript file using tsx
+      "preLaunchTask": "build-app",  // Ensure build is done before launching
       "sourceMaps": true,
       "resolveSourceMapLocations": [
         "${workspaceFolder}/**",
