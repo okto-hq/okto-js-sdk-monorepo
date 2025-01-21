@@ -4,6 +4,7 @@ import type {
   EstimateOrderPayload,
   Order,
   OrderEstimateResponse,
+  UserNFTBalance,
   UserPortfolioData,
   Wallet,
 } from '@/types/bff/account.js';
@@ -138,6 +139,15 @@ class Account {
   async getOrdersHistory(): Promise<Order[]> {
     try {
       return await BffClientRepository.getOrders();
+    } catch (error) {
+      console.error('Failed to retrieve orders: ', error);
+      throw error;
+    }
+  }
+
+  async getPortfolioNFT(): Promise<UserNFTBalance[]> {
+    try {
+      return await BffClientRepository.getPortfolioNft();
     } catch (error) {
       console.error('Failed to retrieve orders: ', error);
       throw error;

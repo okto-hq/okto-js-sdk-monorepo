@@ -2,7 +2,6 @@ import type {
   ApiResponse,
   ApiResponseWithCount,
   Token,
-  Wallet,
 } from '@/types/index.js';
 
 import type {
@@ -13,6 +12,7 @@ import type {
   UserNFTBalance,
   UserPortfolioActivity,
   UserPortfolioData,
+  Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';

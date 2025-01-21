@@ -1,8 +1,18 @@
-import type { Network } from './common.js';
+/**
+ * ========================
+ * Wallet Types
+ * ========================
+ */
 
+/**
+ * Represents a wallet.
+ */
 export type Wallet = {
-  network: Network;
+  caipId: string;
+  networkName: string;
   address: string;
+  networkId: string;
+  networkSymbol: string;
 };
 
 /**
