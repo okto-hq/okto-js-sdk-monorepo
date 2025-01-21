@@ -1,4 +1,4 @@
-import { useOktoClient } from "../context/OktoProvider";
+import { useOkto} from "./useOkto.js";
 
 /**
  * Custom hook that provides token and NFT collection-related functions from OktoClient.
@@ -11,7 +11,7 @@ import { useOktoClient } from "../context/OktoProvider";
  *   - getNftCollections: Function to retrieve the list of NFT collections.
  */
 export const useToken = () => {
-  const oktoClient = useOktoClient();
+  const oktoClient = useOkto();
 
   return {
     getTokens: oktoClient.token.getTokens,

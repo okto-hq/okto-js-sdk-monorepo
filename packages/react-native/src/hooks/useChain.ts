@@ -1,4 +1,4 @@
-import { useOktoClient } from "../context/OktoProvider";
+import { useOkto } from "./useOkto.js";
 
 /**
  * Custom hook that provides chain-related functions from OktoClient.
@@ -10,7 +10,7 @@ import { useOktoClient } from "../context/OktoProvider";
  *   - getChains: Function to retrieve the list of available chains.
  */
 export const useChain = () => {
-  const oktoClient = useOktoClient();
+  const oktoClient = useOkto();
 
   return {
     getChains: oktoClient.chain.getChains,
