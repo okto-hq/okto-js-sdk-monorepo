@@ -1,8 +1,11 @@
 import { globalConfig } from '@/config/index.js';
+import { RpcError } from '@/errors/index.js';
 import { getAuthorizationToken } from '@/utils/auth.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
-import axios, { type AxiosRequestConfig } from 'axios';
+import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
+import { BaseError } from 'viem';
+import { createLoggingInterceptor } from './logger.js';
 
 function getGatewayClient() {
   const client = axios.create({
@@ -14,17 +17,10 @@ function getGatewayClient() {
 
   client.interceptors.request.use(
     (config) => {
-      if (config.headers && config.headers['Skip-Authorization'] === 'true') {
-        logCurlCommand(config);
+      if (config.headers['Skip-Authorization'] == 'true') {
         return config;
       }
-
-      const token = getAuthorizationToken();
-      if (config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      logCurlCommand(config, token);
+      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
       return config;
     },
     (error) => {
@@ -40,35 +36,25 @@ function getGatewayClient() {
       return response;
     },
     (error) => {
+      if (error instanceof AxiosError) {
+        if (error instanceof BaseError) {
+          throw new RpcError(
+            error.response?.data.error.code || -1,
+            error.response?.data.error.message,
+            error.response?.data.error.data,
+          );
+        }
+      }
+
       return Promise.reject(error);
     },
   );
 
+  if (globalConfig.isDev) {
+    client.interceptors.response.use(...createLoggingInterceptor());
+  }
+
   return client;
-}
-
-function logCurlCommand(config: AxiosRequestConfig, token?: string): void {
-  const method = config.method?.toUpperCase() || 'GET';
-  const url = `${config.baseURL || ''}${config.url || ''}`;
-
-  const headers = Object.entries(config.headers || {})
-    .filter(([key, value]) => value) // Filter out empty headers
-    .map(([key, value]) => `-H "${key}: ${value}"`)
-    .join(' ');
-
-  const data =
-    config.data && typeof config.data === 'object'
-      ? `--data '${JSON.stringify(config.data)}'`
-      : config.data
-        ? `--data '${config.data}'`
-        : '';
-
-  const authHeader = token ? `-H "Authorization: Bearer ${token}"` : '';
-
-  const curlCommand =
-    `curl -X ${method} "${url}" ${headers} ${authHeader} ${data}`.trim();
-
-  console.log(curlCommand);
 }
 
 function getBffClient() {
@@ -81,13 +67,7 @@ function getBffClient() {
 
   client.interceptors.request.use(
     (config) => {
-      const token = getAuthorizationToken();
-      console.log(`karan is here in curl ${token}`);
-      if (config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      console.log(`Karan is here in bff request abbea`);
-      logCurlCommand(config);
+      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
       return config;
     },
     (error) => {
@@ -106,6 +86,10 @@ function getBffClient() {
       return Promise.reject(error);
     },
   );
+
+  if (globalConfig.isDev) {
+    client.interceptors.response.use(...createLoggingInterceptor());
+  }
 
   axiosRetry(client, {
     retries: 3,

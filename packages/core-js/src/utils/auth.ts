@@ -3,11 +3,13 @@ import { signMessage } from 'viem/accounts';
 
 export function getAuthorizationToken() {
   const sessionPriv = globalConfig.authOptions?.sessionPrivKey;
-  const sessionPub = globalConfig.authOptions?.sessionPubKey;
+  let sessionPub = globalConfig.authOptions?.sessionPubKey;
 
   if (sessionPriv === undefined || sessionPub === undefined) {
     throw new Error('Session keys are not set');
   }
+
+  sessionPub = sessionPub.replace('0x', '');
 
   const data = {
     expire_at: new Date(Date.now() + 30 * 60 * 1000).getTime().toString(),

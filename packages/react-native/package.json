@@ -1,0 +1,45 @@
+{
+  "name": "@okto-sdk/react-native",
+  "version": "0.0.0",
+  "description": "React-Native for Okto SDK",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc && tsc-alias",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "dev:index": "tsx src/index.ts",
+    "lint": "eslint .",
+    "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
+    "check-types": "tsc --noEmit",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "dependencies": {
+    "@okto-sdk/core-js": "workspace:*"
+  },
+  "devDependencies": {
+    "@okto-sdk/eslint-config": "workspace:*",
+    "@okto-sdk/prettier-config": "workspace:*",
+    "@okto-sdk/typescript-config": "workspace:*",
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0",
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.10",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0"
+  },
+  "keywords": [],
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
+}
