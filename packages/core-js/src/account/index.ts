@@ -5,6 +5,7 @@ import type {
   Order,
   OrderEstimateResponse,
   UserNFTBalance,
+  UserPortfolioActivity,
   UserPortfolioData,
   Wallet,
 } from '@/types/bff/account.js';
@@ -145,6 +146,27 @@ class Account {
     }
   }
 
+  /**
+   * Retrieves the portfolio activity for the authenticated user from the BFF service.
+   *
+   * @returns {Promise<UserPortfolioActivity[]>} A promise that resolves to an array of UserPortfolioActivity objects.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+
+  async getPortfolioActivity(): Promise<UserPortfolioActivity[]> {
+    try {
+      return await BffClientRepository.getPortfolioActivity();
+    } catch (error) {
+      console.error('Failed to retrieve portfolio: ', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieves the list of orders for the authenticated user.
+   *
+   * @returns {Promise<UserNFTBalance[]>} A promise that resolves to an array of NFT balance objects.
+   */
   async getPortfolioNFT(): Promise<UserNFTBalance[]> {
     try {
       return await BffClientRepository.getPortfolioNft();
