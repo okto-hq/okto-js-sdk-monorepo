@@ -1,9 +1,19 @@
 import { globalConfig } from '@/config/index.js';
 import type { Hash, Hex, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
-import { generateNonce, generateUUID, nonceToBigInt } from '@/utils/nonce.js';
-import { generatePaymasterAndData } from '@/utils/paymaster.js';
-import { encodeFunctionData, encodePacked, type Address } from 'viem';
+import {
+  convertUUIDToInt,
+  generateUUID,
+  nonceToBigInt,
+} from '@/utils/nonce.js';
+import { generatePaymasterData } from '@/utils/paymaster.js';
+import {
+  encodeAbiParameters,
+  encodeFunctionData,
+  encodePacked,
+  parseAbiParameters,
+  type Address,
+} from 'viem';
 import UserOperationAbi from './abi.js';
 import UserOperationConstants from './constants.js';
 import type { TokenTransferIntentParams } from './types.js';
@@ -14,19 +24,19 @@ class UserOperation extends UserOperationAbi {
       ['bytes4', 'address', 'bytes'],
       [
         UserOperationConstants.ExecuteUserOpFunctionSelector,
-        '0x0', // job manager address
+        '0xed8Fe2543efFF64FC3567B03b612AA82C409579a', // job manager address // TODO: Add to Config
         encodeFunctionData({
           abi: this.tokenTransferAbi,
           functionName: 'initiateJob',
           args: [
-            generateNonce(),
+            convertUUIDToInt(generateUUID()),
             globalConfig.authOptions.vendorSWA,
             globalConfig.authOptions.userSWA,
-            encodePacked(['bool', 'bool'], [true, true]), // policyinfo  //TODO: get this data from user
+            encodePacked(['bool', 'bool'], [false, true]), // policyinfo  //TODO: get this data from user
             '0x0', // gsnData
-            encodePacked(
-              ['string', 'string', 'unit256', 'unit256'],
-              [data.chain, data.recipient, data.token, data.amount],
+            encodeAbiParameters(
+              parseAbiParameters('string, string, string, uint256'),
+              [data.chain, data.recipient, data.token, BigInt(data.amount)],
             ),
             'TOKEN_TRANSFER',
           ],
@@ -48,8 +58,7 @@ class UserOperation extends UserOperationAbi {
       paymasterPostOpGasLimit: BigInt(100000),
       paymasterVerificationGasLimit: BigInt(100000),
       callData: calldata,
-      signature: '0x0', // signUserOp()
-      paymasterAndData: await generatePaymasterAndData(
+      paymasterData: await generatePaymasterData(
         globalConfig.authOptions.vendorSWA as Hex,
         globalConfig.authOptions.vendorPrivKey as Hash,
         nonce,

@@ -6,11 +6,18 @@ import type { Network } from "./common.js";
  */
 
 export type Token = {
-  tokenId: string;
-  tokenAddress: string;
-  network: Network;
-  whitelisted: boolean | undefined;
-  onRampEnabled: boolean | undefined;
+  address: string;
+  caipId: string;
+  symbol: string;
+  image: string;
+  name: string;
+  shortName: string;
+  id: string;
+  groupId: string;
+  isPrimary: boolean;
+  networkId: string;
+  networkName: string;
+  isOnrampEnabled: boolean;
 };
 
 /**

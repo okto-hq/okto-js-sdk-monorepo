@@ -1,8 +1,8 @@
 export type { convertKeysToCamelCase } from './convertToCamelCase.js';
 
-export { getPublicKey, SessionKey, signPayload } from './sessionKey.js';
+export { SessionKey, getPublicKey, signPayload } from './sessionKey.js';
 
-export { generatePaymasterAndData } from './paymaster.js';
+export { generatePaymasterData as generatePaymasterAndData } from './paymaster.js';
 
 export * from './nonce.js';
 

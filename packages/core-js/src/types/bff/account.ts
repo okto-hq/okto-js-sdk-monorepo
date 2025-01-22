@@ -1,8 +1,21 @@
+import type { Hash } from '../core.js';
 import type { Network } from './common.js';
 
+/**
+ * ========================
+ * Wallet Types
+ * ========================
+ */
+
+/**
+ * Represents a wallet.
+ */
 export type Wallet = {
-  network: Network;
+  caipId: string;
+  networkName: string;
   address: string;
+  networkId: string;
+  networkSymbol: string;
 };
 
 /**
@@ -110,7 +123,6 @@ export type NFTOrderDetails = {
 /**
  * Represents the user's NFT balance.
  */
-
 export type UserNFTBalance = {
   caipId: string;
   networkName: string;
@@ -127,7 +139,6 @@ export type UserNFTBalance = {
   collectionImage: string;
 };
 
-
 /**
  * ========================
  * Order Types
@@ -142,7 +153,7 @@ export type Order = {
   transactionHash: string[];
   userAddress: string;
   vendorAddress: string;
-  params: any | null; // If params can be null, use this.
+  params: any | null;
   gsnParams: {
     isRequired: boolean;
     requiredNetworks: string[];
@@ -153,11 +164,10 @@ export type Order = {
           networkId: string;
           tokenAddress: string;
         }[]
-      | null; // If tokens can be null, use this.
+      | null;
   };
   status: string;
 };
-
 
 /**
  * ========================
@@ -171,10 +181,7 @@ export type Order = {
 export type EstimateOrderPayload = {
   type: string;
   jobId: string;
-  paymasterDetails?: {
-    validUntil: string;
-    validAfter: string;
-  };
+  paymasterData?: Hash;
   gasDetails?: {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;

@@ -1,4 +1,4 @@
-import { useOktoClient } from "../context/OktoProvider";
+import { useOkto} from "./useOkto.js";
 
 /**
  * Custom hook that provides account-related functions from OktoClient.
@@ -12,10 +12,8 @@ import { useOktoClient } from "../context/OktoProvider";
  *   - getOrdersHistory: Function to get the order history.
  */
 export const useAccount = () => {
-  const oktoClient = useOktoClient();
+  const oktoClient = useOkto();
   return {
-    getAccount: oktoClient.account.getAccount,
-    getPortfolio: oktoClient.account.getPortfolio,
-    getOrdersHistory: oktoClient.account.getOrdersHistory,
+    ...oktoClient.account
   };
 };

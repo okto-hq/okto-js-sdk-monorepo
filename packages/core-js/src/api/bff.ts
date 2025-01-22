@@ -1,8 +1,6 @@
 import type {
   ApiResponse,
   ApiResponseWithCount,
-  Token,
-  Wallet,
 } from '@/types/index.js';
 
 import type {
@@ -13,10 +11,12 @@ import type {
   UserNFTBalance,
   UserPortfolioActivity,
   UserPortfolioData,
+  Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
+import type { Token } from '@/types/bff/tokens.js';
 
 class BffClientRepository {
   private static routes = {
@@ -252,9 +252,11 @@ class BffClientRepository {
   public static async estimateOrder(
     payload: EstimateOrderPayload,
   ): Promise<OrderEstimateResponse> {
-    const response = await getBffClient().post<
+    const response = await getBffClient().get<
       ApiResponse<OrderEstimateResponse>
-    >(this.routes.estimateOrder, payload);
+    >(this.routes.estimateOrder, {
+      data: payload,
+    });
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
