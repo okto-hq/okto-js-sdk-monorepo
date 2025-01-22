@@ -14,7 +14,6 @@ export const useToken = () => {
   const oktoClient = useOkto();
 
   return {
-    getTokens: oktoClient.token.getTokens,
-    getNftCollections: oktoClient.token.getNftCollections,
+    ...oktoClient.token
   };
 };

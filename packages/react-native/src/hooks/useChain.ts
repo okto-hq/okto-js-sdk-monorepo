@@ -13,6 +13,6 @@ export const useChain = () => {
   const oktoClient = useOkto();
 
   return {
-    getChains: oktoClient.chain.getChains,
+    ...oktoClient.chain
   };
 };
