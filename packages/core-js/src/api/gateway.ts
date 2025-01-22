@@ -5,6 +5,7 @@ import type {
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
 import { generateUUID } from '@/utils/nonce.js';
+import { serializeJSON } from '@/utils/serialize.js';
 import { getGatewayClient } from './client.js';
 
 class GatewayClientRepository {
@@ -32,9 +33,11 @@ class GatewayClientRepository {
       params: [data],
     };
 
+    const serliazedPayload = serializeJSON(payload);
+
     const response = await getGatewayClient().post<
       RpcResponse<AuthenticateResult>
-    >(this.rpcRoute, payload, {
+    >(this.rpcRoute, serliazedPayload, {
       headers: {
         'Skip-Authorization': true,
       },
@@ -59,9 +62,11 @@ class GatewayClientRepository {
       params: [data],
     };
 
+    const serliazedPayload = serializeJSON(payload);
+
     const response = await getGatewayClient().post<RpcResponse<string>>(
       this.rpcRoute,
-      payload,
+      serliazedPayload,
     );
 
     //TODO: Check if successful and throw an error if not

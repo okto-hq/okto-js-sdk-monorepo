@@ -15,9 +15,21 @@ export function nonceToBigInt(nonce: string): bigint {
   return bigInt;
 }
 
-export function nonceToHex(nonce: string): Hex {
+export function nonceToHex(
+  nonce: string,
+  opts?: { padding?: number | undefined },
+): Hex {
   return toHex(nonceToBigInt(nonce), {
-    size: 32,
+    size: opts?.padding || 32,
+  });
+}
+
+export function bigintToHex(
+  data: bigint,
+  opts?: { padding?: number | undefined },
+): Hex {
+  return toHex(data, {
+    size: opts?.padding || 32,
   });
 }
 
