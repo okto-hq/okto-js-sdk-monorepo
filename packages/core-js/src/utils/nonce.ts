@@ -51,7 +51,7 @@ function hexToBytes32(hex: string) {
   return '0x' + hex.padStart(64, '0');
 }
 
-export function convertUUIDToInt(uuid: string) {
+export function convertUUIDToInt(uuid: string): Hex {
   // Convert UUID to BigInt
   const uuidBytes = uuidParse(uuid); // Get the 16-byte array of the UUID
   let bigInt = BigInt(0);
@@ -63,5 +63,28 @@ export function convertUUIDToInt(uuid: string) {
   }
   // console.log("UUID as BigInt:", hexToBytes32(bigInt.toString()));
 
-  return hexToBytes32(bigInt.toString(16));
+  return hexToBytes32(bigInt.toString(16)) as Hex;
+}
+
+export function updateHexPadding(
+  hexString: string,
+  paddingLength: number,
+): Hex {
+  // Remove '0x' if present
+  const cleanHex = hexString.replace('0x', '');
+
+  // Validate hex string
+  if (!/^[0-9a-fA-F]+$/.test(cleanHex)) {
+    throw new Error('Invalid hex string');
+  }
+
+  // If hex is longer than padding, truncate from left
+  if (cleanHex.length > paddingLength) {
+    return `0x${cleanHex.slice(-paddingLength)}`;
+  }
+
+  // Add leading zeros to match padding length
+  const paddedHex = cleanHex.padStart(paddingLength, '0');
+
+  return `0x${paddedHex}`;
 }

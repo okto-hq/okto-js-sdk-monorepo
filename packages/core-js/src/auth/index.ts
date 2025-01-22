@@ -12,6 +12,7 @@ import {
   Constants,
   generatePaymasterAndData,
   generateUUID,
+  nonceToHex,
   SessionKey,
 } from '@/utils/index.js';
 import { signMessage } from 'viem/accounts';
@@ -51,7 +52,7 @@ class Auth {
     payload.sessionData.paymasterData = await generatePaymasterAndData(
       vendorSWA,
       vendorPriv,
-      nonce,
+      nonceToHex(nonce),
       new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
     );
 

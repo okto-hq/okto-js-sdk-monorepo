@@ -16,33 +16,33 @@ export type UserOp = {
   /** The data to pass to the `sender` during the main execution call. */
   callData?: Hex;
   /** The amount of gas to allocate the main execution call */
-  callGasLimit?: uint256;
+  callGasLimit?: Hex;
   /** Account factory. Only for new accounts. */
   factory?: Address | undefined;
   /** Data for account factory. */
   factoryData?: Hex | undefined;
   /** Maximum fee per gas. */
-  maxFeePerGas?: uint256;
+  maxFeePerGas?: Hex;
   /** Maximum priority fee per gas. */
-  maxPriorityFeePerGas?: uint256;
+  maxPriorityFeePerGas?: Hex;
   /** Anti-replay parameter. */
-  nonce?: uint256;
+  nonce?: Hex;
   /** Address of paymaster contract. */
   paymaster?: Address | undefined;
   /** Data for paymaster. */
   paymasterData?: Hex | undefined;
   /** The amount of gas to allocate for the paymaster post-operation code. */
-  paymasterPostOpGasLimit?: uint256 | undefined;
+  paymasterPostOpGasLimit?: Hex | undefined;
   /** The amount of gas to allocate for the paymaster validation code. */
-  paymasterVerificationGasLimit?: uint256 | undefined;
+  paymasterVerificationGasLimit?: Hex | undefined;
   /** Extra gas to pay the Bundler. */
-  preVerificationGas?: uint256;
+  preVerificationGas?: Hex;
   /** The account making the operation. */
   sender?: Address;
   /** Data passed into the account to verify authorization. */
   signature?: Hex;
   /** The amount of gas to allocate for the verification step. */
-  verificationGasLimit?: uint256;
+  verificationGasLimit?: Hex;
 };
 
 export type PackedUserOp = {
@@ -59,7 +59,7 @@ export type PackedUserOp = {
   /** Concatenation of paymaster fields (or empty). */
   paymasterAndData: Hex;
   /** Extra gas to pay the Bundler. */
-  preVerificationGas: bigint;
+  preVerificationGas: Hex;
   /** The account making the operation. */
   sender: Address;
   /** Data passed into the account to verify authorization. */

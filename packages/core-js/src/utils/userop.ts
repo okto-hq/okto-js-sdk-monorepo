@@ -2,10 +2,11 @@ import type { Hash, PackedUserOp, UserOp } from '@/types/core.js';
 import {
   encodeAbiParameters,
   encodePacked,
+  hexToBigInt,
   keccak256,
   parseAbiParameters,
 } from 'viem';
-import { bigintToHex } from './nonce.js';
+import { updateHexPadding } from './nonce.js';
 
 export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   // TODO: Add better checks; this is temporary and should not go to release
@@ -26,38 +27,29 @@ export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   }
 
   const accountGasLimits: Hash = ('0x' +
-    bigintToHex(userOp.verificationGasLimit, {
-      padding: 16,
-    }).replace('0x', '') +
-    bigintToHex(userOp.callGasLimit, {
-      padding: 16,
-    }).replace('0x', '')) as Hash;
+    updateHexPadding(userOp.verificationGasLimit, 16).replace('0x', '') +
+    updateHexPadding(userOp.callGasLimit, 16).replace('0x', '')) as Hash;
 
   const gasFees: Hash = ('0x' +
-    bigintToHex(userOp.maxFeePerGas, {
-      padding: 16,
-    }).replace('0x', '') +
-    bigintToHex(userOp.maxPriorityFeePerGas, {
-      padding: 16,
-    }).replace('0x', '')) as Hash;
+    updateHexPadding(userOp.maxFeePerGas, 16).replace('0x', '') +
+    updateHexPadding(userOp.maxPriorityFeePerGas, 16).replace(
+      '0x',
+      '',
+    )) as Hash;
 
   const paymasterAndData = encodePacked(
     ['address', 'bytes16', 'bytes16', 'bytes'],
     [
       userOp.paymaster,
-      bigintToHex(userOp.paymasterVerificationGasLimit, {
-        padding: 16,
-      }),
-      bigintToHex(userOp.paymasterPostOpGasLimit, {
-        padding: 16,
-      }),
+      updateHexPadding(userOp.paymasterVerificationGasLimit, 32),
+      updateHexPadding(userOp.paymasterPostOpGasLimit, 32),
       userOp.paymasterData!,
     ],
   );
 
   const packedUserOp: PackedUserOp = {
     sender: userOp.sender,
-    nonce: bigintToHex(userOp.nonce),
+    nonce: userOp.nonce,
     initCode: '0x',
     callData: userOp.callData,
     preVerificationGas: userOp.preVerificationGas,
@@ -76,13 +68,13 @@ export function generateUserOpHash(userOp: PackedUserOp): Hash {
     ),
     [
       userOp.sender,
-      userOp.nonce,
-      keccak256(userOp.initCode),
-      keccak256(userOp.callData),
-      userOp.accountGasLimits,
-      userOp.preVerificationGas,
-      userOp.gasFees,
-      keccak256(userOp.paymasterAndData),
+      updateHexPadding(userOp.nonce, 64),
+      updateHexPadding(keccak256(userOp.initCode), 64),
+      updateHexPadding(keccak256(userOp.callData), 64),
+      updateHexPadding(userOp.accountGasLimits, 64),
+      hexToBigInt(userOp.preVerificationGas),
+      updateHexPadding(userOp.gasFees, 64),
+      updateHexPadding(keccak256(userOp.paymasterAndData), 64),
     ],
   );
 

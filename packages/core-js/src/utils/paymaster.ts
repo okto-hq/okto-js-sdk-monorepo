@@ -7,7 +7,6 @@ import {
   type Hex,
 } from 'viem';
 import { signMessage } from 'viem/accounts';
-import { nonceToHex } from './nonce.js';
 
 /**
  * Generates the default paymaster data used for authentication.
@@ -20,7 +19,7 @@ import { nonceToHex } from './nonce.js';
 export async function generatePaymasterData(
   address: Hex,
   privateKey: Hex,
-  nonce: string,
+  nonce: Hex,
   validUntil: Date | number | bigint,
   validAfter?: Date | number | bigint,
 ): Promise<Hash> {
@@ -38,11 +37,9 @@ export async function generatePaymasterData(
     validAfter = 0;
   }
 
-  const nonceHex: Hex = nonceToHex(nonce);
-
   const pe = encodePacked(
     ['bytes32', 'address', 'uint48', 'uint48'],
-    [nonceHex, address, validUntil, validAfter],
+    [nonce, address, validUntil, validAfter],
   );
   const paymasterDataHash = keccak256(pe);
 

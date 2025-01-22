@@ -10,7 +10,7 @@ import type {
 } from '@/types/bff/account.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/constants.js';
-import { generateUUID } from '@/utils/nonce.js';
+import { generateUUID, nonceToHex } from '@/utils/nonce.js';
 import { generatePaymasterData } from '@/utils/paymaster.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -61,7 +61,7 @@ class Account {
       payload.paymasterData = await generatePaymasterData(
         globalConfig.authOptions.vendorSWA!,
         globalConfig.authOptions.vendorPrivKey!,
-        generateUUID(),
+        nonceToHex(generateUUID()),
         new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
       );
     }
