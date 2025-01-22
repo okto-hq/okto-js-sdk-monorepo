@@ -17,7 +17,7 @@ import { nonceToHex } from './nonce.js';
  * @param validAfter Unix Timestamp in milliseconds of when the paymaster data is valid after.
  * @returns
  */
-export async function generatePaymasterAndData(
+export async function generatePaymasterData(
   address: Hex,
   privateKey: Hex,
   nonce: string,
@@ -51,10 +51,10 @@ export async function generatePaymasterAndData(
     privateKey: privateKey,
   });
 
-  const paymasterAndData = encodeAbiParameters(
+  const paymasterData = encodeAbiParameters(
     parseAbiParameters('address, uint48, uint48, bytes'),
     [address, validUntil, validAfter, sig],
   );
 
-  return paymasterAndData;
+  return paymasterData;
 }
