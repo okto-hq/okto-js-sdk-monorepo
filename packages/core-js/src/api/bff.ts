@@ -224,9 +224,11 @@ class BffClientRepository {
   public static async estimateOrder(
     payload: EstimateOrderPayload,
   ): Promise<OrderEstimateResponse> {
-    const response = await getBffClient().post<
+    const response = await getBffClient().get<
       ApiResponse<OrderEstimateResponse>
-    >(this.routes.estimateOrder, payload);
+    >(this.routes.estimateOrder, {
+      data: payload,
+    });
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');

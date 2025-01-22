@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
 import BffClientRepository from '@/api/bff.js';
+import GatewayClientRepository from '@/api/gateway.js';
+import { globalConfig } from '@/config/index.js';
 import type {
   EstimateOrderPayload,
   Order,
@@ -9,6 +10,13 @@ import type {
   UserPortfolioData,
   Wallet,
 } from '@/types/bff/account.js';
+import type { UserOp } from '@/types/core.js';
+import { Constants } from '@/utils/constants.js';
+import { generateUUID } from '@/utils/nonce.js';
+import { generatePaymasterData } from '@/utils/paymaster.js';
+import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
+import { v4 as uuidv4 } from 'uuid';
+import { signMessage } from 'viem/accounts';
 
 class Account {
   /**
@@ -23,14 +31,14 @@ class Account {
    * @param {boolean} usePaymaster Whether to include paymaster details in the payload (optional).
    * @returns {EstimateOrderPayload} The generated payload for the order estimate.
    */
-  private _generateEstimateOrderPayload(
+  private async _generateEstimateOrderPayload(
     recipientWalletAddress: string,
     networkId: string,
     tokenAddress: string,
     amount: string,
     useGasDetails: boolean = false,
     usePaymaster: boolean = false,
-  ): EstimateOrderPayload {
+  ): Promise<EstimateOrderPayload> {
     const jobId = uuidv4();
 
     const payload: EstimateOrderPayload = {
@@ -46,22 +54,47 @@ class Account {
 
     if (useGasDetails) {
       payload.gasDetails = {
-        maxFeePerGas: '', // TODO: add maxFeePerGas (Sparsh)
-        maxPriorityFeePerGas: '', // TODO : add maxPriorityFeePerGas (Sparsh)
+        maxFeePerGas: '0xBA43B7400', // TODO: add maxFeePerGas (Sparsh)
+        maxPriorityFeePerGas: '0xBA43B7400', // TODO : add maxPriorityFeePerGas (Sparsh)
       };
     }
 
     if (usePaymaster) {
-      const currentTime = new Date();
-      payload.paymasterDetails = {
-        validUntil: new Date(
-          currentTime.getTime() + 10 * 60 * 1000,
-        ).toISOString(),
-        validAfter: currentTime.toISOString(),
-      };
+      payload.paymasterData = await generatePaymasterData(
+        globalConfig.authOptions.vendorSWA!,
+        globalConfig.authOptions.vendorPrivKey!,
+        generateUUID(),
+        new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+      );
     }
 
     return payload;
+  }
+
+  public async signUserOp(userop: UserOp): Promise<UserOp> {
+    const privateKey = globalConfig.authOptions?.sessionPrivKey;
+
+    if (privateKey === undefined) {
+      throw new Error('Session keys are not set');
+    }
+
+    const sig = await signMessage({
+      message: generateUserOpHash(generatePackedUserOp(userop)),
+      privateKey: privateKey,
+    });
+
+    userop.signature = sig;
+
+    return userop;
+  }
+
+  public async executeUserOp(userop: UserOp): Promise<string> {
+    try {
+      return await GatewayClientRepository.execute(userop);
+    } catch (error) {
+      console.error('Error executing user operation:', error);
+      throw error;
+    }
   }
 
   /**
@@ -76,7 +109,7 @@ class Account {
    * @param {boolean} usePaymaster Whether to include paymaster details in the payload (optional).
    * @returns {Promise<OrderEstimateResponse>} The estimated order response.
    */
-  public async generateEstimateResponse(
+  public async estimate(
     recipientWalletAddress: string,
     networkId: string,
     tokenAddress: string,
@@ -85,7 +118,7 @@ class Account {
     usePaymaster: boolean = false,
   ): Promise<OrderEstimateResponse> {
     // Generate the payload using the private method.
-    const payload = this._generateEstimateOrderPayload(
+    const payload = await this._generateEstimateOrderPayload(
       recipientWalletAddress,
       networkId,
       tokenAddress,

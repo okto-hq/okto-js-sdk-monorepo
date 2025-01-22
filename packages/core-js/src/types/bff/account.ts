@@ -1,3 +1,4 @@
+import type { Hash } from '../core.js';
 import type { Network } from './common.js';
 
 export type Wallet = {
@@ -168,10 +169,7 @@ export type Order = {
 export type EstimateOrderPayload = {
   type: string;
   jobId: string;
-  paymasterDetails?: {
-    validUntil: string;
-    validAfter: string;
-  };
+  paymasterData?: Hash;
   gasDetails?: {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
