@@ -41,19 +41,18 @@ export function generateUUID() {
   return uuidv4();
 }
 
-function hexToBytes32(hex: string) {
+function hexToBytes32(hex: string): Hex {
   // Remove '0x' if it exists
   if (hex.startsWith('0x')) {
     hex = hex.slice(2);
   }
 
   // Ensure the string length is 64 (32 bytes) by padding with zeros
-  return '0x' + hex.padStart(64, '0');
+  return `0x${hex.padStart(64, '0')}`;
 }
 
 export function convertUUIDToInt(uuid: string): Hex {
-  // Convert UUID to BigInt
-  const uuidBytes = uuidParse(uuid); // Get the 16-byte array of the UUID
+  const uuidBytes = uuidParse(uuid);
   let bigInt = BigInt(0);
 
   for (let i = 0; i < uuidBytes.length; i++) {
@@ -61,9 +60,8 @@ export function convertUUIDToInt(uuid: string): Hex {
       bigInt = (bigInt << BigInt(8)) | BigInt(uuidBytes[i]!);
     }
   }
-  // console.log("UUID as BigInt:", hexToBytes32(bigInt.toString()));
 
-  return hexToBytes32(bigInt.toString(16)) as Hex;
+  return hexToBytes32(bigInt.toString(16));
 }
 
 export function updateHexPadding(

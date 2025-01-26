@@ -10,7 +10,7 @@ import type {
 } from '@/types/bff/account.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/constants.js';
-import { generateUUID, nonceToHex } from '@/utils/nonce.js';
+import { generateUUID } from '@/utils/nonce.js';
 import { generatePaymasterData } from '@/utils/paymaster.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,21 +50,18 @@ class Account {
       },
     };
 
-    if (useGasDetails) {
-      payload.gasDetails = {
-        maxFeePerGas: '0xBA43B7400', // TODO: add maxFeePerGas (Sparsh)
-        maxPriorityFeePerGas: '0xBA43B7400', // TODO : add maxPriorityFeePerGas (Sparsh)
-      };
-    }
+    payload.gasDetails = {
+      maxFeePerGas: '0xBA43B7400', // TODO: add maxFeePerGas (Sparsh)
+      maxPriorityFeePerGas: '0xBA43B7400', // TODO : add maxPriorityFeePerGas (Sparsh)
+    };
 
-    if (usePaymaster) {
-      payload.paymasterData = await generatePaymasterData(
-        globalConfig.authOptions.vendorSWA!,
-        globalConfig.authOptions.vendorPrivKey!,
-        nonceToHex(generateUUID()),
-        new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-      );
-    }
+    payload.paymasterData = await generatePaymasterData(
+      globalConfig.authOptions.vendorSWA!,
+      globalConfig.authOptions.vendorPrivKey!,
+      generateUUID(),
+      new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+      new Date(),
+    );
 
     return payload;
   }

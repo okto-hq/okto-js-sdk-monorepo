@@ -4,9 +4,9 @@ import {
   encodePacked,
   hexToBigInt,
   keccak256,
+  pad,
   parseAbiParameters,
 } from 'viem';
-import { updateHexPadding } from './nonce.js';
 
 export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   // TODO: Add better checks; this is temporary and should not go to release
@@ -23,26 +23,35 @@ export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
     !userOp.paymasterVerificationGasLimit ||
     !userOp.paymasterPostOpGasLimit
   ) {
-    return {} as PackedUserOp;
+    throw new Error('Invalid UserOp');
   }
 
   const accountGasLimits: Hash = ('0x' +
-    updateHexPadding(userOp.verificationGasLimit, 16).replace('0x', '') +
-    updateHexPadding(userOp.callGasLimit, 16).replace('0x', '')) as Hash;
+    pad(userOp.verificationGasLimit, {
+      size: 16,
+    }).replace('0x', '') +
+    pad(userOp.callGasLimit, {
+      size: 16,
+    }).replace('0x', '')) as Hash;
 
   const gasFees: Hash = ('0x' +
-    updateHexPadding(userOp.maxFeePerGas, 16).replace('0x', '') +
-    updateHexPadding(userOp.maxPriorityFeePerGas, 16).replace(
-      '0x',
-      '',
-    )) as Hash;
+    pad(userOp.maxFeePerGas, {
+      size: 16,
+    }).replace('0x', '') +
+    pad(userOp.maxPriorityFeePerGas, {
+      size: 16,
+    }).replace('0x', '')) as Hash;
 
   const paymasterAndData = encodePacked(
     ['address', 'bytes16', 'bytes16', 'bytes'],
     [
       userOp.paymaster,
-      updateHexPadding(userOp.paymasterVerificationGasLimit, 32),
-      updateHexPadding(userOp.paymasterPostOpGasLimit, 32),
+      pad(userOp.paymasterVerificationGasLimit, {
+        size: 16,
+      }),
+      pad(userOp.paymasterPostOpGasLimit, {
+        size: 16,
+      }),
       userOp.paymasterData!,
     ],
   );
@@ -68,13 +77,25 @@ export function generateUserOpHash(userOp: PackedUserOp): Hash {
     ),
     [
       userOp.sender,
-      updateHexPadding(userOp.nonce, 64),
-      updateHexPadding(keccak256(userOp.initCode), 64),
-      updateHexPadding(keccak256(userOp.callData), 64),
-      updateHexPadding(userOp.accountGasLimits, 64),
+      pad(userOp.nonce, {
+        size: 32,
+      }),
+      pad(keccak256(userOp.initCode), {
+        size: 32,
+      }),
+      pad(keccak256(userOp.callData), {
+        size: 32,
+      }),
+      pad(userOp.accountGasLimits, {
+        size: 32,
+      }),
       hexToBigInt(userOp.preVerificationGas),
-      updateHexPadding(userOp.gasFees, 64),
-      updateHexPadding(keccak256(userOp.paymasterAndData), 64),
+      pad(userOp.gasFees, {
+        size: 32,
+      }),
+      pad(keccak256(userOp.paymasterAndData), {
+        size: 32,
+      }),
     ],
   );
 
