@@ -52,21 +52,18 @@ class Account {
       },
     };
 
-    if (useGasDetails) {
-      payload.gasDetails = {
-        maxFeePerGas: '0xBA43B7400', // TODO: add maxFeePerGas (Sparsh)
-        maxPriorityFeePerGas: '0xBA43B7400', // TODO : add maxPriorityFeePerGas (Sparsh)
-      };
-    }
+    payload.gasDetails = {
+      maxFeePerGas: '0xBA43B7400', // TODO: add maxFeePerGas (Sparsh)
+      maxPriorityFeePerGas: '0xBA43B7400', // TODO : add maxPriorityFeePerGas (Sparsh)
+    };
 
-    if (usePaymaster) {
-      payload.paymasterData = await generatePaymasterData(
-        globalConfig.authOptions.vendorSWA!,
-        globalConfig.authOptions.vendorPrivKey!,
-        generateUUID(),
-        new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-      );
-    }
+    payload.paymasterData = await generatePaymasterData(
+      globalConfig.authOptions.vendorSWA!,
+      globalConfig.authOptions.vendorPrivKey!,
+      generateUUID(),
+      new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+      new Date(),
+    );
 
     return payload;
   }
