@@ -194,59 +194,69 @@ export type EstimateOrderPayload = {
   };
 };
 
+
+/**
+ * Represents the  gas fees required for UserOP
+ */
+export type GasFeeData = {
+  maxPriorityFeePerGas: string;
+  maxFeePerGas: string;
+};
+
+
+
 /**
  * Represents the response for an order estimate.
  */
 export type OrderEstimateResponse = {
-  encodedCallData: string;
-  encodedPaymaster: string;
-  gasData: {
-    callGasLimit: string;
-    verificationGasLimit: string;
-    preVerificationGas: string;
-    paymasterVerificationGasLimit: string;
-    paymasterPostOpGasLimit: string;
-  };
-  paymasterData: {
-    paymasterId: string;
-    validUntil: string;
-    validAfter: string;
-  };
-  details: {
-    estimation: {
-      amount: string;
-    };
-    fees: {
-      transactionFees: Record<string, string>;
-      approxTransactionFeesInUsdt: string;
-    };
-  };
-  callData: {
-    intentType: string;
-    jobId: string;
-    vendorId: string;
-    creatorId: string;
-    policies: {
-      gsnEnabled: boolean;
-      sponsorshipEnabled: boolean;
-    };
-    gsn: {
-      isRequired: boolean;
-      details: {
-        requiredNetworks: string[];
-        tokens: {
-          networkId: string;
-          address: string;
-          amount: string;
-          amountInUsdt: string;
-        }[];
+  status: string;
+  data: {
+    details: {
+      estimation: {
+        amount: string;
+      };
+      fees: {
+        transactionFees: {
+          [key: string]: string;
+        };
+        approxTransactionFeesInUSDT: string;
       };
     };
-    payload: {
-      recipientWalletAddress: string;
-      networkId: string;
-      tokenAddress: string;
-      amount: string;
+    callData: {
+      intentType: string;
+      jobId: string;
+      vendorId: string;
+      creatorId: string;
+      policies: {
+        isGsnEnabled: boolean;
+        isSponsorshipEnabled: boolean;
+      };
+      gsn: {
+        isPossible: boolean;
+        isRequired: boolean;
+        requiredNetworks: string[];
+        tokens: string[];
+      };
+      payload: {
+        amount: string;
+        networkId: string;
+        recipientWalletAddress: string;
+        tokenAddress: string;
+      };
+    };
+    userOps: {
+      sender: string;
+      nonce: string;
+      callData: string;
+      callGasLimit: string;
+      verificationGasLimit: string;
+      preVerificationGas: string;
+      maxFeePerGas: string;
+      maxPriorityFeePerGas: string;
+      paymaster: string;
+      paymasterVerificationGasLimit: string;
+      paymasterPostOpGasLimit: string;
+      paymasterData: string;
     };
   };
 };

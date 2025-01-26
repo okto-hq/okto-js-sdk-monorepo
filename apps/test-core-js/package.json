@@ -15,7 +15,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@okto-sdk/core-js": "workspace:*"
+    "@okto-sdk/core-js": "workspace:*",
+    "@okto-sdk/react-native": "workspace:*"
   },
   "devDependencies": {
     "@okto-sdk/eslint-config": "workspace:*",

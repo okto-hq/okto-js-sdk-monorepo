@@ -1,4 +1,4 @@
-import { useOkto} from "./useOkto.js";
+import { useOkto } from './useOkto.js';
 
 /**
  * Custom hook that provides authentication-related functions from OktoClient.
@@ -13,8 +13,5 @@ import { useOkto} from "./useOkto.js";
  */
 export const useAuth = () => {
   const oktoClient = useOkto();
-
-  return {
-    ...oktoClient.auth
-  };
+  return oktoClient.auth;
 };

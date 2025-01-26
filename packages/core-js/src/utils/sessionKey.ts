@@ -2,7 +2,7 @@ import type { Hex } from '@/types/core.js';
 import { secp256k1 } from '@noble/curves/secp256k1';
 
 export class SessionKey {
-  private priv: Uint8Array<ArrayBufferLike>;
+  private priv: Uint8Array;
 
   constructor() {
     this.priv = secp256k1.utils.randomPrivateKey();

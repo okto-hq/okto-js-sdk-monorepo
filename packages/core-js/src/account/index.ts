@@ -3,6 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { globalConfig } from '@/config/index.js';
 import type {
   EstimateOrderPayload,
+  GasFeeData,
   Order,
   OrderEstimateResponse,
   UserNFTBalance,

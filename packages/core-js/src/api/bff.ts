@@ -5,6 +5,7 @@ import type {
 
 import type {
   EstimateOrderPayload,
+  GasFeeData,
   NFTOrderDetails,
   Order,
   OrderEstimateResponse,
@@ -21,14 +22,15 @@ import type { Token } from '@/types/bff/tokens.js';
 class BffClientRepository {
   private static routes = {
     // GET
-    getWallets: '/api/oc/v1/wallets', 
-    getSupportedNetworks: '/api/oc/v1/supported/networks', 
-    getSupportedTokens: '/api/oc/v1/supported/tokens', 
+    getWallets: '/api/oc/v1/wallets',
+    getSupportedNetworks: '/api/oc/v1/supported/networks',
+    getSupportedTokens: '/api/oc/v1/supported/tokens',
     getPortfolio: '/api/oc/v1/aggregated-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
+    getGasValues: '/api/oc/v1/gas-values',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
@@ -173,9 +175,9 @@ class BffClientRepository {
       JSON.stringify(response.data.data?.details, null, 2),
     );
 
-     response.data.data.details.forEach((order, index) => {
-       console.log(`KARAN :: Order ${index + 1} intent id  :`);
-     });
+    //  response.data.data.details.forEach((order, index) => {
+    //    console.log(`KARAN :: Order ${index + 1} intent id  :`);
+    //  });
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve NFT portfolio');
@@ -247,6 +249,22 @@ class BffClientRepository {
     }
 
     return response.data.data.executed;
+  }
+
+  public static async getGasValues(): Promise<GasFeeData> {
+    const response = await getBffClient().get<ApiResponse<GasFeeData>>(
+      this.routes.getGasValues,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve Gas Values');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
   }
 
   public static async estimateOrder(
