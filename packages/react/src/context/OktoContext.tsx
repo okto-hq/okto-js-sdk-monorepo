@@ -1,4 +1,4 @@
-import { OktoClient } from '@okto-sdk/core-js';
+import { OktoClient } from '@okto_web3/core-js-sdk';
 import { createContext, useContext } from 'react';
 
 interface OktoContextType {

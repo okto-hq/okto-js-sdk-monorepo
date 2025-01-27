@@ -42,17 +42,17 @@ importers:
 
   apps/test-core-js:
     dependencies:
-      '@okto-sdk/core-js':
+      '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../../packages/core-js
     devDependencies:
-      '@okto-sdk/eslint-config':
+      '@okto_web3/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@okto-sdk/prettier-config':
+      '@okto_web3/prettier-config':
         specifier: workspace:*
         version: link:../../packages/prettier-config
-      '@okto-sdk/typescript-config':
+      '@okto_web3/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/node':
@@ -92,13 +92,13 @@ importers:
       '@arethetypeswrong/cli':
         specifier: ^0.17.2
         version: 0.17.2
-      '@okto-sdk/eslint-config':
+      '@okto_web3/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@okto-sdk/prettier-config':
+      '@okto_web3/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
-      '@okto-sdk/typescript-config':
+      '@okto_web3/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
@@ -160,17 +160,17 @@ importers:
 
   packages/react:
     dependencies:
-      '@okto-sdk/core-js':
+      '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
     devDependencies:
-      '@okto-sdk/eslint-config':
+      '@okto_web3/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@okto-sdk/prettier-config':
+      '@okto_web3/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
-      '@okto-sdk/typescript-config':
+      '@okto_web3/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -191,17 +191,17 @@ importers:
 
   packages/react-native:
     dependencies:
-      '@okto-sdk/core-js':
+      '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
     devDependencies:
-      '@okto-sdk/eslint-config':
+      '@okto_web3/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@okto-sdk/prettier-config':
+      '@okto_web3/prettier-config':
         specifier: workspace:*
         version: link:../prettier-config
-      '@okto-sdk/typescript-config':
+      '@okto_web3/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':

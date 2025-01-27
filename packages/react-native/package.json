@@ -25,12 +25,12 @@
     }
   },
   "dependencies": {
-    "@okto-sdk/core-js": "workspace:*"
+    "@okto_web3/core-js-sdk": "workspace:*"
   },
   "devDependencies": {
-    "@okto-sdk/eslint-config": "workspace:*",
-    "@okto-sdk/prettier-config": "workspace:*",
-    "@okto-sdk/typescript-config": "workspace:*",
+    "@okto_web3/eslint-config": "workspace:*",
+    "@okto_web3/prettier-config": "workspace:*",
+    "@okto_web3/typescript-config": "workspace:*",
     "@types/react": "^18.2.0",
     "react": "^18.2.0",
     "rimraf": "^6.0.1",
