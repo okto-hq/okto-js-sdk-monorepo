@@ -1,6 +1,6 @@
-// src/index.ts
-export { OktoProvider } from "./context/OktoProvider.js";
-export { useAuth } from "./hooks/useAuth.js";
-export { useAccount } from "./hooks/useAccount.js";
-export { useChain } from "./hooks/useChain.js";
-export { useToken } from "./hooks/useToken.js";
+export { OktoProvider } from './context/OktoProvider.js';
+export { useOkto } from './hooks/index.js';
+
+export * from '@okto_web3/core-js-sdk/explorer';
+export * from '@okto_web3/core-js-sdk/types';
+export * from '@okto_web3/core-js-sdk/userop';

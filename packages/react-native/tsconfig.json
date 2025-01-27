@@ -1,5 +1,5 @@
 {
-  "extends": "@okto-sdk/typescript-config/react-library.json",
+  "extends": "@okto_web3/typescript-config/react-library.json",
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {

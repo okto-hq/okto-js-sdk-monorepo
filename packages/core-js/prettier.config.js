@@ -1,4 +1,4 @@
-import { config } from '@okto-sdk/prettier-config/base';
+import { config } from '@okto_web3/prettier-config/base';
 
 /**
  * @see https://prettier.io/docs/en/configuration.html

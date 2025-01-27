@@ -1,6 +1,6 @@
 {
-  "name": "@okto-sdk/core-js",
-  "version": "0.0.0",
+  "name": "@okto_web3/core-js-sdk",
+  "version": "0.0.0-dev.1",
   "description": "Core JS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -54,9 +54,9 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.2",
-    "@okto-sdk/eslint-config": "workspace:*",
-    "@okto-sdk/prettier-config": "workspace:*",
-    "@okto-sdk/typescript-config": "workspace:*",
+    "@okto_web3/eslint-config": "workspace:*",
+    "@okto_web3/prettier-config": "workspace:*",
+    "@okto_web3/typescript-config": "workspace:*",
     "@types/node": "^22.10.5",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
