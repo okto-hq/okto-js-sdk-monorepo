@@ -1,9 +1,7 @@
 import { useOkto } from './useOkto.js';
 
 export const useChain = () => {
-  const client = useOkto();
+  const oktoClient = useOkto();
 
-  return {
-    ...client.chain,
-  };
+  return oktoClient.chain;
 };
