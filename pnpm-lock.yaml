@@ -189,6 +189,37 @@ importers:
         specifier: ^5.7.2
         version: 5.7.2
 
+  packages/react-native:
+    dependencies:
+      '@okto-sdk/core-js':
+        specifier: workspace:*
+        version: link:../core-js
+    devDependencies:
+      '@okto-sdk/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@okto-sdk/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      '@okto-sdk/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.3.18
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
+      tsc-alias:
+        specifier: ^1.8.10
+        version: 1.8.10
+      typescript:
+        specifier: ^5.7.2
+        version: 5.7.2
+
   packages/typescript-config: {}
 
 packages:
