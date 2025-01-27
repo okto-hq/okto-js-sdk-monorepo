@@ -1,13 +1,13 @@
 import { globalConfig } from '@/config/index.js';
+import type OktoClient from '@/core/index.js';
 import { RpcError } from '@/errors/index.js';
-import { getAuthorizationToken } from '@/utils/auth.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import { BaseError } from 'viem';
 import { createLoggingInterceptor } from './logger.js';
 
-function getGatewayClient() {
+function getGatewayClient(oc: OktoClient) {
   const client = axios.create({
     baseURL: globalConfig.env.gatewayBaseUrl,
     headers: {
@@ -21,7 +21,7 @@ function getGatewayClient() {
         return config;
       }
       config.headers.setAuthorization(
-        `Bearer ${await getAuthorizationToken()}`,
+        `Bearer ${await oc.getAuthorizationToken()}`,
       );
       return config;
     },
@@ -59,7 +59,7 @@ function getGatewayClient() {
   return client;
 }
 
-function getBffClient() {
+function getBffClient(oc: OktoClient) {
   const client = axios.create({
     baseURL: globalConfig.env.bffBaseUrl,
     headers: {
@@ -70,7 +70,7 @@ function getBffClient() {
   client.interceptors.request.use(
     async (config) => {
       config.headers.setAuthorization(
-        `Bearer ${await getAuthorizationToken()}`,
+        `Bearer ${await oc.getAuthorizationToken()}`,
       );
       return config;
     },

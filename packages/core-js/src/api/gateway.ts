@@ -1,3 +1,4 @@
+import type OktoClient from '@/core/index.js';
 import type { RpcPayload, RpcResponse } from '@/types/api.js';
 import type { UserOp } from '@/types/core.js';
 import type {
@@ -24,6 +25,7 @@ class GatewayClientRepository {
    * @throws {Error} If the user is not authenticated.
    */
   public static async authenticate(
+    oc: OktoClient,
     data: AuthenticatePayloadParam,
   ): Promise<AuthenticateResult> {
     const payload: RpcPayload<AuthenticatePayloadParam[]> = {
@@ -35,7 +37,7 @@ class GatewayClientRepository {
 
     const serliazedPayload = serializeJSON(payload);
 
-    const response = await getGatewayClient().post<
+    const response = await getGatewayClient(oc).post<
       RpcResponse<AuthenticateResult>
     >(this.rpcRoute, serliazedPayload, {
       headers: {
@@ -54,7 +56,7 @@ class GatewayClientRepository {
    * @returns {Promise<string>} A promise that resolves to a string.
    * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async execute(data: UserOp): Promise<string> {
+  public static async execute(oc: OktoClient, data: UserOp): Promise<string> {
     const payload: RpcPayload<UserOp[]> = {
       method: this.methods.execute,
       jsonrpc: '2.0',
@@ -64,7 +66,7 @@ class GatewayClientRepository {
 
     const serliazedPayload = serializeJSON(payload);
 
-    const response = await getGatewayClient().post<RpcResponse<string>>(
+    const response = await getGatewayClient(oc).post<RpcResponse<string>>(
       this.rpcRoute,
       serliazedPayload,
     );

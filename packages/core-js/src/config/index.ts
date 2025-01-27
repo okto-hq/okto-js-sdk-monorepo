@@ -1,6 +1,4 @@
-import type { Hash, Hex } from '@/types/core.js';
-import { getPublicKey } from '@/utils/sessionKey.js';
-import type { AuthOptions, Env, EnvConfig } from './types.js';
+import type { Env, EnvConfig } from './types.js';
 
 /**
  * The GlobalConfig class is responsible for managing the global configuration
@@ -9,7 +7,6 @@ import type { AuthOptions, Env, EnvConfig } from './types.js';
  * to update the user session key and retrieve configuration details.
  */
 class GlobalConfig {
-  private _authOptions?: AuthOptions;
   private _environment?: Env;
   private _initialized = false;
   readonly isDev: boolean = false; //* Mark it as true for development environment
@@ -39,67 +36,13 @@ class GlobalConfig {
    * globalConfig.initialize(authOptions, 'sandbox');
    * ```
    */
-  initialize(environment: Env, vendorPrivateKey: Hash) {
+  initialize(environment: Env) {
     if (this._initialized) {
       throw new Error('GlobalConfig already initialized');
     }
 
-    this._authOptions = {
-      vendorPrivKey: vendorPrivateKey,
-      vendorPubKey: getPublicKey(vendorPrivateKey),
-    };
     this._environment = environment;
     this._initialized = true;
-  }
-
-  /**
-   * Updates the user session key in the authentication options.
-   * This method should be called whenever the user session key changes.
-   *
-   * @param sessionPubKey - The public key of the user session.
-   * @param sessionPrivKey - The private key of the user session.
-   * @throws Error if the GlobalConfig is not initialized.
-   */
-  updateUserSession(sessionPubKey: Hex, sessionPrivKey: Hash) {
-    if (!this._authOptions) {
-      throw new Error('GlobalConfig not initialized');
-    }
-    this._authOptions.sessionPrivKey = sessionPrivKey;
-    this._authOptions.sessionPubKey = sessionPubKey;
-  }
-
-  updateVendorSWA(vendorSWA: Hex) {
-    if (!this._authOptions) {
-      throw new Error('GlobalConfig not initialized');
-    }
-    this._authOptions.vendorSWA = vendorSWA;
-  }
-
-  updateUserSWA(userSWA: Hex) {
-    if (!this._authOptions) {
-      throw new Error('GlobalConfig not initialized');
-    }
-    this._authOptions.userSWA = userSWA;
-  }
-
-  /**
-   * Clears the authentication options.
-   * This method should be called when the user logs out.
-   */
-  clearAuthOptions() {
-    this._authOptions = undefined;
-  }
-
-  /**
-   * Retrieves the authentication options.
-   *
-   * @throws Error if the GlobalConfig is not initialized.
-   */
-  get authOptions(): AuthOptions {
-    if (!this._authOptions) {
-      throw new Error('GlobalConfig not initialized');
-    }
-    return this._authOptions;
   }
 
   /**

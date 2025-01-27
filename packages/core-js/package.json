@@ -23,35 +23,20 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./account": {
-      "types": "./dist/account/index.d.ts",
-      "import": "./dist/account/index.js",
-      "require": "./dist/account/index.cjs"
-    },
-    "./auth": {
-      "types": "./dist/auth/index.d.ts",
-      "import": "./dist/auth/index.js",
-      "require": "./dist/auth/index.cjs"
-    },
-    "./chains": {
-      "types": "./dist/chains/index.d.ts",
-      "import": "./dist/chains/index.js",
-      "require": "./dist/chains/index.cjs"
-    },
     "./core": {
       "types": "./dist/core/index.d.ts",
       "import": "./dist/core/index.js",
       "require": "./dist/core/index.cjs"
     },
-    "./tokens": {
-      "types": "./dist/tokens/index.d.ts",
-      "import": "./dist/tokens/index.js",
-      "require": "./dist/tokens/index.cjs"
-    },
     "./types": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js",
       "require": "./dist/types/index.cjs"
+    },
+    "./explorer": {
+      "types": "./dist/explorer/index.d.ts",
+      "import": "./dist/explorer/index.js",
+      "require": "./dist/explorer/index.cjs"
     },
     "./userop": {
       "types": "./dist/userop/index.d.ts",
