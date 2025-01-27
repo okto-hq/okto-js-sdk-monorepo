@@ -1,9 +1,7 @@
 import { useOkto } from './useOkto.js';
 
 export const useToken = () => {
-  const client = useOkto();
+  const oktoClient = useOkto();
 
-  return {
-    ...client.token,
-  };
+  return oktoClient.token;
 };

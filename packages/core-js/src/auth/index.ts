@@ -44,7 +44,7 @@ class Auth {
     payload.sessionData = <AuthSessionData>{};
     payload.sessionData.nonce = nonce;
     payload.sessionData.vendorSWA = vendorSWA;
-    payload.sessionData.sessionPk = sessionKey.uncompressedPublicKeyHex;
+    payload.sessionData.sessionPk = sessionKey.uncompressedPublicKeyHexWith0x;
     payload.sessionData.maxPriorityFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
     payload.sessionData.maxFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
     payload.sessionData.paymaster = globalConfig.env.paymasterAddress;

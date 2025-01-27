@@ -1,13 +1,15 @@
 import {
   encodeAbiParameters,
   encodePacked,
+  fromHex,
   keccak256,
   parseAbiParameters,
+  toHex,
   type Hash,
   type Hex,
 } from 'viem';
 import { signMessage } from 'viem/accounts';
-import { nonceToHex } from './nonce.js';
+import { nonceToBigInt } from './nonce.js';
 
 /**
  * Generates the default paymaster data used for authentication.
@@ -25,29 +27,35 @@ export async function generatePaymasterData(
   validAfter?: Date | number | bigint,
 ): Promise<Hash> {
   if (validUntil instanceof Date) {
-    validUntil = validUntil.getTime();
+    validUntil = Math.floor(validUntil.getTime() / 1000);
   } else if (typeof validUntil === 'bigint') {
     validUntil = parseInt(validUntil.toString());
   }
 
   if (validAfter instanceof Date) {
-    validAfter = validAfter.getTime();
+    validAfter = Math.floor(validAfter.getTime() / 1000);
   } else if (typeof validAfter === 'bigint') {
     validAfter = parseInt(validAfter.toString());
   } else if (validAfter === undefined) {
     validAfter = 0;
   }
 
-  const nonceHex: Hex = nonceToHex(nonce);
-
-  const pe = encodePacked(
-    ['bytes32', 'address', 'uint48', 'uint48'],
-    [nonceHex, address, validUntil, validAfter],
+  const paymasterDataHash = keccak256(
+    encodePacked(
+      ['bytes32', 'address', 'uint48', 'uint48'],
+      [
+        toHex(nonceToBigInt(nonce), { size: 32 }),
+        address,
+        validUntil,
+        validAfter,
+      ],
+    ),
   );
-  const paymasterDataHash = keccak256(pe);
 
   const sig = await signMessage({
-    message: paymasterDataHash,
+    message: {
+      raw: fromHex(paymasterDataHash, 'bytes'),
+    },
     privateKey: privateKey,
   });
 

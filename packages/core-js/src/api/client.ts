@@ -16,11 +16,13 @@ function getGatewayClient() {
   });
 
   client.interceptors.request.use(
-    (config) => {
+    async (config) => {
       if (config.headers['Skip-Authorization'] == 'true') {
         return config;
       }
-      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
+      config.headers.setAuthorization(
+        `Bearer ${await getAuthorizationToken()}`,
+      );
       return config;
     },
     (error) => {
@@ -66,8 +68,10 @@ function getBffClient() {
   });
 
   client.interceptors.request.use(
-    (config) => {
-      config.headers.setAuthorization(`Bearer ${getAuthorizationToken()}`);
+    async (config) => {
+      config.headers.setAuthorization(
+        `Bearer ${await getAuthorizationToken()}`,
+      );
       return config;
     },
     (error) => {
