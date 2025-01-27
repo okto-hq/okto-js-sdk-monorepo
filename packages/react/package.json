@@ -1,5 +1,5 @@
 {
-  "name": "@okto-sdk/react",
+  "name": "@okto_web3/react-sdk",
   "version": "0.0.0",
   "description": "ReactJS for Okto SDK",
   "type": "module",
