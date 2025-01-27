@@ -1,8 +1,6 @@
-import type {
-  ApiResponse,
-  ApiResponseWithCount,
-} from '@/types/index.js';
+import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
 
+import type OktoClient from '@/core/index.js';
 import type {
   EstimateOrderPayload,
   NFTOrderDetails,
@@ -14,9 +12,9 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
+import type { Token } from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
-import type { Token } from '@/types/bff/tokens.js';
 
 class BffClientRepository {
   private static routes = {
@@ -37,12 +35,9 @@ class BffClientRepository {
 
   /**
    * Retrieves the list of wallets for the authenticated user from the BFF service.
-   *
-   * @returns {Promise<Wallet[]>} A promise that resolves to an array of Wallet objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getWallets(): Promise<Wallet[]> {
-    const response = await getBffClient().get<ApiResponse<Wallet[]>>(
+  public static async getWallets(oc: OktoClient): Promise<Wallet[]> {
+    const response = await getBffClient(oc).get<ApiResponse<Wallet[]>>(
       this.routes.getWallets,
     );
 
@@ -55,14 +50,11 @@ class BffClientRepository {
 
   /**
    * Retrieves the list of supported networks from the BFF service.
-   *
-   * @returns {Promise<GetSupportedNetworksResponseData[]>} A promise that resolves to an array of GetSupportedNetworksResponseData objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getSupportedNetworks(): Promise<
-    GetSupportedNetworksResponseData[]
-  > {
-    const response = await getBffClient().get<
+  public static async getSupportedNetworks(
+    oc: OktoClient,
+  ): Promise<GetSupportedNetworksResponseData[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'network', GetSupportedNetworksResponseData>
     >(this.routes.getSupportedNetworks);
 
@@ -77,8 +69,10 @@ class BffClientRepository {
     return response.data.data.network;
   }
 
-  public static async verifySession(): Promise<UserSessionResponse> {
-    const response = await getBffClient().post<
+  public static async verifySession(
+    oc: OktoClient,
+  ): Promise<UserSessionResponse> {
+    const response = await getBffClient(oc).post<
       ApiResponse<UserSessionResponse>
     >(this.routes.verifySession);
 
@@ -95,12 +89,9 @@ class BffClientRepository {
 
   /**
    * Retrieves the list of supported tokens from the BFF service.
-   *
-   * @returns {Promise<Token[]>} A promise that resolves to an array of Token objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getSupportedTokens(): Promise<Token[]> {
-    const response = await getBffClient().get<
+  public static async getSupportedTokens(oc: OktoClient): Promise<Token[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'tokens', Token>
     >(this.routes.getSupportedTokens);
 
@@ -113,12 +104,9 @@ class BffClientRepository {
 
   /**
    * Retrieves the aggregated portfolio for the authenticated user from the BFF service.
-   *
-   * @returns {Promise<UserPortfolioData>} A promise that resolves to the aggregated portfolio data.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getPortfolio(): Promise<UserPortfolioData> {
-    const response = await getBffClient().get<ApiResponse<UserPortfolioData>>(
+  public static async getPortfolio(oc: OktoClient): Promise<UserPortfolioData> {
+    const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
       this.routes.getPortfolio,
     );
 
@@ -135,12 +123,11 @@ class BffClientRepository {
 
   /**
    * Retrieves the portfolio activity for the authenticated user from the BFF service.
-   *
-   * @returns {Promise<UserPortfolioActivity[]>} A promise that resolves to an array of UserPortfolioActivity objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getPortfolioActivity(): Promise<UserPortfolioActivity[]> {
-    const response = await getBffClient().get<
+  public static async getPortfolioActivity(
+    oc: OktoClient,
+  ): Promise<UserPortfolioActivity[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'activity', UserPortfolioActivity>
     >(this.routes.getPortfolioActivity);
 
@@ -157,12 +144,11 @@ class BffClientRepository {
 
   /**
    * Retrieves the NFT portfolio for the authenticated user from the BFF service.
-   *
-   * @returns {Promise<UserNFTBalance[]>} A promise that resolves to an array of UserNFTBalance objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getPortfolioNft(): Promise<UserNFTBalance[]> {
-    const response = await getBffClient().get<
+  public static async getPortfolioNft(
+    oc: OktoClient,
+  ): Promise<UserNFTBalance[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'details', UserNFTBalance>
     >(this.routes.getPortfolioNft);
 
@@ -179,12 +165,9 @@ class BffClientRepository {
 
   /**
    * Retrieves the list of orders for the authenticated user from the BFF service.
-   *
-   * @returns {Promise<Order[]>} A promise that resolves to an array of Order objects.
-   * @throws {Error} If the API request fails or returns an invalid response.
    */
-  public static async getOrders(): Promise<Order[]> {
-    const response = await getBffClient().get<
+  public static async getOrders(oc: OktoClient): Promise<Order[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'orders', Order>
     >(this.routes.getOrders);
 
@@ -201,12 +184,11 @@ class BffClientRepository {
 
   /**
    * Retrieves the details of executed NFT orders from the backend.
-   *
-   * @returns {Promise<NFTOrderDetails[]>} A promise that resolves to an array of NFT order details.
-   * @throws {Error} Throws an error if the response status is 'error' or if the response data is missing.
    */
-  public static async getNftOrderDetails(): Promise<NFTOrderDetails[]> {
-    const response = await getBffClient().get<
+  public static async getNftOrderDetails(
+    oc: OktoClient,
+  ): Promise<NFTOrderDetails[]> {
+    const response = await getBffClient(oc).get<
       ApiResponseWithCount<'executed', NFTOrderDetails>
     >(this.routes.getNftOrderDetails);
 
@@ -222,9 +204,10 @@ class BffClientRepository {
   }
 
   public static async estimateOrder(
+    oc: OktoClient,
     payload: EstimateOrderPayload,
   ): Promise<OrderEstimateResponse> {
-    const response = await getBffClient().get<
+    const response = await getBffClient(oc).get<
       ApiResponse<OrderEstimateResponse>
     >(this.routes.estimateOrder, {
       data: payload,

@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "build:packages": "turbo build --filter=./packages/*",
+    "build:apps": "turbo build --filter=./apps/*",
     "dev": "turbo dev",
     "start": "turbo start",
     "clean": "turbo clean",

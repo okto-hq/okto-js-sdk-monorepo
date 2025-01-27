@@ -9,16 +9,8 @@ import {
   type Hex,
 } from 'viem';
 import { signMessage } from 'viem/accounts';
-import { nonceToBigInt } from './nonce.js';
+import { nonceToBigInt } from '../utils/nonce.js';
 
-/**
- * Generates the default paymaster data used for authentication.
- *
- * @param privateKey Private Key of the Vendor.
- * @param validUntil Unix Timestamp in milliseconds of when the paymaster data is valid until.
- * @param validAfter Unix Timestamp in milliseconds of when the paymaster data is valid after.
- * @returns
- */
 export async function generatePaymasterData(
   address: Hex,
   privateKey: Hex,
