@@ -1,6 +1,7 @@
 {
   "name": "test-core-js",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
   "main": "dist/index.js",

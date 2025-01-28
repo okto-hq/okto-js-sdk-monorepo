@@ -1,14 +1,14 @@
 {
   "name": "@okto_web3/react-sdk",
-  "version": "0.0.0-dev.1",
+  "version": "0.0.0-dev.10",
   "description": "ReactJS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc && tsc-alias",
-    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "build": "tsup",
+    "clean": "rimraf dist && rimraf .turbo && rimraf tsconfig.tsbuildinfo && rimraf node_modules",
     "dev:index": "tsx src/index.ts",
     "lint": "eslint .",
     "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
@@ -22,6 +22,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.cjs"
+    },
+    "./explorer": {
+      "types": "./dist/explorer/index.d.ts",
+      "import": "./dist/explorer/index.js",
+      "require": "./dist/explorer/index.cjs"
+    },
+    "./userop": {
+      "types": "./dist/userop/index.d.ts",
+      "import": "./dist/userop/index.js",
+      "require": "./dist/userop/index.cjs"
     }
   },
   "dependencies": {
@@ -35,6 +50,7 @@
     "react": "^18.2.0",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
+    "tsup": "^8.3.6",
     "typescript": "^5.7.2"
   },
   "peerDependencies": {

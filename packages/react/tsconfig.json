@@ -4,6 +4,10 @@
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@okto_web3/core-js-sdk/*": ["../core-js/src/*"]
+    }
   }
 }
