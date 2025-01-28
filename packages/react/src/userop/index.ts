@@ -1,3 +1,7 @@
-import UserOperation from '@okto_web3/core-js-sdk/userop';
+import {
+  nftCollectionCreation,
+  nftTransfer,
+  tokenTransfer,
+} from '@okto_web3/core-js-sdk/userop';
 
-export { UserOperation };
+export { nftCollectionCreation, nftTransfer, tokenTransfer };

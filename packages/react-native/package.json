@@ -1,13 +1,15 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.0.0-dev.13",
+  "version": "0.0.0-dev.23",
   "description": "React-Native for Okto SDK",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "source": "./src/index.ts",
+  "main": "./dist/commonjs/index.js",
+  "module": "./dist/module/index.js",
+  "types": "./dist/typescript/commonjs/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsup",
+    "build": "bob build",
     "clean": "rimraf dist && rimraf .turbo && rimraf tsconfig.tsbuildinfo && rimraf node_modules",
     "dev:index": "tsx src/index.ts",
     "lint": "eslint .",
@@ -19,24 +21,14 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.cjs"
-    },
-    "./explorer": {
-      "types": "./dist/explorer/index.d.ts",
-      "import": "./dist/explorer/index.js",
-      "require": "./dist/explorer/index.cjs"
-    },
-    "./userop": {
-      "types": "./dist/userop/index.d.ts",
-      "import": "./dist/userop/index.js",
-      "require": "./dist/userop/index.cjs"
+      "import": {
+        "types": "./dist/typescript/module/index.d.ts",
+        "default": "./dist/module/index.js"
+      },
+      "require": {
+        "types": "./dist/typescript/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
     }
   },
   "dependencies": {
@@ -48,6 +40,7 @@
     "@okto_web3/typescript-config": "workspace:*",
     "@types/react": "^18.2.0",
     "react": "^18.2.0",
+    "react-native-builder-bob": "^0.35.3",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
     "tsup": "^8.3.6",
@@ -57,5 +50,40 @@
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "keywords": [],
-  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>",
+  "files": [
+    "src",
+    "dist",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "dist",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "esm": true
+        }
+      ]
+    ]
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "dist/"
+  ]
 }
