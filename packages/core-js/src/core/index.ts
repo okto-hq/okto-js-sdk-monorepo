@@ -22,7 +22,7 @@ class OktoClient {
   private _user?: User;
   private _vendorConfig: VendorConfig;
   private _sessionConfig: SessionConfig | undefined;
-  readonly isDev: boolean = false; //* Mark it as true for development environment
+  readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
     this._vendorConfig = {
