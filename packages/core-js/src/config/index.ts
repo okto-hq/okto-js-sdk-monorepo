@@ -37,12 +37,10 @@ class GlobalConfig {
    * ```
    */
   initialize(environment: Env) {
-    if (this._initialized) {
-      throw new Error('GlobalConfig already initialized');
+    if (!this._initialized) {
+      this._environment = environment;
+      this._initialized = true;
     }
-
-    this._environment = environment;
-    this._initialized = true;
   }
 
   /**
