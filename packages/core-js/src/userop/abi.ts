@@ -1,5 +1,5 @@
 class UserOperationAbi {
-  protected tokenTransferAbi = [
+  static tokenTransferAbi = [
     {
       constant: false,
       inputs: [
@@ -40,7 +40,7 @@ class UserOperationAbi {
     },
   ];
 
-  protected nftTransferAbi = [
+  static nftTransferAbi = [
     {
       constant: false,
       inputs: [
@@ -81,7 +81,7 @@ class UserOperationAbi {
     },
   ];
 
-  protected nftCollectionCreationAbi = [
+  static nftCollectionCreationAbi = [
     {
       constant: false,
       inputs: [
@@ -122,7 +122,7 @@ class UserOperationAbi {
     },
   ];
 
-  protected nftMintAbi = [
+  static nftMintAbi = [
     {
       constant: false,
       inputs: [

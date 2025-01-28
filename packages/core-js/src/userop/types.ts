@@ -30,7 +30,7 @@ export type NFTTransferIntentParams = {
   collectionAddress: Address;
   nftId: string;
   recipientWalletAddress: Address;
-  amount: string;
+  amount: number | bigint;
   type: 'nft' | '';
 };
 
