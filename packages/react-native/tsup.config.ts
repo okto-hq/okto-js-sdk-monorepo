@@ -11,7 +11,9 @@ export default defineConfig({
   dts: true,
   outDir: 'dist',
   clean: true,
-  external: ['react'],
+  external: ['react', 'react-native'],
   splitting: false,
   sourcemap: true,
+  platform: 'neutral',
+  target: 'node16',
 });

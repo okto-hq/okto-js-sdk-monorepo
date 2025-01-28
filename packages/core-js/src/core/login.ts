@@ -1,4 +1,3 @@
-import { globalConfig } from '@/config/index.js';
 import type { Hash, Hex } from '@/types/core.js';
 import type {
   AuthenticatePayloadParam,
@@ -12,6 +11,7 @@ import {
   SessionKey,
 } from '@/utils/index.js';
 import { signMessage } from 'viem/accounts';
+import type OktoClient from './index.js';
 
 /**
  * Generates the authenticate payload.
@@ -24,6 +24,7 @@ import { signMessage } from 'viem/accounts';
  * @returns {AuthenticatePayloadParam} The authenticate payload.
  */
 export async function generateAuthenticatePayload(
+  oc: OktoClient,
   authData: AuthData,
   sessionKey: SessionKey,
   vendorSWA: Hex,
@@ -41,7 +42,7 @@ export async function generateAuthenticatePayload(
   payload.sessionData.sessionPk = sessionKey.uncompressedPublicKeyHexWith0x;
   payload.sessionData.maxPriorityFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
   payload.sessionData.maxFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
-  payload.sessionData.paymaster = globalConfig.env.paymasterAddress;
+  payload.sessionData.paymaster = oc.env.paymasterAddress;
   payload.sessionData.paymasterData = await generatePaymasterAndData(
     vendorSWA,
     vendorPriv,

@@ -1,16 +1,15 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
-import { globalConfig } from '@/config/index.js';
-import type { Env } from '@/config/types.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Hash, Hex, User, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { signMessage } from 'viem/accounts';
+import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import { generatePaymasterData } from './paymaster.js';
-import type { SessionConfig, VendorConfig } from './types.js';
+import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -19,9 +18,11 @@ export interface OktoClientConfig {
 }
 
 class OktoClient {
+  private _environment: Env;
   private _user?: User;
   private _vendorConfig: VendorConfig;
   private _sessionConfig: SessionConfig | undefined;
+  readonly isDev: boolean = false; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
     this._vendorConfig = {
@@ -30,7 +31,18 @@ class OktoClient {
       vendorSWA: config.vendorSWA,
     };
 
-    globalConfig.initialize(config.environment);
+    this._environment = config.environment;
+  }
+
+  get env(): EnvConfig {
+    switch (this._environment) {
+      case 'sandbox':
+        return sandboxEnvConfig;
+      case 'production':
+        return productionEnvConfig;
+      default:
+        return productionEnvConfig;
+    }
   }
 
   /**
@@ -53,6 +65,7 @@ class OktoClient {
     }
 
     const authPayload = await generateAuthenticatePayload(
+      this,
       data,
       session,
       vendorSWA,

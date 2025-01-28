@@ -1,4 +1,3 @@
-import { globalConfig } from '@/config/index.js';
 import type OktoClient from '@/core/index.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
@@ -69,7 +68,7 @@ class UserOperation extends UserOperationAbi {
     const userOp: UserOp = {
       sender: oc.userSWA,
       nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
-      paymaster: globalConfig.env.paymasterAddress,
+      paymaster: oc.env.paymasterAddress,
       callGasLimit: toHex(BigInt(300_000)),
       verificationGasLimit: toHex(BigInt(200_000)),
       preVerificationGas: toHex(BigInt(50_000)),
