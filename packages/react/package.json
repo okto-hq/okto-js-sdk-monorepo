@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-sdk",
-  "version": "0.0.0-dev.11",
+  "version": "0.0.0-dev.12",
   "description": "ReactJS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -54,7 +54,7 @@
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "react": "^16.0.0 || ^17.0.0 || ^18.0.0"
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "keywords": [],
   "author": "Sparsh Agarwal <sparsh.a@coindcx.com>"

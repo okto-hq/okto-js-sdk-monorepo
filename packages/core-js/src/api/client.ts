@@ -1,4 +1,3 @@
-import { globalConfig } from '@/config/index.js';
 import type OktoClient from '@/core/index.js';
 import { RpcError } from '@/errors/index.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
@@ -9,7 +8,7 @@ import { createLoggingInterceptor } from './logger.js';
 
 function getGatewayClient(oc: OktoClient) {
   const client = axios.create({
-    baseURL: globalConfig.env.gatewayBaseUrl,
+    baseURL: oc.env.gatewayBaseUrl,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -53,7 +52,7 @@ function getGatewayClient(oc: OktoClient) {
     },
   );
 
-  if (globalConfig.isDev) {
+  if (oc.isDev) {
     client.interceptors.response.use(...createLoggingInterceptor());
   }
 
@@ -62,7 +61,7 @@ function getGatewayClient(oc: OktoClient) {
 
 function getBffClient(oc: OktoClient) {
   const client = axios.create({
-    baseURL: globalConfig.env.bffBaseUrl,
+    baseURL: oc.env.bffBaseUrl,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -92,7 +91,7 @@ function getBffClient(oc: OktoClient) {
     },
   );
 
-  if (globalConfig.isDev) {
+  if (oc.isDev) {
     client.interceptors.response.use(...createLoggingInterceptor());
   }
 

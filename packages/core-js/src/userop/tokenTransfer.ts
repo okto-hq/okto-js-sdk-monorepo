@@ -1,4 +1,3 @@
-import { globalConfig } from '@/config/index.js';
 import type OktoClient from '@/core/index.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
@@ -17,14 +16,13 @@ import type { TokenTransferIntentParams } from './types.js';
  * Creates a user operation for token transfer.
  *
  * This function initiates the process of transferring a token by encoding
- * the necessary parameters into a User Operation. The operation is then 
+ * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
  * @param data - The parameters for transferring the token (networkId, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
-
 
 export async function tokenTransfer(
   oc: OktoClient,
@@ -81,7 +79,7 @@ export async function tokenTransfer(
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
-    paymaster: globalConfig.env.paymasterAddress,
+    paymaster: oc.env.paymasterAddress,
     callGasLimit: toHex(BigInt(300_000)),
     verificationGasLimit: toHex(BigInt(200_000)),
     preVerificationGas: toHex(BigInt(50_000)),

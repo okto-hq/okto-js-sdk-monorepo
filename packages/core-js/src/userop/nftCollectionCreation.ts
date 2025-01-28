@@ -1,4 +1,3 @@
-import { globalConfig } from '@/config/index.js';
 import type OktoClient from '@/core/index.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
@@ -17,14 +16,13 @@ import type { NFTCollectionCreationIntentParams } from './types.js';
  * Creates a user operation for NFT collection creation.
  *
  * This function initiates the process of creating an NFT collection by encoding
- * the necessary parameters into a User Operation. The operation is then 
+ * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param data - The parameters for creating the NFT collection (networkId, name, description, etc.)
  * @param oc - The OktoClient instance used to interact with the blockchain.
  * @returns The User Operation (UserOp) for the NFT collection creation.
  */
-
 
 export async function nftCollectionCreation(
   data: NFTCollectionCreationIntentParams,
@@ -83,7 +81,7 @@ export async function nftCollectionCreation(
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
-    paymaster: globalConfig.env.paymasterAddress,
+    paymaster: oc.env.paymasterAddress,
     callGasLimit: toHex(BigInt(300_000)),
     verificationGasLimit: toHex(BigInt(200_000)),
     preVerificationGas: toHex(BigInt(50_000)),
