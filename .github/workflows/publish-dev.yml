@@ -1,7 +1,10 @@
-name: Publish Dev Version
+name: Publish Packages - Dev Version
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   publish-dev:
