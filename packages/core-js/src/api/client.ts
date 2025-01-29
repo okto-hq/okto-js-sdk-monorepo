@@ -2,7 +2,6 @@ import type OktoClient from '@/core/index.js';
 import { RpcError } from '@/errors/index.js';
 import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios, { AxiosError } from 'axios';
-import axiosRetry from 'axios-retry';
 import { BaseError } from 'viem';
 import { createLoggingInterceptor } from './logger.js';
 
@@ -95,10 +94,10 @@ function getBffClient(oc: OktoClient) {
     client.interceptors.response.use(...createLoggingInterceptor());
   }
 
-  axiosRetry(client, {
-    retries: 3,
-    retryDelay: axiosRetry.exponentialDelay,
-  });
+  // axiosRetry(client, {
+  //   retries: 3,
+  //   retryDelay: axiosRetry.exponentialDelay,
+  // });
 
   return client;
 }
