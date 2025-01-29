@@ -1,4 +1,3 @@
-import '@types/react-native-get-random-values';
 import 'react-native-get-random-values';
 
 export { OktoProvider } from './context/OktoProvider.js';
