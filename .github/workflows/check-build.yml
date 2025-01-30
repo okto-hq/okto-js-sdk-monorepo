@@ -113,3 +113,16 @@ jobs:
   #         key: ${{ env.CACHE_KEY }}
   #     - name: Check Exports
   #       run: pnpm check-exports
+
+  status-check:
+    needs: [build, lint, format]
+    name: Status Check
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Success
+        if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        run: exit 0
+      - name: Failure
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1

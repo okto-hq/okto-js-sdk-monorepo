@@ -1,4 +1,3 @@
-
 /**
  * ========================
  * Common to Token and Account
