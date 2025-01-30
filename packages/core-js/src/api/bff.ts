@@ -172,31 +172,28 @@ class BffClientRepository {
    */
   public static async getOrders(
     oc: OktoClient,
-    filters: OrderFilterRequest,
+    filters?: OrderFilterRequest,
   ): Promise<Order[]> {
     const response = await getBffClient(oc).get<
       ApiResponseWithCount<'items', Order>
     >(this.routes.getOrders, {
       params: {
-        intent_id: filters.intentId,
-        status: filters.status,
-        intent_type: filters.intentType,
+        intent_id: filters?.intentId,
+        status: filters?.status,
+        intent_type: filters?.intentType,
       },
     });
 
     if (response.data.status === 'error') {
-      throw new Error('Failed to retrieve orders');
+      throw new Error('Failed to retrieve orders: ' + response.data.error);
     }
 
-    if (!response.data.data) {
-      throw new Error('Response data is missing');
+    if (!response.data.data?.items) {
+      throw new Error('No orders found or response data is missing.');
     }
 
-    const orders = response.data.data.items;
-
-    return orders;
+    return response.data.data.items;
   }
-
   /**
    * Retrieves the details of executed NFT orders from the backend.
    */
