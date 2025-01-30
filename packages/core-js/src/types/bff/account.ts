@@ -1,5 +1,4 @@
 import type { Hash } from '../core.js';
-import type { Network } from './common.js';
 
 /**
  * ========================
@@ -148,6 +147,14 @@ export type UserNFTBalance = {
 /**
  * Represents an order.
  */
+export type INTENT_TYPE =
+  | 'RAW_TRANSACTION'
+  | 'NFT_MINT'
+  | 'TOKEN_TRANSFER'
+  | 'NFT_TRANSFER';
+
+export type STATUS_TYPE = 'SUCCESSFUL' | 'IN_PROGRESS';
+
 export type Order = {
   downstreamTransactionHash: string[];
   transactionHash: string[];
@@ -197,9 +204,9 @@ export type OrderDetails =
   | (NftTransferDetails & { intent_type: 'NFT_TRANSFER' });
 
 export type OrderFilterRequest = {
-  intent_id?: string;
-  status?: string;
-  intent_type?: string;
+  intentId?: string;
+  status?: STATUS_TYPE;
+  intentType?: INTENT_TYPE;
 };
 
 /**

@@ -172,28 +172,17 @@ class BffClientRepository {
    */
   public static async getOrders(
     oc: OktoClient,
-    filters?: OrderFilterRequest,
+    filters: OrderFilterRequest,
   ): Promise<Order[]> {
-    const queryParams = new URLSearchParams();
-
-    if (filters) {
-      if (filters.intent_id) {
-        queryParams.append('intent_id', filters.intent_id);
-      }
-      if (filters.status) {
-        queryParams.append('status', filters.status);
-      }
-      if (filters.intent_type) {
-        queryParams.append('intent_type', filters.intent_type);
-      }
-    }
-
-    const url = filters
-      ? `${this.routes.getOrders}?${queryParams.toString()}`
-      : this.routes.getOrders;
-
-    const response =
-      await getBffClient(oc).get<ApiResponseWithCount<'items', Order>>(url);
+    const response = await getBffClient(oc).get<
+      ApiResponseWithCount<'items', Order>
+    >(this.routes.getOrders, {
+      params: {
+        intent_id: filters.intentId,
+        status: filters.status,
+        intent_type: filters.intentType,
+      },
+    });
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve orders');
