@@ -6,6 +6,7 @@ on:
 
 env:
   NODE_VERSION: 20
+  CACHE_KEY: deps-${{ github.sha }}
 
 jobs:
   install:
@@ -30,7 +31,7 @@ jobs:
           path: |
             node_modules
             ./**/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ env.CACHE_KEY }}
 
   build:
     needs: install
@@ -44,7 +45,7 @@ jobs:
           path: |
             node_modules
             ./**/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ env.CACHE_KEY }}
       - name: Build Packages
         run: pnpm build:packages
 
@@ -60,7 +61,7 @@ jobs:
           path: |
             node_modules
             ./**/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ env.CACHE_KEY }}
       - name: Check Lint
         run: pnpm lint
 
@@ -76,7 +77,7 @@ jobs:
           path: |
             node_modules
             ./**/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ env.CACHE_KEY }}
       - name: Check Format
         run: pnpm check-format
 
@@ -92,6 +93,6 @@ jobs:
           path: |
             node_modules
             ./**/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ env.CACHE_KEY }}
       - name: Check Exports
         run: pnpm check-exports
