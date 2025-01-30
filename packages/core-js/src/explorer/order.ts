@@ -7,7 +7,7 @@ import type { INTENT_TYPE, Order, STATUS_TYPE } from '@/types/bff/account.js';
  */
 export async function getOrdersHistory(
   oc: OktoClient,
-  filters: {
+  filters? : {
     intentId?: string;
     status?: STATUS_TYPE;
     intentType?: INTENT_TYPE;

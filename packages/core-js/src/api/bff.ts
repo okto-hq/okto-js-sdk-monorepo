@@ -172,15 +172,15 @@ class BffClientRepository {
    */
   public static async getOrders(
     oc: OktoClient,
-    filters: OrderFilterRequest,
+    filters?: OrderFilterRequest,
   ): Promise<Order[]> {
     const response = await getBffClient(oc).get<
       ApiResponseWithCount<'items', Order>
     >(this.routes.getOrders, {
       params: {
-        intent_id: filters.intentId,
-        status: filters.status,
-        intent_type: filters.intentType,
+        intent_id: filters?.intentId,
+        status: filters?.status,
+        intent_type: filters?.intentType,
       },
     });
 
