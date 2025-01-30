@@ -6,6 +6,7 @@ import type {
   NFTOrderDetails,
   Order,
   OrderEstimateResponse,
+  OrderFilterRequest,
   UserNFTBalance,
   UserPortfolioActivity,
   UserPortfolioData,
@@ -166,10 +167,22 @@ class BffClientRepository {
   /**
    * Retrieves the list of orders for the authenticated user from the BFF service.
    */
-  public static async getOrders(oc: OktoClient): Promise<Order[]> {
+  /**
+   * Retrieves the list of orders for the authenticated user from the BFF service.
+   */
+  public static async getOrders(
+    oc: OktoClient,
+    filters: OrderFilterRequest,
+  ): Promise<Order[]> {
     const response = await getBffClient(oc).get<
-      ApiResponseWithCount<'orders', Order>
-    >(this.routes.getOrders);
+      ApiResponseWithCount<'items', Order>
+    >(this.routes.getOrders, {
+      params: {
+        intent_id: filters.intentId,
+        status: filters.status,
+        intent_type: filters.intentType,
+      },
+    });
 
     if (response.data.status === 'error') {
       throw new Error('Failed to retrieve orders');
@@ -179,7 +192,9 @@ class BffClientRepository {
       throw new Error('Response data is missing');
     }
 
-    return response.data.data.orders;
+    const orders = response.data.data.items;
+
+    return orders;
   }
 
   /**

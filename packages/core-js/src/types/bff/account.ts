@@ -1,5 +1,4 @@
 import type { Hash } from '../core.js';
-import type { Network } from './common.js';
 
 /**
  * ========================
@@ -148,25 +147,66 @@ export type UserNFTBalance = {
 /**
  * Represents an order.
  */
+export type INTENT_TYPE =
+  | 'RAW_TRANSACTION'
+  | 'NFT_MINT'
+  | 'TOKEN_TRANSFER'
+  | 'NFT_TRANSFER';
+
+export type STATUS_TYPE = 'SUCCESSFUL' | 'IN_PROGRESS';
+
 export type Order = {
-  intentId: string;
+  downstreamTransactionHash: string[];
   transactionHash: string[];
-  userAddress: string;
-  vendorAddress: string;
-  params: any | null;
-  gsnParams: {
-    isRequired: boolean;
-    requiredNetworks: string[];
-    tokens:
-      | {
-          amountInUSDT: string;
-          maxAmount: string;
-          networkId: string;
-          tokenAddress: string;
-        }[]
-      | null;
-  };
   status: string;
+  intentId: string;
+  intentType: string;
+  networkName: string;
+  caipId: string;
+  details: OrderDetails;
+};
+
+export type BaseDetails = {
+  caip2Id: string;
+};
+
+export type RawTransactionDetails = BaseDetails & {
+  transactions: Array<Array<{ Key: string; Value: string }>>;
+};
+
+export type NftMintDetails = BaseDetails & {
+  collectionName: string;
+  description: string;
+  nftName: string;
+  properties: Array<{ name: string; value: string; valueType: string }>;
+  uri: string;
+};
+
+export type TokenTransferDetails = BaseDetails & {
+  amount: string;
+  networkId: string;
+  recipientWalletAddress: string;
+  tokenAddress: string;
+};
+
+export type NftTransferDetails = BaseDetails & {
+  collectionAddress?: string;
+  nftId?: string;
+  recipientWalletAddress: string;
+  amount?: string;
+  nftType?: string;
+};
+
+export type OrderDetails =
+  | (RawTransactionDetails & { intent_type: 'RAW_TRANSACTION' })
+  | (NftMintDetails & { intent_type: 'NFT_MINT' })
+  | (TokenTransferDetails & { intent_type: 'TOKEN_TRANSFER' })
+  | (NftTransferDetails & { intent_type: 'NFT_TRANSFER' });
+
+export type OrderFilterRequest = {
+  intentId?: string;
+  status?: STATUS_TYPE;
+  intentType?: INTENT_TYPE;
 };
 
 /**
