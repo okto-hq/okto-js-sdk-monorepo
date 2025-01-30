@@ -1,5 +1,4 @@
-import type { Network } from "./common.js";
-
+import type { Network } from './common.js';
 
 /**
  * Represents Token data

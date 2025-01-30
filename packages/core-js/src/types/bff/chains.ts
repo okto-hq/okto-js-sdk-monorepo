@@ -1,4 +1,3 @@
-
 /**
  * Represents the  Response for Supported Networks
  */
