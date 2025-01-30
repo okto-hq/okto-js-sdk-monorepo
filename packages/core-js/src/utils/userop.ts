@@ -1,12 +1,14 @@
+import type OktoClient from '@/core/index.js';
 import type { Hash, PackedUserOp, UserOp } from '@/types/core.js';
 import {
+  concat,
   encodeAbiParameters,
-  encodePacked,
   hexToBigInt,
   keccak256,
   pad,
   parseAbiParameters,
 } from 'viem';
+import { Constants } from './constants.js';
 
 export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   // TODO: Add better checks; this is temporary and should not go to release
@@ -21,7 +23,8 @@ export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
     !userOp.maxPriorityFeePerGas ||
     userOp.paymaster == undefined ||
     !userOp.paymasterVerificationGasLimit ||
-    !userOp.paymasterPostOpGasLimit
+    !userOp.paymasterPostOpGasLimit ||
+    userOp.paymasterData == undefined
   ) {
     throw new Error('Invalid UserOp');
   }
@@ -42,19 +45,18 @@ export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
       size: 16,
     }).replace('0x', '')) as Hash;
 
-  const paymasterAndData = encodePacked(
-    ['address', 'bytes16', 'bytes16', 'bytes'],
-    [
-      userOp.paymaster,
-      pad(userOp.paymasterVerificationGasLimit, {
-        size: 16,
-      }),
-      pad(userOp.paymasterPostOpGasLimit, {
-        size: 16,
-      }),
-      userOp.paymasterData!,
-    ],
-  );
+  const paymasterAndData = userOp.paymaster
+    ? concat([
+        userOp.paymaster,
+        pad(userOp.paymasterVerificationGasLimit, {
+          size: 16,
+        }),
+        pad(userOp.paymasterPostOpGasLimit, {
+          size: 16,
+        }),
+        userOp.paymasterData,
+      ])
+    : '0x';
 
   const packedUserOp: PackedUserOp = {
     sender: userOp.sender,
@@ -70,7 +72,7 @@ export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   return packedUserOp;
 }
 
-export function generateUserOpHash(userOp: PackedUserOp): Hash {
+export function generateUserOpHash(oc: OktoClient, userOp: PackedUserOp): Hash {
   const pack = encodeAbiParameters(
     parseAbiParameters(
       'address, bytes32, bytes32, bytes32, bytes32, uint256, bytes32, bytes32',
@@ -103,8 +105,8 @@ export function generateUserOpHash(userOp: PackedUserOp): Hash {
     parseAbiParameters('bytes32, address, uint256'),
     [
       keccak256(pack),
-      '0xb0C42f19bBb23E52f75813404eeEc0D189b3A61B',
-      BigInt(24979),
+      Constants.ENTRYPOINT_CONTRACT_ADDRESS,
+      BigInt(oc.env.chainId),
     ],
   );
 

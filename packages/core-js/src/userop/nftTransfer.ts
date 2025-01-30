@@ -9,7 +9,6 @@ import {
   toHex,
 } from 'viem';
 import UserOperationAbi from './abi.js';
-import UserOperationConstants from './constants.js';
 import type { NFTTransferIntentParams } from './types.js';
 
 /**
@@ -37,8 +36,8 @@ export async function nftTransfer(
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
     [
-      UserOperationConstants.ExecuteUserOpFunctionSelector,
-      '0xed8Fe2543efFF64FC3567B03b612AA82C409579a',
+      Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
+      oc.env.jobManagerAddress,
       encodeFunctionData({
         abi: UserOperationAbi.nftTransferAbi,
         functionName: 'initiateJob',

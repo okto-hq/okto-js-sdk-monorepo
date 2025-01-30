@@ -6,6 +6,8 @@ export interface EnvConfig {
   gatewayBaseUrl: string;
   bffBaseUrl: string;
   paymasterAddress: Address;
+  jobManagerAddress: Address;
+  chainId: number;
 }
 
 export interface VendorConfig {

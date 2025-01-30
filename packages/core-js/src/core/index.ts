@@ -5,6 +5,7 @@ import type { Hash, Hex, User, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
+import { fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
 import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
@@ -192,8 +193,12 @@ class OktoClient {
       throw new Error('Session keys are not set');
     }
 
+    const packeduserop = generatePackedUserOp(userop);
+    const hash = generateUserOpHash(this, packeduserop);
     const sig = await signMessage({
-      message: generateUserOpHash(generatePackedUserOp(userop)),
+      message: {
+        raw: fromHex(hash, 'bytes'),
+      },
       privateKey: privateKey,
     });
 
