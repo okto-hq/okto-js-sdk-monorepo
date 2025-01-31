@@ -5,33 +5,45 @@ import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
   encodeAbiParameters,
   encodeFunctionData,
+  numberToHex,
   parseAbiParameters,
+  stringToBytes,
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NFTCollectionCreationIntentParams } from './types.js';
+import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
 
 /**
- * Creates a user operation for NFT collection creation.
- *
- * This function initiates the process of creating an NFT collection by encoding
- * the necessary parameters into a User Operation. The operation is then
- * submitted through the OktoClient for execution.
- *
- * @param data - The parameters for creating the NFT collection (networkId, name, description, etc.)
- * @param oc - The OktoClient instance used to interact with the blockchain.
- * @returns The User Operation (UserOp) for the NFT collection creation.
+ * Creates a user operation for EVM Raw Transaction.
  */
-
-export async function nftCollectionCreation(
-  data: NFTCollectionCreationIntentParams,
+export async function evmRawTransaction(
   oc: OktoClient,
+  data: RawTransactionIntentParams,
 ): Promise<UserOp> {
+  const transaction: EVMRawTransaction = {
+    from: data.transaction.from,
+    to: data.transaction.to,
+    data: data.transaction.data ?? '0x',
+    value: numberToHex(data.transaction.value ?? 0),
+  };
+
   const nonce = generateUUID();
 
-  const jobParametersAbiType =
-    '(string networkId, string name,string description ,string metadataUri, string symbol,string type)';
+  const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
+
+  const jobparam = encodeAbiParameters(
+    parseAbiParameters(jobParametersAbiType),
+    [
+      {
+        caip2Id: data.networkId,
+        transactions: [toHex(stringToBytes(JSON.stringify(transaction)))],
+      },
+    ],
+  );
+
+  console.info('transaction:', JSON.stringify(transaction, null, 2));
+  console.info('jobparam:', jobparam);
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
@@ -53,25 +65,16 @@ export async function nftCollectionCreation(
                 sponsorshipEnabled: false,
               },
             ],
-          ),
+          ), // policyinfo  //TODO: get this data from user
           encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
             {
               isRequired: false,
               requiredNetworks: [],
               tokens: [],
             },
-          ]),
-          encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
-            {
-              networkId: data.networkId,
-              name: data.name,
-              description: data.description,
-              metadataUri: data.metadataUri,
-              symbol: data.symbol,
-              type: data.type,
-            },
-          ]),
-          'NFT_COLLECTION_CREATION',
+          ]), // gsnData
+          jobparam,
+          'RAW_TRANSACTION',
         ],
       }),
     ],
