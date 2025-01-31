@@ -8,7 +8,7 @@ import {
   parseAbiParameters,
   toHex,
 } from 'viem';
-import UserOperationAbi from './abi.js';
+import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
 
 /**
@@ -22,7 +22,6 @@ import type { TokenTransferIntentParams } from './types.js';
  * @param data - The parameters for transferring the token (networkId, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
-
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
@@ -39,7 +38,7 @@ export async function tokenTransfer(
       Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
       oc.env.jobManagerAddress,
       encodeFunctionData({
-        abi: UserOperationAbi.tokenTransferAbi,
+        abi: INTENT_ABI,
         functionName: 'initiateJob',
         args: [
           toHex(nonceToBigInt(nonce), { size: 32 }),

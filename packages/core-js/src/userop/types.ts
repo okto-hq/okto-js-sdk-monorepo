@@ -1,4 +1,5 @@
-import type { Address } from '@/types/core.js';
+import type { Address, Hash } from '@/types/core.js';
+import type { PartialBy } from 'viem';
 
 /**
  * Parameters for a token transfer intent.
@@ -74,5 +75,19 @@ export type NFTMintIntentParams = {
     uri: string;
     nftName: string;
     description: string;
+  };
+};
+
+export type EVMRawTransaction = {
+  from: Address;
+  to: Address;
+  data: Hash;
+  value: Hash;
+};
+
+export type RawTransactionIntentParams = {
+  networkId: string;
+  transaction: Omit<PartialBy<EVMRawTransaction, 'data' | 'value'>, 'value'> & {
+    value?: number | bigint;
   };
 };
