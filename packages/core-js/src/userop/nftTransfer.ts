@@ -3,6 +3,7 @@ import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
+  BaseError,
   encodeAbiParameters,
   encodeFunctionData,
   parseAbiParameters,
@@ -24,13 +25,19 @@ import type { NFTTransferIntentParams } from './types.js';
  */
 
 export async function nftTransfer(
-  data: NFTTransferIntentParams,
   oc: OktoClient,
+  data: NFTTransferIntentParams,
 ): Promise<UserOp> {
+  if (data.amount <= 0) {
+    throw new BaseError('amount must be greater than 0', {
+      name: 'InvalidParameterError',
+    });
+  }
+
   const nonce = generateUUID();
 
   const jobParametersAbiType =
-    '(string networkId, string collectionAddress, string nftId,string recipientWalletAddress ,uint amount, string type)';
+    '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint256 amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
@@ -64,11 +71,11 @@ export async function nftTransfer(
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               amount: BigInt(data.amount),
-              networkId: data.networkId,
+              caip2Id: data.caip2Id,
               recipientWalletAddress: data.recipientWalletAddress,
               nftId: data.nftId,
               collectionAddress: data.collectionAddress,
-              type: data.type,
+              nftType: data.nftType,
             },
           ]),
           'NFT_TRANSFER',
