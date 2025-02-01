@@ -1,7 +1,7 @@
 import {
   getAccount,
   getChains,
-  // getNftCollections,
+  getNftCollections,
   getOrdersHistory,
   getPortfolio,
   getPortfolioActivity,
@@ -12,7 +12,7 @@ import {
 export {
   getAccount,
   getChains,
-  // getNftCollections,
+  getNftCollections,
   getOrdersHistory,
   getPortfolio,
   getPortfolioActivity,
