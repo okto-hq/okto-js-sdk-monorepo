@@ -3,7 +3,6 @@ import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
 import type OktoClient from '@/core/index.js';
 import type {
   EstimateOrderPayload,
-  NFTOrderDetails,
   Order,
   OrderEstimateResponse,
   OrderFilterRequest,
@@ -197,22 +196,8 @@ class BffClientRepository {
   /**
    * Retrieves the details of executed NFT orders from the backend.
    */
-  public static async getNftOrderDetails(
-    oc: OktoClient,
-  ): Promise<NFTOrderDetails[]> {
-    const response = await getBffClient(oc).get<
-      ApiResponseWithCount<'executed', NFTOrderDetails>
-    >(this.routes.getNftOrderDetails);
-
-    if (response.data.status === 'error') {
-      throw new Error('Failed to retrieve NFT order details');
-    }
-
-    if (!response.data.data) {
-      throw new Error('Response data is missing');
-    }
-
-    return response.data.data.executed;
+  public static async getNftOrderDetails(oc: OktoClient): Promise<Order[]> {
+    return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
   }
 
   public static async estimateOrder(
