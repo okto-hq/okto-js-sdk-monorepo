@@ -37,7 +37,7 @@ export async function nftTransfer(
   const nonce = generateUUID();
 
   const jobParametersAbiType =
-    '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint256 amount)';
+    '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(

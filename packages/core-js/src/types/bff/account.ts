@@ -153,7 +153,7 @@ export type INTENT_TYPE =
   | 'TOKEN_TRANSFER'
   | 'NFT_TRANSFER';
 
-export type STATUS_TYPE = 'SUCCESSFUL' | 'IN_PROGRESS';
+export type STATUS_TYPE = 'SUCCESSFUL' | 'IN_PROGRESS' | 'FAILED';
 
 export type Order = {
   downstreamTransactionHash: string[];
