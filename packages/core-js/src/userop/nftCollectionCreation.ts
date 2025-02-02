@@ -22,10 +22,10 @@ import type { NFTCollectionCreationIntentParams } from './types.js';
  * @param oc - The OktoClient instance used to interact with the blockchain.
  * @returns The User Operation (UserOp) for the NFT collection creation.
  */
-
-export async function nftCollectionCreation(
-  data: NFTCollectionCreationIntentParams,
+// ? Removed until Aptos is ready
+async function nftCollectionCreation(
   oc: OktoClient,
+  data: NFTCollectionCreationIntentParams,
 ): Promise<UserOp> {
   const nonce = generateUUID();
 

@@ -1,4 +1,5 @@
 import type OktoClient from '@/core/index.js';
+import { BaseError } from '@/errors/base.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
@@ -26,6 +27,12 @@ export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
 ): Promise<UserOp> {
+  if (data.amount <= 0) {
+    throw new BaseError('amount must be greater than 0', {
+      name: 'InvalidParameterError',
+    });
+  }
+
   const nonce = generateUUID();
 
   const jobParametersAbiType =

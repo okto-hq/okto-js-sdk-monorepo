@@ -27,12 +27,12 @@ export type TokenTransferIntentParams = {
  * @property type - The type of NFT. For Aptos, this is 'nft'. For Solana, this is an empty string. Other chains may have different values.
  */
 export type NFTTransferIntentParams = {
-  networkId: string;
+  caip2Id: string;
   collectionAddress: Address;
   nftId: string;
   recipientWalletAddress: Address;
   amount: number | bigint;
-  type: 'nft' | '';
+  nftType: 'ERC721' | 'ERC1155';
 };
 
 /**
