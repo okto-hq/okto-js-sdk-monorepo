@@ -24,7 +24,9 @@ export class OktoClientInputValidator {
    */
   static OktoClientConfigSchema = z.object({
     environment: z.enum(['sandbox', 'production']),
-    vendorPrivKey: z.string().regex(PRIVATE_KEY_REGEX, 'Invalid vendor private key format'),
+    vendorPrivKey: z
+      .string()
+      .regex(PRIVATE_KEY_REGEX, 'Invalid vendor private key format'),
     vendorSWA: z.string().regex(ADDRESS_REGEX, 'Invalid vendor SWA format'),
   });
 
@@ -54,8 +56,12 @@ export class OktoClientInputValidator {
    * Schema for Vendor Configuration.
    */
   static VendorConfigSchema = z.object({
-    vendorPrivKey: z.string().regex(PRIVATE_KEY_REGEX, 'Invalid vendor private key format'),
-    vendorPubKey: z.string().regex(PUBLIC_KEY_REGEX, 'Invalid vendor public key format'),
+    vendorPrivKey: z
+      .string()
+      .regex(PRIVATE_KEY_REGEX, 'Invalid vendor private key format'),
+    vendorPubKey: z
+      .string()
+      .regex(PUBLIC_KEY_REGEX, 'Invalid vendor public key format'),
     vendorSWA: z.string().regex(ADDRESS_REGEX, 'Invalid vendor SWA format'),
   });
 
@@ -65,14 +71,26 @@ export class OktoClientInputValidator {
   static UserOpSchema = z.object({
     sender: z.string().regex(ADDRESS_REGEX, 'Invalid sender address format'),
     nonce: z.string().regex(HEX_REGEX, 'Invalid nonce format'),
-    paymaster: z.string().regex(ADDRESS_REGEX, 'Invalid paymaster address format'),
+    paymaster: z
+      .string()
+      .regex(ADDRESS_REGEX, 'Invalid paymaster address format'),
     callGasLimit: z.string().regex(HEX_REGEX, 'Invalid call gas limit format'),
-    verificationGasLimit: z.string().regex(HEX_REGEX, 'Invalid verification gas limit format'),
-    preVerificationGas: z.string().regex(HEX_REGEX, 'Invalid pre-verification gas format'),
+    verificationGasLimit: z
+      .string()
+      .regex(HEX_REGEX, 'Invalid verification gas limit format'),
+    preVerificationGas: z
+      .string()
+      .regex(HEX_REGEX, 'Invalid pre-verification gas format'),
     maxFeePerGas: z.string().regex(HEX_REGEX, 'Invalid max fee per gas format'),
-    maxPriorityFeePerGas: z.string().regex(HEX_REGEX, 'Invalid max priority fee per gas format'),
-    paymasterPostOpGasLimit: z.string().regex(HEX_REGEX, 'Invalid paymaster post-op gas limit format'),
-    paymasterVerificationGasLimit: z.string().regex(HEX_REGEX, 'Invalid paymaster verification gas limit format'),
+    maxPriorityFeePerGas: z
+      .string()
+      .regex(HEX_REGEX, 'Invalid max priority fee per gas format'),
+    paymasterPostOpGasLimit: z
+      .string()
+      .regex(HEX_REGEX, 'Invalid paymaster post-op gas limit format'),
+    paymasterVerificationGasLimit: z
+      .string()
+      .regex(HEX_REGEX, 'Invalid paymaster verification gas limit format'),
     callData: z.string().regex(HEX_REGEX, 'Invalid call data format'),
     paymasterData: z.string().regex(HEX_REGEX, 'Invalid paymaster data format'),
   });

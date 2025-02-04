@@ -28,7 +28,7 @@ class OktoClient {
 
   constructor(config: OktoClientConfig) {
     OktoClientInputValidator.validateOktoClientConfig(config);
-    
+
     this._vendorConfig = {
       vendorPrivKey: config.vendorPrivKey,
       vendorPubKey: getPublicKey(config.vendorPrivKey),
@@ -60,7 +60,6 @@ class OktoClient {
   public async loginUsingOAuth(
     data: AuthData,
   ): Promise<User | RpcError | undefined> {
-
     OktoClientInputValidator.validateAuthData(data);
 
     const vendorPrivateKey = this._vendorConfig.vendorPrivKey;

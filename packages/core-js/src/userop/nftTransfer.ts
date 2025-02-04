@@ -11,7 +11,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTTransferIntentParams } from './types.js';
-import  UserOpInputValidator  from './userOpInputValidator.js';
+import UserOpInputValidator from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT transfer.
