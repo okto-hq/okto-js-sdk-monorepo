@@ -19,7 +19,7 @@ export type TokenTransferIntentParams = {
 /**
  * Parameters required for transferring an NFT.
  *
- * @property networkId - The network identifier, formatted as a CAIP network ID.
+ * @property caip2Id - The network identifier, formatted as a CAIP network ID.
  * @property collectionAddress - The address of the NFT collection.
  * @property nftId - The unique identifier of the NFT. This can be a 32-bit address on Aptos or an integer on EVMs.
  * @property recipientWalletAddress - The wallet address of the recipient.
@@ -38,7 +38,7 @@ export type NFTTransferIntentParams = {
 /**
  * Parameters required for creating an NFT collection.
  *
- * @property networkId - The network identifier, formatted as a CAIP network ID.
+ * @property caip2Id - The network identifier, formatted as a CAIP network ID.
  * @property name - The name of the NFT collection.
  * @property description - A description of the NFT collection.
  * @property metadataUri - The URI pointing to the metadata of the NFT collection.
@@ -46,7 +46,7 @@ export type NFTTransferIntentParams = {
  * @property type - The type of the NFT collection. For EVMs, this could be "1155".
  */
 export type NFTCollectionCreationIntentParams = {
-  networkId: string;
+  caip2Id: string;
   name: string;
   description: string;
   metadataUri: string;
@@ -57,7 +57,7 @@ export type NFTCollectionCreationIntentParams = {
 /**
  * Parameters required for minting an NFT.
  *
- * @property networkId - The network identifier, formatted as a CAIP network ID.
+ * @property caip2Id - The network identifier, formatted as a CAIP network ID.
  * @property type - The type of the NFT. For EVMs, this could be "ERC1155". For Aptos, this is 'nft'. For Solana, this is an empty string. Other chains may have different values.
  * @property collectionAddress - The address of the NFT collection.
  * @property quantity - The quantity of NFTs to mint, typically "1".
@@ -67,7 +67,7 @@ export type NFTCollectionCreationIntentParams = {
  * @property metadata.description - A description of the NFT.
  */
 export type NFTMintIntentParams = {
-  networkId: string;
+  caip2Id: string;
   type: string;
   collectionAddress: Address;
   quantity: string;
@@ -86,7 +86,7 @@ export type EVMRawTransaction = {
 };
 
 export type RawTransactionIntentParams = {
-  networkId: string;
+  caip2Id: string;
   transaction: Omit<PartialBy<EVMRawTransaction, 'data' | 'value'>, 'value'> & {
     value?: number | bigint;
   };

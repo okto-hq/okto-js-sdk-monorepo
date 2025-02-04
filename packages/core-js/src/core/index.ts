@@ -5,12 +5,17 @@ import type { Hash, Hex, User, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
-import { fromHex } from 'viem';
+import { BaseError, fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
 import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import { generatePaymasterData } from './paymaster.js';
 import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
+import {
+  validateAuthData,
+  validateOktoClientConfig,
+  validateUserOp,
+} from './oktoClientInputValidator.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -26,6 +31,8 @@ class OktoClient {
   readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
+    validateOktoClientConfig(config);
+
     this._vendorConfig = {
       vendorPrivKey: config.vendorPrivKey,
       vendorPubKey: getPublicKey(config.vendorPrivKey),
@@ -57,6 +64,8 @@ class OktoClient {
   public async loginUsingOAuth(
     data: AuthData,
   ): Promise<User | RpcError | undefined> {
+    validateAuthData(data);
+
     const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
     const vendorSWA = this._vendorConfig.vendorSWA;
     const session = SessionKey.create();
@@ -168,6 +177,9 @@ class OktoClient {
     validUntil: Date | number | bigint;
     validAfter?: Date | number | bigint;
   }) {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to generate paymaster data');
+    }
     return generatePaymasterData(
       this._vendorConfig.vendorSWA,
       this._vendorConfig.vendorPrivKey,
@@ -178,6 +190,10 @@ class OktoClient {
   }
 
   public async executeUserOp(userop: UserOp): Promise<string> {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to execute user operation');
+    }
+    validateUserOp(userop);
     try {
       return await GatewayClientRepository.execute(this, userop);
     } catch (error) {
@@ -187,6 +203,10 @@ class OktoClient {
   }
 
   public async signUserOp(userop: UserOp): Promise<UserOp> {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to sign user operation');
+    }
+    validateUserOp(userop);
     const privateKey = this._sessionConfig?.sessionPrivKey;
 
     if (privateKey === undefined) {
@@ -205,6 +225,10 @@ class OktoClient {
     userop.signature = sig;
 
     return userop;
+  }
+
+  private isLoggedIn(): boolean {
+    return this._sessionConfig !== undefined;
   }
 }
 

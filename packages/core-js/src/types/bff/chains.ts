@@ -10,5 +10,5 @@ export type GetSupportedNetworksResponseData = {
   sponsorshipEnabled: boolean;
   gsnEnabled: boolean;
   type: string;
-  networkId: string;
+  caip2Id: string;
 };

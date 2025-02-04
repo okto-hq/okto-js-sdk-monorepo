@@ -11,6 +11,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
+import { TokenTransferIntentParamsSchema } from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token transfer.
@@ -20,23 +21,19 @@ import type { TokenTransferIntentParams } from './types.js';
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for transferring the token (networkId, recipientWalletAddress, tokenAddress, amount).
+ * @param data - The parameters for transferring the token (caip2Id, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
 ): Promise<UserOp> {
-  if (data.amount <= 0) {
-    throw new BaseError('amount must be greater than 0', {
-      name: 'InvalidParameterError',
-    });
-  }
+  TokenTransferIntentParamsSchema.parse(data);
 
   const nonce = generateUUID();
 
   const jobParametersAbiType =
-    '(string networkId, string recipientWalletAddress, string tokenAddress, uint amount)';
+    '(string caip2Id, string recipientWalletAddress, string tokenAddress, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
@@ -70,7 +67,7 @@ export async function tokenTransfer(
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               amount: BigInt(data.amount),
-              networkId: data.chain,
+              caip2Id: data.chain,
               recipientWalletAddress: data.recipient,
               tokenAddress: data.token,
             },
