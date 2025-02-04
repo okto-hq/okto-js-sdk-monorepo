@@ -11,7 +11,11 @@ import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import { generatePaymasterData } from './paymaster.js';
 import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
-import { validateAuthData, validateOktoClientConfig, validateUserOp } from './oktoClientInputValidator.js';
+import {
+  validateAuthData,
+  validateOktoClientConfig,
+  validateUserOp,
+} from './oktoClientInputValidator.js';
 
 export interface OktoClientConfig {
   environment: Env;

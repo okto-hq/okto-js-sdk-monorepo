@@ -2,7 +2,12 @@ import { z } from 'zod';
 import type { Hash, Hex, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import type { Env, SessionConfig, VendorConfig } from './types.js';
-import { isAddress, isHexString, isPrivateKey, isPublicKey } from '@/utils/customValidators.js';
+import {
+  isAddress,
+  isHexString,
+  isPrivateKey,
+  isPublicKey,
+} from '@/utils/customValidators.js';
 
 /**
  * ---------------------------------------------------------------------------
@@ -52,8 +57,12 @@ export const UserOpSchema = z.object({
   preVerificationGas: isHexString('Invalid pre-verification gas format'),
   maxFeePerGas: isHexString('Invalid max fee per gas format'),
   maxPriorityFeePerGas: isHexString('Invalid max priority fee per gas format'),
-  paymasterPostOpGasLimit: isHexString('Invalid paymaster post-op gas limit format'),
-  paymasterVerificationGasLimit: isHexString('Invalid paymaster verification gas limit format'),
+  paymasterPostOpGasLimit: isHexString(
+    'Invalid paymaster post-op gas limit format',
+  ),
+  paymasterVerificationGasLimit: isHexString(
+    'Invalid paymaster verification gas limit format',
+  ),
   callData: isHexString('Invalid call data format'),
   paymasterData: isHexString('Invalid paymaster data format'),
 });
@@ -64,8 +73,11 @@ export const UserOpSchema = z.object({
  * ---------------------------------------------------------------------------
  */
 
-export const validateOktoClientConfig = (data: unknown) => OktoClientConfigSchema.parse(data);
+export const validateOktoClientConfig = (data: unknown) =>
+  OktoClientConfigSchema.parse(data);
 export const validateAuthData = (data: unknown) => AuthDataSchema.parse(data);
-export const validateSessionConfig = (data: unknown) => SessionConfigSchema.parse(data);
-export const validateVendorConfig = (data: unknown) => VendorConfigSchema.parse(data);
+export const validateSessionConfig = (data: unknown) =>
+  SessionConfigSchema.parse(data);
+export const validateVendorConfig = (data: unknown) =>
+  VendorConfigSchema.parse(data);
 export const validateUserOp = (data: unknown) => UserOpSchema.parse(data);

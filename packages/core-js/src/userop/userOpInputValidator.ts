@@ -5,7 +5,11 @@ import type {
   RawTransactionIntentParams,
   TokenTransferIntentParams,
 } from './types.js';
-import { isHexString, isTokenId, isUppercaseAlpha } from '@/utils/customValidators.js';
+import {
+  isHexString,
+  isTokenId,
+  isUppercaseAlpha,
+} from '@/utils/customValidators.js';
 
 /**
  * ---------------------------------------------------------------------------
@@ -19,12 +23,21 @@ import { isHexString, isTokenId, isUppercaseAlpha } from '@/utils/customValidato
 export const NFTCollectionCreationSchema = z
   .object({
     networkId: isHexString('NetworkId must be an alphanumeric hex string'),
-    name: z.string().min(2, 'Collection name must be at least 2 characters').max(50, 'Collection name cannot exceed 50 characters'),
-    description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
-    metadataUri: z.string().url('Invalid metadata URL format').refine(
-      (uri) => uri.startsWith('https://'),
-      'Metadata URI must use HTTPS protocol',
-    ),
+    name: z
+      .string()
+      .min(2, 'Collection name must be at least 2 characters')
+      .max(50, 'Collection name cannot exceed 50 characters'),
+    description: z
+      .string()
+      .max(500, 'Description cannot exceed 500 characters')
+      .optional(),
+    metadataUri: z
+      .string()
+      .url('Invalid metadata URL format')
+      .refine(
+        (uri) => uri.startsWith('https://'),
+        'Metadata URI must use HTTPS protocol',
+      ),
     symbol: isUppercaseAlpha('Symbol must contain only uppercase letters'),
     type: z.enum(['ERC721', 'ERC1155']),
   })
@@ -41,7 +54,11 @@ export const NFTTransferIntentParamsSchema = z
       .transform((id) => Number(id))
       .refine((n) => n >= 0, 'NFT ID cannot be negative'),
     recipientWalletAddress: z.string(),
-    amount: z.number().int('Amount must be an integer').min(1, 'Minimum transfer amount is 1').default(1),
+    amount: z
+      .number()
+      .int('Amount must be an integer')
+      .min(1, 'Minimum transfer amount is 1')
+      .default(1),
     type: z.enum(['ERC721', 'ERC1155']),
   })
   .strict()
@@ -58,10 +75,16 @@ export const RawTransactionSchema = z
     from: z.string(),
     to: z.string(),
     data: isHexString('Invalid transaction data format').optional(),
-    value: z.number().nonnegative('Transaction value cannot be negative').optional(),
+    value: z
+      .number()
+      .nonnegative('Transaction value cannot be negative')
+      .optional(),
   })
   .strict()
-  .refine((tx) => !!tx.data || typeof tx.value !== 'undefined', 'Transaction must include either data or value');
+  .refine(
+    (tx) => !!tx.data || typeof tx.value !== 'undefined',
+    'Transaction must include either data or value',
+  );
 
 /**
  * Schema for Raw Transaction Intent Parameters.
