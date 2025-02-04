@@ -12,6 +12,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
+import  UserOpInputValidator  from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for EVM Raw Transaction.
@@ -20,6 +21,9 @@ export async function evmRawTransaction(
   oc: OktoClient,
   data: RawTransactionIntentParams,
 ): Promise<UserOp> {
+  
+  UserOpInputValidator.validateRawTransactionIntentParams(data);
+
   const transaction: EVMRawTransaction = {
     from: data.transaction.from,
     to: data.transaction.to,

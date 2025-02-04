@@ -11,6 +11,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
+import  UserOpInputValidator  from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token transfer.
@@ -27,11 +28,8 @@ export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
 ): Promise<UserOp> {
-  if (data.amount <= 0) {
-    throw new BaseError('amount must be greater than 0', {
-      name: 'InvalidParameterError',
-    });
-  }
+  
+  UserOpInputValidator.validateTokenTransferIntentParams(data);
 
   const nonce = generateUUID();
 

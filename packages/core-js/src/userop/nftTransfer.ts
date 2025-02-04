@@ -11,6 +11,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTTransferIntentParams } from './types.js';
+import  UserOpInputValidator  from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -28,11 +29,7 @@ export async function nftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
 ): Promise<UserOp> {
-  if (data.amount <= 0) {
-    throw new BaseError('amount must be greater than 0', {
-      name: 'InvalidParameterError',
-    });
-  }
+  UserOpInputValidator.validateNFTTransferIntentParams(data);
 
   const nonce = generateUUID();
 
