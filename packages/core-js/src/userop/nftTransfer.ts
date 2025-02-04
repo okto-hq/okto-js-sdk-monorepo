@@ -11,7 +11,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTTransferIntentParams } from './types.js';
-import { validateNFTTransferIntentParams } from './userOpInputValidator.js';
+import { NFTTransferIntentParamsSchema } from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -20,7 +20,7 @@ import { validateNFTTransferIntentParams } from './userOpInputValidator.js';
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
- * @param data - The parameters for transferring the NFT (networkId, collectionAddress, nftId, recipientWalletAddress, amount, type).
+ * @param data - The parameters for transferring the NFT (caip2Id, collectionAddress, nftId, recipientWalletAddress, amount, type).
  * @param oc - The OktoClient instance used to interact with the blockchain.
  * @returns The User Operation (UserOp) for the NFT transfer.
  */
@@ -29,7 +29,7 @@ export async function nftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
 ): Promise<UserOp> {
-  validateNFTTransferIntentParams(data);
+  NFTTransferIntentParamsSchema.parse(data);
 
   const nonce = generateUUID();
 

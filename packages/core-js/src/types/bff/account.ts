@@ -13,7 +13,7 @@ export type Wallet = {
   caipId: string;
   networkName: string;
   address: string;
-  networkId: string;
+  caip2Id: string;
   networkSymbol: string;
 };
 
@@ -48,7 +48,7 @@ export type UserPortfolioData = {
     tokenImage: string;
     tokenAddress: string;
     groupId: string;
-    networkId: string;
+    caip2Id: string;
     precision: string;
     networkName: string;
     isPrimary: boolean;
@@ -66,7 +66,7 @@ export type UserPortfolioData = {
       shortName: string;
       tokenImage: string;
       tokenAddress: string;
-      networkId: string;
+      caip2Id: string;
       precision: string;
       networkName: string;
       isPrimary: boolean;
@@ -94,7 +94,7 @@ export type UserPortfolioActivity = {
   status: string;
   timestamp: number;
   txHash: string;
-  networkId: string;
+  caip2Id: string;
   networkName: string;
   networkExplorerUrl: string;
   networkSymbol: string;
@@ -114,7 +114,7 @@ export type NFTOrderDetails = {
   jobId: string;
   status: string;
   orderType: string;
-  networkId: string;
+  caip2Id: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -184,7 +184,7 @@ export type NftMintDetails = BaseDetails & {
 
 export type TokenTransferDetails = BaseDetails & {
   amount: string;
-  networkId: string;
+  caip2Id: string;
   recipientWalletAddress: string;
   tokenAddress: string;
 };
@@ -228,7 +228,7 @@ export type EstimateOrderPayload = {
   };
   details: {
     recipientWalletAddress: string;
-    networkId: string;
+    caip2Id: string;
     tokenAddress: string;
     amount: string;
   };
@@ -275,7 +275,7 @@ export type OrderEstimateResponse = {
       details: {
         requiredNetworks: string[];
         tokens: {
-          networkId: string;
+          caip2Id: string;
           address: string;
           amount: string;
           amountInUsdt: string;
@@ -284,7 +284,7 @@ export type OrderEstimateResponse = {
     };
     payload: {
       recipientWalletAddress: string;
-      networkId: string;
+      caip2Id: string;
       tokenAddress: string;
       amount: string;
     };

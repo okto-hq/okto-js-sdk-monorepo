@@ -14,7 +14,7 @@ export type Token = {
   id: string;
   groupId: string;
   isPrimary: boolean;
-  networkId: string;
+  caip2Id: string;
   networkName: string;
   isOnrampEnabled: boolean;
 };

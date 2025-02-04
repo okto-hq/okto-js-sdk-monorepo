@@ -12,17 +12,11 @@ import {
 } from '@/utils/customValidators.js';
 
 /**
- * ---------------------------------------------------------------------------
- * Schemas
- * ---------------------------------------------------------------------------
- */
-
-/**
  * Schema for NFT Collection Creation parameters validation.
  */
 export const NFTCollectionCreationSchema = z
   .object({
-    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    caip2Id: isHexString('caip2Id must be an alphanumeric hex string'),
     name: z
       .string()
       .min(2, 'Collection name must be at least 2 characters')
@@ -48,7 +42,7 @@ export const NFTCollectionCreationSchema = z
  */
 export const NFTTransferIntentParamsSchema = z
   .object({
-    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    caip2Id: z.string(),
     collectionAddress: z.string(),
     nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal')
       .transform((id) => Number(id))
@@ -59,10 +53,10 @@ export const NFTTransferIntentParamsSchema = z
       .int('Amount must be an integer')
       .min(1, 'Minimum transfer amount is 1')
       .default(1),
-    type: z.enum(['ERC721', 'ERC1155']),
+    nftType: z.enum(['ERC721', 'ERC1155']),
   })
   .strict()
-  .refine((obj) => obj.type !== 'ERC721' || obj.amount === 1, {
+  .refine((obj) => obj.nftType !== 'ERC721' || obj.amount === 1, {
     message: 'ERC721 transfers must have amount exactly 1',
     path: ['amount'],
   });
@@ -72,8 +66,8 @@ export const NFTTransferIntentParamsSchema = z
  */
 export const RawTransactionSchema = z
   .object({
-    from: z.string(),
-    to: z.string(),
+    from: isHexString('Invalid from address format'),
+    to: isHexString('Invalid to address format'),
     data: isHexString('Invalid transaction data format').optional(),
     value: z
       .number()
@@ -89,9 +83,9 @@ export const RawTransactionSchema = z
 /**
  * Schema for Raw Transaction Intent Parameters.
  */
-export const RawTransactionIntentParamsSchema = z
+export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
-    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    caip2Id: z.string(),
     transaction: RawTransactionSchema,
   })
   .strict();
@@ -101,40 +95,14 @@ export const RawTransactionIntentParamsSchema = z
  */
 export const TokenTransferIntentParamsSchema = z
   .object({
-    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
-    recipientWalletAddress: z.string(),
-    tokenAddress: z.string(),
+    chain: z.string(),
+    recipient: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid recipient address format'),
+    token: z.string(),
     amount: z.union([
       z.number().gt(0, 'Amount must be greater than 0'),
       z.bigint().gt(0n, 'Amount must be greater than 0'),
     ]),
   })
   .strict();
-
-/**
- * ---------------------------------------------------------------------------
- * Validation Methods
- * ---------------------------------------------------------------------------
- */
-
-export function validateNFTCollectionCreationParams(
-  data: NFTCollectionCreationIntentParams,
-) {
-  return NFTCollectionCreationSchema.parse(data);
-}
-
-export function validateNFTTransferIntentParams(data: NFTTransferIntentParams) {
-  return NFTTransferIntentParamsSchema.parse(data);
-}
-
-export function validateRawTransactionIntentParams(
-  data: RawTransactionIntentParams,
-) {
-  return RawTransactionIntentParamsSchema.parse(data);
-}
-
-export function validateTokenTransferIntentParams(
-  data: TokenTransferIntentParams,
-) {
-  return TokenTransferIntentParamsSchema.parse(data);
-}

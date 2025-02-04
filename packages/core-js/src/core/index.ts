@@ -5,7 +5,7 @@ import type { Hash, Hex, User, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
-import { fromHex } from 'viem';
+import { BaseError, fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
 import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
@@ -178,7 +178,7 @@ class OktoClient {
     validAfter?: Date | number | bigint;
   }) {
     if (!this.isLoggedIn()) {
-      throw new Error('User must be logged in to generate paymaster data');
+      throw new BaseError('User must be logged in to generate paymaster data');
     }
     return generatePaymasterData(
       this._vendorConfig.vendorSWA,
@@ -191,7 +191,7 @@ class OktoClient {
 
   public async executeUserOp(userop: UserOp): Promise<string> {
     if (!this.isLoggedIn()) {
-      throw new Error('User must be logged in to execute user operation');
+      throw new BaseError('User must be logged in to execute user operation');
     }
     validateUserOp(userop);
     try {
@@ -204,7 +204,7 @@ class OktoClient {
 
   public async signUserOp(userop: UserOp): Promise<UserOp> {
     if (!this.isLoggedIn()) {
-      throw new Error('User must be logged in to sign user operation');
+      throw new BaseError('User must be logged in to sign user operation');
     }
     validateUserOp(userop);
     const privateKey = this._sessionConfig?.sessionPrivKey;

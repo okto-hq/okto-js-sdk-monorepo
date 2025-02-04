@@ -7,7 +7,7 @@
 export type ChainType = 'EVM' | 'SVM' | 'APT';
 
 export type Network = {
-  networkId: string;
+  caip2Id: string;
   caipBlockchainId: string;
   name: string | undefined;
   sponsorshipEnabled: boolean | undefined;

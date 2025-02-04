@@ -13,7 +13,7 @@ class Account {
    * It creates the necessary details for the order, optionally adds gas details and paymaster details, and returns the payload.
    *
    * @param {string} recipientWalletAddress The recipient's wallet address.
-   * @param {string} networkId The network ID for the transaction.
+   * @param {string} caip2Id The caip2Id for the transaction.
    * @param {string} tokenAddress The token address involved in the transaction.
    * @param {string} amount The amount to be transferred.
    * @param {boolean} useGasDetails Whether to include gas details in the payload (optional).
@@ -23,7 +23,7 @@ class Account {
   private static async _generateEstimateOrderPayload(
     oc: OktoClient,
     recipientWalletAddress: string,
-    networkId: string,
+    caip2Id: string,
     tokenAddress: string,
     amount: string,
   ): Promise<EstimateOrderPayload> {
@@ -34,7 +34,7 @@ class Account {
       jobId: nonce,
       details: {
         recipientWalletAddress,
-        networkId,
+        caip2Id,
         tokenAddress,
         amount,
       },
@@ -58,7 +58,7 @@ class Account {
    * It uses the payload generated from the private _generateEstimateOrderPayload method.
    *
    * @param {string} recipientWalletAddress The recipient's wallet address.
-   * @param {string} networkId The network ID for the transaction.
+   * @param {string} caip2Id The caip2Id for the transaction.
    * @param {string} tokenAddress The token address involved in the transaction.
    * @param {string} amount The amount to be transferred.
    * @param {boolean} useGasDetails Whether to include gas details in the payload (optional).
@@ -68,7 +68,7 @@ class Account {
   public static async estimate(
     oc: OktoClient,
     recipientWalletAddress: string,
-    networkId: string,
+    caip2Id: string,
     tokenAddress: string,
     amount: string,
   ): Promise<OrderEstimateResponse> {
@@ -76,7 +76,7 @@ class Account {
     const payload = await this._generateEstimateOrderPayload(
       oc,
       recipientWalletAddress,
-      networkId,
+      caip2Id,
       tokenAddress,
       amount,
     );

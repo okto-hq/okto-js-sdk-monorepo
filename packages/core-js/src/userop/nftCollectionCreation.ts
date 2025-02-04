@@ -10,7 +10,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
-import { validateNFTCollectionCreationParams } from './userOpInputValidator.js';
+import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -19,7 +19,7 @@ import { validateNFTCollectionCreationParams } from './userOpInputValidator.js';
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
- * @param data - The parameters for creating the NFT collection (networkId, name, description, etc.)
+ * @param data - The parameters for creating the NFT collection (caip2Id, name, description, etc.)
  * @param oc - The OktoClient instance used to interact with the blockchain.
  * @returns The User Operation (UserOp) for the NFT collection creation.
  */
@@ -28,11 +28,11 @@ async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
 ): Promise<UserOp> {
-  validateNFTCollectionCreationParams(data);
+  NFTCollectionCreationSchema.parse(data);
   const nonce = generateUUID();
 
   const jobParametersAbiType =
-    '(string networkId, string name,string description ,string metadataUri, string symbol,string type)';
+    '(string caip2Id, string name,string description ,string metadataUri, string symbol,string type)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
@@ -65,7 +65,7 @@ async function nftCollectionCreation(
           ]),
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
-              networkId: data.networkId,
+              caip2Id: data.caip2Id,
               name: data.name,
               description: data.description,
               metadataUri: data.metadataUri,
