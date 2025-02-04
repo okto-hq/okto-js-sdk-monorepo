@@ -5,174 +5,113 @@ import type {
   RawTransactionIntentParams,
   TokenTransferIntentParams,
 } from './types.js';
+import { isHexString, isTokenId, isUppercaseAlpha } from '@/utils/customValidators.js';
 
 /**
  * ---------------------------------------------------------------------------
- * Common Regular Expressions
+ * Schemas
  * ---------------------------------------------------------------------------
  */
-// Validates an alphanumeric string (hexadecimal characters only)
-const ID_REGEX = /^[a-fA-F0-9]+$/;
 
-// Validates a token ID that may be numeric or hexadecimal (optional "0x" prefix)
-const TOKEN_ID_REGEX = /^(0x)?[a-fA-F0-9]+$/;
+/**
+ * Schema for NFT Collection Creation parameters validation.
+ */
+export const NFTCollectionCreationSchema = z
+  .object({
+    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    name: z.string().min(2, 'Collection name must be at least 2 characters').max(50, 'Collection name cannot exceed 50 characters'),
+    description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
+    metadataUri: z.string().url('Invalid metadata URL format').refine(
+      (uri) => uri.startsWith('https://'),
+      'Metadata URI must use HTTPS protocol',
+    ),
+    symbol: isUppercaseAlpha('Symbol must contain only uppercase letters'),
+    type: z.enum(['ERC721', 'ERC1155']),
+  })
+  .strict();
+
+/**
+ * Schema for NFT Transfer validation.
+ */
+export const NFTTransferIntentParamsSchema = z
+  .object({
+    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    collectionAddress: z.string(),
+    nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal')
+      .transform((id) => Number(id))
+      .refine((n) => n >= 0, 'NFT ID cannot be negative'),
+    recipientWalletAddress: z.string(),
+    amount: z.number().int('Amount must be an integer').min(1, 'Minimum transfer amount is 1').default(1),
+    type: z.enum(['ERC721', 'ERC1155']),
+  })
+  .strict()
+  .refine((obj) => obj.type !== 'ERC721' || obj.amount === 1, {
+    message: 'ERC721 transfers must have amount exactly 1',
+    path: ['amount'],
+  });
+
+/**
+ * Schema for Raw Transaction validation.
+ */
+export const RawTransactionSchema = z
+  .object({
+    from: z.string(),
+    to: z.string(),
+    data: isHexString('Invalid transaction data format').optional(),
+    value: z.number().nonnegative('Transaction value cannot be negative').optional(),
+  })
+  .strict()
+  .refine((tx) => !!tx.data || typeof tx.value !== 'undefined', 'Transaction must include either data or value');
+
+/**
+ * Schema for Raw Transaction Intent Parameters.
+ */
+export const RawTransactionIntentParamsSchema = z
+  .object({
+    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    transaction: RawTransactionSchema,
+  })
+  .strict();
+
+/**
+ * Schema for Token Transfer validation.
+ */
+export const TokenTransferIntentParamsSchema = z
+  .object({
+    networkId: isHexString('NetworkId must be an alphanumeric hex string'),
+    recipientWalletAddress: z.string(),
+    tokenAddress: z.string(),
+    amount: z.union([
+      z.number().gt(0, 'Amount must be greater than 0'),
+      z.bigint().gt(0n, 'Amount must be greater than 0'),
+    ]),
+  })
+  .strict();
 
 /**
  * ---------------------------------------------------------------------------
- * UserOpInputValidator Class
+ * Validation Methods
  * ---------------------------------------------------------------------------
  */
-class UserOpInputValidator {
-  /**
-   * Schema for NFT Collection Creation parameters validation.
-   */
-  static NFTCollectionCreationSchema = z
-    .object({
-      networkId: z
-        .string({
-          required_error: 'NetworkId is required',
-          invalid_type_error: 'NetworkId must be an alphanumeric string',
-        })
-        .regex(ID_REGEX, 'NetworkId must be an alphanumeric string'),
-      name: z
-        .string()
-        .min(2, 'Collection name must be at least 2 characters')
-        .max(50, 'Collection name cannot exceed 50 characters'),
-      description: z
-        .string()
-        .max(500, 'Description cannot exceed 500 characters')
-        .optional(),
-      metadataUri: z
-        .string()
-        .url('Invalid metadata URL format')
-        .refine(
-          (uri) => uri.startsWith('https://'),
-          'Metadata URI must use HTTPS protocol',
-        ),
-      symbol: z
-        .string()
-        .min(2, 'Symbol must be at least 2 characters')
-        .max(10, 'Symbol cannot exceed 10 characters')
-        .regex(/^[A-Z]+$/, 'Symbol must contain only uppercase letters'),
-      type: z.literal('ERC721').or(z.literal('ERC1155')),
-    })
-    .strict();
 
-  /**
-   * Schema for NFT Transfer validation.
-   */
-  static NFTTransferIntentParamsSchema = z
-    .object({
-      networkId: z
-        .string({
-          required_error: 'NetworkId is required',
-          invalid_type_error: 'NetworkId must be an alphanumeric string',
-        })
-        .regex(ID_REGEX, 'NetworkId must be an alphanumeric string'),
-      collectionAddress: z.string(),
-      nftId: z
-        .string()
-        .regex(
-          TOKEN_ID_REGEX,
-          'Invalid NFT ID format – must be numeric or hexadecimal',
-        )
-        .transform((id) => Number(id))
-        .refine((n) => n >= 0, 'NFT ID cannot be negative'),
-      recipientWalletAddress: z.string(),
-      amount: z
-        .number()
-        .int('Amount must be an integer')
-        .min(1, 'Minimum transfer amount is 1')
-        .default(1),
-      type: z.enum(['ERC721', 'ERC1155']),
-    })
-    .strict()
-    .refine((obj) => obj.type !== 'ERC721' || obj.amount === 1, {
-      message: 'ERC721 transfers must have amount exactly 1',
-      path: ['amount'],
-    });
-
-  /**
-   * Schema for Raw Transaction validation.
-   */
-  static RawTransactionSchema = z
-    .object({
-      from: z.string(),
-      to: z.string(),
-      data: z
-        .string()
-        .regex(/^0x[0-9a-fA-F]*$/, 'Invalid transaction data format')
-        .optional(),
-      value: z
-        .number()
-        .nonnegative('Transaction value cannot be negative')
-        .optional(),
-    })
-    .strict()
-    .refine(
-      (tx) => !!tx.data || typeof tx.value !== 'undefined',
-      'Transaction must include either data or value',
-    );
-
-  /**
-   * Schema for Raw Transaction Intent Parameters.
-   */
-  static RawTransactionIntentParamsSchema = z
-    .object({
-      networkId: z
-        .string({
-          required_error: 'NetworkId is required',
-          invalid_type_error: 'NetworkId must be an alphanumeric string',
-        })
-        .regex(ID_REGEX, 'NetworkId must be an alphanumeric string'),
-      transaction: this.RawTransactionSchema,
-    })
-    .strict();
-
-  /**
-   * Schema for Token Transfer validation.
-   */
-  static TokenTransferIntentParamsSchema = z
-    .object({
-      networkId: z
-        .string({
-          required_error: 'NetworkId is required',
-          invalid_type_error: 'NetworkId must be an alphanumeric string',
-        })
-        .regex(ID_REGEX, 'NetworkId must be an alphanumeric string'),
-      recipientWalletAddress: z.string(),
-      tokenAddress: z.string(),
-      amount: z
-        .number()
-        .min(1, 'Transfer amount must be at least 1')
-        .refine(
-          (val) => val <= Number.MAX_SAFE_INTEGER,
-          'Amount exceeds safe precision limit',
-        ),
-    })
-    .strict();
-
-  // ---------------------------------------------------------------------------
-  // Validation Methods
-  // ---------------------------------------------------------------------------
-
-  static validateNFTCollectionCreationParams(
-    data: NFTCollectionCreationIntentParams,
-  ) {
-    return this.NFTCollectionCreationSchema.parse(data);
-  }
-
-  static validateNFTTransferIntentParams(data: NFTTransferIntentParams) {
-    return this.NFTTransferIntentParamsSchema.parse(data);
-  }
-
-  static validateRawTransactionIntentParams(data: RawTransactionIntentParams) {
-    return this.RawTransactionIntentParamsSchema.parse(data);
-  }
-
-  static validateTokenTransferIntentParams(data: TokenTransferIntentParams) {
-    return this.TokenTransferIntentParamsSchema.parse(data);
-  }
+export function validateNFTCollectionCreationParams(
+  data: NFTCollectionCreationIntentParams,
+) {
+  return NFTCollectionCreationSchema.parse(data);
 }
 
-export default UserOpInputValidator;
+export function validateNFTTransferIntentParams(data: NFTTransferIntentParams) {
+  return NFTTransferIntentParamsSchema.parse(data);
+}
+
+export function validateRawTransactionIntentParams(
+  data: RawTransactionIntentParams,
+) {
+  return RawTransactionIntentParamsSchema.parse(data);
+}
+
+export function validateTokenTransferIntentParams(
+  data: TokenTransferIntentParams,
+) {
+  return TokenTransferIntentParamsSchema.parse(data);
+}

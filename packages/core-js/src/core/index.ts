@@ -11,7 +11,7 @@ import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import { generatePaymasterData } from './paymaster.js';
 import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
-import { OktoClientInputValidator } from './oktoClientInputValidator.js';
+import { validateAuthData, validateOktoClientConfig, validateUserOp } from './oktoClientInputValidator.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -27,7 +27,7 @@ class OktoClient {
   readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
-    OktoClientInputValidator.validateOktoClientConfig(config);
+    validateOktoClientConfig(config);
 
     this._vendorConfig = {
       vendorPrivKey: config.vendorPrivKey,
@@ -60,7 +60,7 @@ class OktoClient {
   public async loginUsingOAuth(
     data: AuthData,
   ): Promise<User | RpcError | undefined> {
-    OktoClientInputValidator.validateAuthData(data);
+    validateAuthData(data);
 
     const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
     const vendorSWA = this._vendorConfig.vendorSWA;
@@ -189,7 +189,7 @@ class OktoClient {
     if (!this.isLoggedIn()) {
       throw new Error('User must be logged in to execute user operation');
     }
-    OktoClientInputValidator.validateUserOp(userop);
+    validateUserOp(userop);
     try {
       return await GatewayClientRepository.execute(this, userop);
     } catch (error) {
@@ -202,7 +202,7 @@ class OktoClient {
     if (!this.isLoggedIn()) {
       throw new Error('User must be logged in to sign user operation');
     }
-    OktoClientInputValidator.validateUserOp(userop);
+    validateUserOp(userop);
     const privateKey = this._sessionConfig?.sessionPrivKey;
 
     if (privateKey === undefined) {

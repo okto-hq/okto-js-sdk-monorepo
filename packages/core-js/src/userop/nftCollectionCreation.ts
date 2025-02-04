@@ -10,7 +10,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
-import UserOpInputValidator from './userOpInputValidator.js';
+import { validateNFTCollectionCreationParams } from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -28,7 +28,7 @@ async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
 ): Promise<UserOp> {
-  UserOpInputValidator.validateNFTCollectionCreationParams(data);
+  validateNFTCollectionCreationParams(data);
   const nonce = generateUUID();
 
   const jobParametersAbiType =
