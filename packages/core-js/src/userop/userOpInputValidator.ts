@@ -44,7 +44,10 @@ export const NFTTransferIntentParamsSchema = z
   .object({
     caip2Id: isHexString('Invalid CAIP2 ID format'),
     collectionAddress: isHexString('Invalid collection address format'),
-    nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal', true)
+    nftId: isTokenId(
+      'Invalid NFT ID format – must be numeric or hexadecimal',
+      true,
+    )
       .transform((id) => Number(id))
       .refine((n) => n >= 0, 'NFT ID cannot be negative'),
     recipientWalletAddress: z
@@ -87,9 +90,11 @@ export const RawTransactionSchema = z
  */
 export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
-    caip2Id: z.string({
-      required_error: 'CAIP2 ID is required',
-    }).min(1, 'CAIP2 ID cannot be blank'),
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank'),
     transaction: RawTransactionSchema,
   })
   .strict();
