@@ -12,7 +12,8 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
-import { RawTransactionSchema } from './userOpInputValidator.js';
+import { RawTransactionIntentParamsSchema } from './userOpInputValidator.js';
+import { BaseError } from '@/errors/base.js';
 
 /**
  * Creates a user operation for EVM Raw Transaction.
@@ -21,7 +22,10 @@ export async function evmRawTransaction(
   oc: OktoClient,
   data: RawTransactionIntentParams,
 ): Promise<UserOp> {
-  RawTransactionSchema.parse(data);
+  if (!oc.isLoggedIn) {
+    throw new BaseError('User not logged in');
+  }
+  RawTransactionIntentParamsSchema.parse(data);
 
   const transaction: EVMRawTransaction = {
     from: data.transaction.from,

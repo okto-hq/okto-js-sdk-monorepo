@@ -227,7 +227,7 @@ class OktoClient {
     return userop;
   }
 
-  private isLoggedIn(): boolean {
+  public isLoggedIn(): boolean {
     return this._sessionConfig !== undefined;
   }
 
