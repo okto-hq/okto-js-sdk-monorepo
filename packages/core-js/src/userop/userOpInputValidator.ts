@@ -6,7 +6,6 @@ import type {
   TokenTransferIntentParams,
 } from './types.js';
 import {
-  is0xAddress,
   isHexString,
   isTokenId,
   isUppercaseAlpha,
@@ -43,16 +42,17 @@ export const NFTCollectionCreationSchema = z
  */
 export const NFTTransferIntentParamsSchema = z
   .object({
-    caip2Id: z.string({
-      required_error: 'CAIP2 ID is required',
-    }),
-    collectionAddress: z.string({
-      required_error: 'Collection address is required',
-    }),
-    nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal')
+    caip2Id: isHexString('Invalid CAIP2 ID format'),
+    collectionAddress: isHexString('Invalid collection address format'),
+    nftId: isTokenId(
+      'Invalid NFT ID format – must be numeric or hexadecimal',
+      true,
+    )
       .transform((id) => Number(id))
       .refine((n) => n >= 0, 'NFT ID cannot be negative'),
-    recipientWalletAddress: z.string(),
+    recipientWalletAddress: z
+      .string()
+      .min(1, 'Recipient wallet address cannot be empty'),
     amount: z
       .number()
       .int('Amount must be an integer')
@@ -71,8 +71,8 @@ export const NFTTransferIntentParamsSchema = z
  */
 export const RawTransactionSchema = z
   .object({
-    from: is0xAddress('Invalid from address format'),
-    to: is0xAddress('Invalid to address format'),
+    from: isHexString('Invalid from address format'),
+    to: isHexString('Invalid to address format'),
     data: isHexString('Invalid transaction data format').optional(),
     value: z
       .number()
@@ -90,9 +90,11 @@ export const RawTransactionSchema = z
  */
 export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
-    caip2Id: z.string({
-      required_error: 'CAIP2 ID is required',
-    }),
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank'),
     transaction: RawTransactionSchema,
   })
   .strict();
@@ -102,7 +104,7 @@ export const RawTransactionIntentParamsSchema = z // TODO: add a check against i
  */
 export const TokenTransferIntentParamsSchema = z
   .object({
-    chain: z.string(),
+    chain: z.string().min(1, 'Chain cannot be blank'),
     recipient: z
       .string()
       .regex(/^0x[a-fA-F0-9]+$/, 'Invalid recipient address format'),
