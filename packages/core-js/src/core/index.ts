@@ -1,7 +1,7 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
-import type { Hash, Hex, User, UserOp } from '@/types/core.js';
+import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
@@ -9,13 +9,13 @@ import { BaseError, fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
 import { productionEnvConfig, sandboxEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
-import { generatePaymasterData } from './paymaster.js';
-import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
 import {
   validateAuthData,
   validateOktoClientConfig,
   validateUserOp,
 } from './oktoClientInputValidator.js';
+import { generatePaymasterData } from './paymaster.js';
+import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -25,7 +25,6 @@ export interface OktoClientConfig {
 
 class OktoClient {
   private _environment: Env;
-  private _user?: User;
   private _vendorConfig: VendorConfig;
   private _sessionConfig: SessionConfig | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
@@ -63,7 +62,8 @@ class OktoClient {
    */
   public async loginUsingOAuth(
     data: AuthData,
-  ): Promise<User | RpcError | undefined> {
+    onSuccess?: (session: SessionConfig) => void,
+  ): Promise<Address | RpcError | undefined> {
     validateAuthData(data);
 
     const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
@@ -95,11 +95,9 @@ class OktoClient {
         userSWA: authRes.userAddress as Hex,
       };
 
-      this._user = {
-        ...authRes,
-      };
+      onSuccess?.(this._sessionConfig);
 
-      return this._user;
+      return this._sessionConfig.userSWA;
     } catch (error) {
       //TODO: Return proper error
 
@@ -107,6 +105,39 @@ class OktoClient {
         return error;
       }
 
+      throw error;
+    }
+  }
+
+  public async loginUsingSessionKeys(
+    sessionPrivKey: Hash,
+    userSWA: Address,
+  ): Promise<Address | RpcError | undefined> {
+    const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
+    const vendorSWA = this._vendorConfig.vendorSWA;
+
+    if (!vendorPrivateKey || !vendorSWA) {
+      throw new Error('Vendor details not found');
+    }
+
+    try {
+      const session = SessionKey.fromPrivateKey(sessionPrivKey);
+
+      const isValid = await this.verifyLogin();
+
+      if (isValid) {
+        this._sessionConfig = {
+          sessionPrivKey: session.privateKeyHexWith0x,
+          sessionPubKey: session.uncompressedPublicKeyHexWith0x,
+          userSWA: userSWA,
+        };
+
+        return this._sessionConfig.userSWA;
+      }
+    } catch (error) {
+      if (error instanceof RpcError) {
+        return error;
+      }
       throw error;
     }
   }
@@ -119,8 +150,14 @@ class OktoClient {
    */
   public async verifyLogin(): Promise<boolean> {
     try {
-      await BffClientRepository.verifySession(this);
-      return true;
+      const res = await BffClientRepository.verifySession(this);
+      if (
+        res.vendorSwa == this._vendorConfig.vendorSWA &&
+        res.userSwa == this._sessionConfig?.userSWA
+      ) {
+        return true;
+      }
+      throw new Error('Session verification failed');
     } catch (error) {
       this._sessionConfig = undefined;
       return false;
@@ -150,14 +187,6 @@ class OktoClient {
     };
 
     return btoa(JSON.stringify(payload));
-  }
-
-  /**
-   * Returns the user information.
-   * If the user is not logged in, it returns undefined.
-   */
-  get user(): User | undefined {
-    return this._user;
   }
 
   get userSWA(): Hex | undefined {

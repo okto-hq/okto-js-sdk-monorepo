@@ -209,6 +209,9 @@ importers:
 
   packages/react:
     dependencies:
+      '@noble/ciphers':
+        specifier: ^1.2.1
+        version: 1.2.1
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
@@ -1715,6 +1718,10 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
+
+  '@noble/ciphers@1.2.1':
+    resolution: {integrity: sha512-rONPWMC7PeExE077uLE4oqWrZ1IvAfz3oH9LibVAcVCopJiA9R62uavnbEzdkVmJYI6M6Zgkbeb07+tWjlq2XA==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@noble/curves@1.7.0':
     resolution: {integrity: sha512-UTMhXK9SeDhFJVrHeUJ5uZlI6ajXg10O6Ddocf9S6GjbSBVZsJo88HzKwXznNfGpMTRDyJkqMjNDPYgf0qFWnw==}
@@ -8252,6 +8259,8 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@15.1.6':
     optional: true
+
+  '@noble/ciphers@1.2.1': {}
 
   '@noble/curves@1.7.0':
     dependencies:

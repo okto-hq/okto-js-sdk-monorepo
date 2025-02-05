@@ -1,11 +1,17 @@
-import type { Hex } from '@/types/core.js';
+import type { Hash, Hex } from '@/types/core.js';
 import { secp256k1 } from '@noble/curves/secp256k1';
 
 export class SessionKey {
   private priv: Uint8Array<ArrayBufferLike>;
 
-  constructor() {
-    this.priv = secp256k1.utils.randomPrivateKey();
+  constructor(privKey?: string) {
+    if (privKey) {
+      this.priv = Uint8Array.from(
+        Buffer.from(privKey.replace('0x', ''), 'hex'),
+      );
+    } else {
+      this.priv = secp256k1.utils.randomPrivateKey();
+    }
   }
 
   get privateKey() {
@@ -38,6 +44,10 @@ export class SessionKey {
 
   static create() {
     return new SessionKey();
+  }
+
+  static fromPrivateKey(privateKey: Hash) {
+    return new SessionKey(privateKey);
   }
 
   verifySignature({

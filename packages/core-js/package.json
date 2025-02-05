@@ -33,6 +33,11 @@
       "import": "./dist/types/index.js",
       "require": "./dist/types/index.cjs"
     },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "import": "./dist/errors/index.js",
+      "require": "./dist/errors/index.cjs"
+    },
     "./explorer": {
       "types": "./dist/explorer/index.d.ts",
       "import": "./dist/explorer/index.js",
