@@ -11,6 +11,7 @@ import {
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
 import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
+import { BaseError } from '@/errors/index.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -28,6 +29,9 @@ async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
 ): Promise<UserOp> {
+  if (!oc.isLoggedIn) {
+    throw new BaseError('User not logged in');
+  }
   NFTCollectionCreationSchema.parse(data);
   const nonce = generateUUID();
 
