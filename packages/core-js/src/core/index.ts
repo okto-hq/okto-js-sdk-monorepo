@@ -230,6 +230,14 @@ class OktoClient {
   private isLoggedIn(): boolean {
     return this._sessionConfig !== undefined;
   }
+
+  /**
+   * Clears the current user session.
+   */
+  public sessionClear(): void {
+    this._sessionConfig = undefined;
+    this._user = undefined;
+  }
 }
 
 export default OktoClient;
