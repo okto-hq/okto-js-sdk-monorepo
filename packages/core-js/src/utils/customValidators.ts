@@ -46,6 +46,12 @@ const isUppercaseAlpha = (message?: string) =>
     message: message ?? 'Must contain only uppercase letters',
   });
 
+// Validates a string for type Address = `0x${string}`
+const is0xAddress = (message?: string) =>
+  z.custom<string>((val) => typeof val === 'string' && /^0x.+$/.test(val), {
+    message: message ?? 'Invalid address format',
+  });
+
 export {
   isHexString,
   isPrivateKey,
@@ -53,4 +59,5 @@ export {
   isPublicKey,
   isTokenId,
   isUppercaseAlpha,
+  is0xAddress,
 };

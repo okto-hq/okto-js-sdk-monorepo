@@ -6,6 +6,7 @@ import type {
   TokenTransferIntentParams,
 } from './types.js';
 import {
+  is0xAddress,
   isHexString,
   isTokenId,
   isUppercaseAlpha,
@@ -42,8 +43,12 @@ export const NFTCollectionCreationSchema = z
  */
 export const NFTTransferIntentParamsSchema = z
   .object({
-    caip2Id: z.string(),
-    collectionAddress: z.string(),
+    caip2Id: z.string({
+      required_error: 'CAIP2 ID is required',
+    }),
+    collectionAddress: z.string({
+      required_error: 'Collection address is required',
+    }),
     nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal')
       .transform((id) => Number(id))
       .refine((n) => n >= 0, 'NFT ID cannot be negative'),
@@ -66,8 +71,8 @@ export const NFTTransferIntentParamsSchema = z
  */
 export const RawTransactionSchema = z
   .object({
-    from: isHexString('Invalid from address format'),
-    to: isHexString('Invalid to address format'),
+    from: is0xAddress('Invalid from address format'),
+    to: is0xAddress('Invalid to address format'),
     data: isHexString('Invalid transaction data format').optional(),
     value: z
       .number()
@@ -85,7 +90,9 @@ export const RawTransactionSchema = z
  */
 export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
-    caip2Id: z.string(),
+    caip2Id: z.string({
+      required_error: 'CAIP2 ID is required',
+    }),
     transaction: RawTransactionSchema,
   })
   .strict();
