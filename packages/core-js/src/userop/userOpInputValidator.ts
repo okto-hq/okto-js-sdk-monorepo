@@ -92,8 +92,10 @@ export const RawTransactionSchema = z
     to: isHexString('Invalid to address format'),
     data: isHexString('Invalid transaction data format').optional(),
     value: z
-      .number()
-      .nonnegative('Transaction value cannot be negative')
+      .union([
+        z.number().nonnegative('Transaction value cannot be negative'),
+        z.bigint().nonnegative('Transaction value cannot be negative'),
+      ])
       .optional(),
   })
   .strict()
