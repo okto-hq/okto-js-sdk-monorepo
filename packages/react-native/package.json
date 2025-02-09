@@ -32,8 +32,12 @@
     }
   },
   "dependencies": {
+    "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*",
+    "@react-native-async-storage/async-storage": "^2.1.1",
+    "@types/crypto-js": "^4.2.2",
     "@types/react-native-get-random-values": "^1.8.2",
+    "crypto-js": "^4.2.0",
     "react-native-get-random-values": "^1.11.0"
   },
   "devDependencies": {

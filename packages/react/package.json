@@ -41,7 +41,9 @@
   },
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
-    "@okto_web3/core-js-sdk": "workspace:*"
+    "@okto_web3/core-js-sdk": "workspace:*",
+    "@types/crypto-js": "^4.2.2",
+    "crypto-js": "^4.2.0"
   },
   "devDependencies": {
     "@okto_web3/eslint-config": "workspace:*",

@@ -107,7 +107,7 @@ class OktoClient {
       const currentSession = this.getSessionConfig();
       if (
         res.vendorSwa == this._vendorConfig.vendorSWA &&
-        res.userSwa == this.getSessionConfig()?.userSWA
+        res.userSwa == currentSession?.userSWA
       ) {
         return true;
       }
@@ -192,7 +192,7 @@ class OktoClient {
     }
     validateUserOp(userop);
     const currentSession = this.getSessionConfig();
-    const privateKey = this.getSessionConfig()?.sessionPrivKey;
+    const privateKey = currentSession?.sessionPrivKey;
 
     if (privateKey === undefined) {
       throw new Error('Session keys are not set');
