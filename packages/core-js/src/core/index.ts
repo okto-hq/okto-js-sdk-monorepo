@@ -27,7 +27,7 @@ class OktoClient {
   private _environment: Env;
   private _vendorConfig: VendorConfig;
   private _sessionConfig: SessionConfig | undefined;
-  readonly isDev: boolean = true; //* Mark it as true for development environment
+  readonly isDev: boolean = true;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -52,14 +52,10 @@ class OktoClient {
     }
   }
 
-  /**
-   * Logs in the user using OAuth.
-   * It generates a session key pair, creates an authenticate payload, and sends it to the Gateway service.
-   * If the response is valid, it updates the user session.
-   *
-   * @param {AuthData} data The authentication data.
-   * @returns {Promise<string>} A promise that resolves to the user address.
-   */
+  public getSessionConfig(): SessionConfig | undefined {
+    return this._sessionConfig;
+  }
+
   public async loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -88,7 +84,6 @@ class OktoClient {
         authPayload,
       );
 
-      // TODO: Update with SessionKey Object
       this._sessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
         sessionPubKey: session.uncompressedPublicKeyHexWith0x,
@@ -97,43 +92,7 @@ class OktoClient {
 
       onSuccess?.(this._sessionConfig);
 
-      return this._sessionConfig.userSWA;
-    } catch (error) {
-      //TODO: Return proper error
-
-      if (error instanceof RpcError) {
-        return error;
-      }
-
-      throw error;
-    }
-  }
-
-  public async loginUsingSessionKeys(
-    sessionPrivKey: Hash,
-    userSWA: Address,
-  ): Promise<Address | RpcError | undefined> {
-    const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
-    const vendorSWA = this._vendorConfig.vendorSWA;
-
-    if (!vendorPrivateKey || !vendorSWA) {
-      throw new Error('Vendor details not found');
-    }
-
-    try {
-      const session = SessionKey.fromPrivateKey(sessionPrivKey);
-
-      const isValid = await this.verifyLogin();
-
-      if (isValid) {
-        this._sessionConfig = {
-          sessionPrivKey: session.privateKeyHexWith0x,
-          sessionPubKey: session.uncompressedPublicKeyHexWith0x,
-          userSWA: userSWA,
-        };
-
-        return this._sessionConfig.userSWA;
-      }
+      return this.userSWA;
     } catch (error) {
       if (error instanceof RpcError) {
         return error;
@@ -142,18 +101,13 @@ class OktoClient {
     }
   }
 
-  /**
-   * Verifies if the user is logged in.
-   * If user is not logged in, it clears the auth options.
-   *
-   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
-   */
   public async verifyLogin(): Promise<boolean> {
     try {
       const res = await BffClientRepository.verifySession(this);
+      const currentSession = this.getSessionConfig();
       if (
         res.vendorSwa == this._vendorConfig.vendorSWA &&
-        res.userSwa == this._sessionConfig?.userSWA
+        res.userSwa == this.getSessionConfig()?.userSWA
       ) {
         return true;
       }
@@ -165,8 +119,9 @@ class OktoClient {
   }
 
   public async getAuthorizationToken() {
-    const sessionPriv = this._sessionConfig?.sessionPrivKey;
-    const sessionPub = this._sessionConfig?.sessionPubKey;
+    const currentSession = this.getSessionConfig();
+    const sessionPriv = currentSession?.sessionPrivKey;
+    const sessionPub = currentSession?.sessionPubKey;
 
     if (sessionPriv === undefined || sessionPub === undefined) {
       throw new Error('Session keys are not set');
@@ -190,7 +145,7 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    return this._sessionConfig?.userSWA;
+    return this.getSessionConfig()?.userSWA;
   }
 
   get vendorSWA(): Hex | undefined {
@@ -236,7 +191,8 @@ class OktoClient {
       throw new BaseError('User must be logged in to sign user operation');
     }
     validateUserOp(userop);
-    const privateKey = this._sessionConfig?.sessionPrivKey;
+    const currentSession = this.getSessionConfig();
+    const privateKey = this.getSessionConfig()?.sessionPrivKey;
 
     if (privateKey === undefined) {
       throw new Error('Session keys are not set');
@@ -257,8 +213,9 @@ class OktoClient {
   }
 
   private isLoggedIn(): boolean {
-    return this._sessionConfig !== undefined;
+    return this.getSessionConfig() !== undefined;
   }
 }
 
 export default OktoClient;
+export type { SessionConfig } from './types.js';

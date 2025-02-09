@@ -9,7 +9,6 @@ export function encryptData(data: string, password: string): string {
   return ciphertext.toString();
 }
 
-
 export function decryptData(ciphertext: string, password: string): string {
   const encryptedData = new Uint8Array(ciphertext.split(',').map(Number));
   const key = new Uint8Array(new TextEncoder().encode(password));
