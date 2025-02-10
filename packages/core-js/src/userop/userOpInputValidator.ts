@@ -10,13 +10,22 @@ import {
   isTokenId,
   isUppercaseAlpha,
 } from '@/utils/customValidators.js';
+import OktoClient from '@/core/index.js';
 
 /**
  * Schema for NFT Collection Creation parameters validation.
  */
 export const NFTCollectionCreationSchema = z
   .object({
-    caip2Id: isHexString('caip2Id must be an alphanumeric hex string'),
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'CAIP2 ID cannot have leading or trailing spaces',
+      ),
     name: z
       .string()
       .min(2, 'Collection name must be at least 2 characters')
@@ -42,12 +51,25 @@ export const NFTCollectionCreationSchema = z
  */
 export const NFTTransferIntentParamsSchema = z
   .object({
-    caip2Id: z.string(),
-    collectionAddress: z.string(),
-    nftId: isTokenId('Invalid NFT ID format – must be numeric or hexadecimal')
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    collectionAddress: isHexString('Invalid collection address format'),
+    nftId: isTokenId(
+      'Invalid NFT ID format – must be numeric or hexadecimal',
+      true,
+    )
       .transform((id) => Number(id))
       .refine((n) => n >= 0, 'NFT ID cannot be negative'),
-    recipientWalletAddress: z.string(),
+    recipientWalletAddress: z
+      .string()
+      .min(1, 'Recipient wallet address cannot be empty'),
     amount: z
       .number()
       .int('Amount must be an integer')
@@ -70,8 +92,10 @@ export const RawTransactionSchema = z
     to: isHexString('Invalid to address format'),
     data: isHexString('Invalid transaction data format').optional(),
     value: z
-      .number()
-      .nonnegative('Transaction value cannot be negative')
+      .union([
+        z.number().nonnegative('Transaction value cannot be negative'),
+        z.bigint().nonnegative('Transaction value cannot be negative'),
+      ])
       .optional(),
   })
   .strict()
@@ -85,7 +109,15 @@ export const RawTransactionSchema = z
  */
 export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
-    caip2Id: z.string(),
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'CAIP2 ID cannot have leading or trailing spaces',
+      ),
     transaction: RawTransactionSchema,
   })
   .strict();
@@ -95,7 +127,13 @@ export const RawTransactionIntentParamsSchema = z // TODO: add a check against i
  */
 export const TokenTransferIntentParamsSchema = z
   .object({
-    chain: z.string(),
+    chain: z
+      .string()
+      .min(1, 'Chain cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'Chain cannot have leading or trailing spaces',
+      ),
     recipient: z
       .string()
       .regex(/^0x[a-fA-F0-9]+$/, 'Invalid recipient address format'),

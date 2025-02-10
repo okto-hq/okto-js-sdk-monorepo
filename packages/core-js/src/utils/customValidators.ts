@@ -7,9 +7,13 @@ import { z } from 'zod';
 
 // Validates a hexadecimal string (0x-prefixed)
 const isHexString = (message?: string) =>
-  z.custom<string>(
-    (val) => typeof val === 'string' && /^0x[a-fA-F0-9]+$/.test(val),
-    { message: message ?? 'Must be a valid hex string' },
+  z.custom<`0x${string}`>(
+    (val) => {
+      return typeof val === 'string' && val.startsWith('0x');
+    },
+    {
+      message: message ?? 'must be a hex string',
+    },
   );
 
 // Validates a private key (64-character hex string)
@@ -34,10 +38,19 @@ const isPublicKey = (message?: string) =>
   );
 
 // Checks if a token ID is either numeric or hexadecimal (supports optional "0x" prefix)
-const isTokenId = (message?: string) =>
+const isTokenId = (message?: string, emptyCheck?: boolean) =>
   z.custom<string>(
-    (val) => typeof val === 'string' && /^(0x)?[a-fA-F0-9]+$/.test(val),
-    { message: message ?? 'Invalid Token ID format' },
+    (val) => {
+      if (typeof val !== 'string') return false;
+      if (emptyCheck && val.length === 0) return false;
+      if (val.startsWith('0x')) {
+        return /^[a-fA-F0-9]+$/.test(val.slice(2));
+      }
+      return /^[a-fA-F0-9]+$/.test(val);
+    },
+    {
+      message: message ?? 'Invalid Token ID format',
+    },
   );
 
 // Ensures a string contains only uppercase letters
