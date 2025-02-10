@@ -23,6 +23,7 @@ class OktoClient extends OktoCoreClient {
 
   override getSessionConfig(): SessionConfig | undefined {
     const encryptedSession = localStorage.getItem('session');
+
     return encryptedSession
       ? decryptData<SessionConfig>(encryptedSession)
       : undefined;
