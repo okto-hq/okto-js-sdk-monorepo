@@ -1,9 +1,4 @@
 import { cbc } from '@noble/ciphers/aes';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const SECRET_KEY = process.env.SECRET_KEY || '';
 
 const stringToUint8Array = (str: string): Uint8Array => {
   return new TextEncoder().encode(str);
@@ -14,17 +9,21 @@ const uint8ArrayToString = (arr: Uint8Array): string => {
 };
 
 const uint8ArrayToBase64 = (arr: Uint8Array): string => {
-  return Buffer.from(arr).toString('base64');
+  return btoa(String.fromCharCode(...arr));
 };
 
 const base64ToUint8Array = (base64: string): Uint8Array => {
-  return new Uint8Array(Buffer.from(base64, 'base64'));
+  return new Uint8Array(
+    atob(base64)
+      .split('')
+      .map((char) => char.charCodeAt(0)),
+  );
 };
 
-export const encryptData = (data: unknown): string => {
+export const encryptData = (data: unknown, secretKey: string): string => {
   try {
     const plaintext = stringToUint8Array(JSON.stringify(data));
-    const key = stringToUint8Array(SECRET_KEY.padEnd(32, '\0').slice(0, 32));
+    const key = stringToUint8Array(secretKey.padEnd(32, '\0').slice(0, 32));
 
     const iv = crypto.getRandomValues(new Uint8Array(16));
     const encrypted = cbc(key, iv).encrypt(plaintext);
@@ -37,14 +36,17 @@ export const encryptData = (data: unknown): string => {
   }
 };
 
-export const decryptData = <T>(encryptedData: string): T | undefined => {
+export const decryptData = <T>(
+  encryptedData: string,
+  secretKey: string,
+): T | undefined => {
   try {
     const combined = base64ToUint8Array(encryptedData);
 
     const iv = combined.slice(0, 16);
     const encrypted = combined.slice(16);
 
-    const key = stringToUint8Array(SECRET_KEY.padEnd(32, '\0').slice(0, 32));
+    const key = stringToUint8Array(secretKey.padEnd(32, '\0').slice(0, 32));
     const decrypted = cbc(key, iv).decrypt(encrypted);
 
     const decryptedString = uint8ArrayToString(decrypted);

@@ -36,7 +36,6 @@
     "@okto_web3/core-js-sdk": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.1.1",
     "@types/react-native-get-random-values": "^1.8.2",
-    "dotenv": "^16.4.7",
     "react-native-get-random-values": "^1.11.0"
   },
   "devDependencies": {

@@ -9,15 +9,21 @@ import { decryptData, encryptData } from 'src/utils/encryptionUtils.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class OktoClient extends OktoCoreClient {
+  private _vendorPrivKey: string;
+
   constructor(config: OktoClientConfig) {
     super(config);
+    this._vendorPrivKey = config.vendorPrivKey;
   }
 
   override async loginUsingOAuth(
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
     return super.loginUsingOAuth(data, async (session) => {
-      await AsyncStorage.default.setItem('session', encryptData(session));
+      await AsyncStorage.default.setItem(
+        'session',
+        encryptData(session, this._vendorPrivKey),
+      );
     });
   }
 
@@ -28,7 +34,10 @@ class OktoClient extends OktoCoreClient {
       .getItem('session')
       .then((encryptedSession) => {
         if (encryptedSession) {
-          sessionConfig = decryptData<SessionConfig>(encryptedSession);
+          sessionConfig = decryptData<SessionConfig>(
+            encryptedSession,
+            this._vendorPrivKey,
+          );
         }
       })
       .catch((error) => {
