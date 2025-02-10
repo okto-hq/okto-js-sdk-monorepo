@@ -5,7 +5,7 @@ import {
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
-import { decryptData, encryptData } from 'src/utils/encryptionUtils.js';
+import { decryptData, encryptData } from '../utils/encryptionUtils.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class OktoClient extends OktoCoreClient {
