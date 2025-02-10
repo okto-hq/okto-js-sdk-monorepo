@@ -6,8 +6,7 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { decryptData, encryptData } from '../utils/encryptionUtils.js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import AsyncStorage from '@react-native-community/async-storage'; 
 class OktoClient extends OktoCoreClient {
   private _vendorPrivKey: string;
 
@@ -20,7 +19,7 @@ class OktoClient extends OktoCoreClient {
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
     return super.loginUsingOAuth(data, async (session) => {
-      await AsyncStorage.default.setItem(
+      await AsyncStorage.setItem(
         'session',
         encryptData(session, this._vendorPrivKey),
       );
@@ -30,9 +29,8 @@ class OktoClient extends OktoCoreClient {
   override getSessionConfig(): SessionConfig | undefined {
     let sessionConfig: SessionConfig | undefined;
 
-    AsyncStorage.default
-      .getItem('session')
-      .then((encryptedSession) => {
+    AsyncStorage.getItem('session')
+      .then((encryptedSession: string | null) => {
         if (encryptedSession) {
           sessionConfig = decryptData<SessionConfig>(
             encryptedSession,
@@ -40,10 +38,12 @@ class OktoClient extends OktoCoreClient {
           );
         }
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.error('Failed to get session from storage:', error);
       });
+
     return sessionConfig;
   }
+
 }
 export { OktoClient };
