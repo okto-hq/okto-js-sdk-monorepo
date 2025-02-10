@@ -15,7 +15,6 @@ class OktoClient extends OktoCoreClient {
   override loginUsingOAuth(
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
-    console.log('loginUsingOAuth called');
     return super.loginUsingOAuth(data, (session) => {
       localStorage.setItem('session', encryptData(session));
     });
