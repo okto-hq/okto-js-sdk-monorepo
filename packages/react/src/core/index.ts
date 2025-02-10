@@ -19,14 +19,17 @@ class OktoClient extends OktoCoreClient {
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
     return super.loginUsingOAuth(data, (session) => {
-      localStorage.setItem('session', encryptData(session,this._vendorPrivKey));
+      localStorage.setItem(
+        'session',
+        encryptData(session, this._vendorPrivKey),
+      );
     });
   }
 
   override getSessionConfig(): SessionConfig | undefined {
     const encryptedSession = localStorage.getItem('session');
     return encryptedSession
-      ? decryptData<SessionConfig>(encryptedSession,this._vendorPrivKey)
+      ? decryptData<SessionConfig>(encryptedSession, this._vendorPrivKey)
       : undefined;
   }
 }
