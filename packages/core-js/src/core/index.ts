@@ -17,17 +17,23 @@ import {
 import { generatePaymasterData } from './paymaster.js';
 import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
 
+/**
+ * Configuration interface for initializing OktoClient
+ */
 export interface OktoClientConfig {
   environment: Env;
   vendorPrivKey: Hash;
   vendorSWA: Hex;
 }
 
+/**
+ * OktoClient - Handles authentication, session management, and user operations.
+ */
 class OktoClient {
   private _environment: Env;
   private _vendorConfig: VendorConfig;
   private _sessionConfig: SessionConfig | undefined;
-  readonly isDev: boolean = true;
+  readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -41,21 +47,27 @@ class OktoClient {
     this._environment = config.environment;
   }
 
+  /**
+   * Returns the environment configuration based on the selected environment.
+   */
   get env(): EnvConfig {
-    switch (this._environment) {
-      case 'sandbox':
-        return sandboxEnvConfig;
-      case 'production':
-        return productionEnvConfig;
-      default:
-        return productionEnvConfig;
-    }
+    return this._environment === 'sandbox'
+      ? sandboxEnvConfig
+      : productionEnvConfig;
   }
 
+  /**
+   * Retrieves the current session configuration.
+   */
   public getSessionConfig(): SessionConfig | undefined {
     return this._sessionConfig;
   }
 
+  /**
+   * Logs in a user using OAuth authentication.
+   * @param data - Authentication data.
+   * @param onSuccess - Callback function executed on successful login.
+   */
   public async loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -101,6 +113,9 @@ class OktoClient {
     }
   }
 
+  /**
+   * Verifies if the current session is valid.
+   */
   public async verifyLogin(): Promise<boolean> {
     try {
       const res = await BffClientRepository.verifySession(this);
@@ -113,11 +128,15 @@ class OktoClient {
       }
       throw new Error('Session verification failed');
     } catch (error) {
+      console.error('Error verifying login:', error);
       this._sessionConfig = undefined;
       return false;
     }
   }
 
+  /**
+   * Generates an authorization token for the current session.
+   */
   public async getAuthorizationToken() {
     const currentSession = this.getSessionConfig();
     const sessionPriv = currentSession?.sessionPrivKey;
@@ -145,13 +164,16 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    return this.getSessionConfig()?.userSWA;
+    return this._sessionConfig?.userSWA;
   }
 
   get vendorSWA(): Hex | undefined {
     return this._vendorConfig.vendorSWA;
   }
 
+  /**
+   * Generates paymaster data for transactions.
+   */
   public paymasterData({
     nonce,
     validUntil,
@@ -161,9 +183,8 @@ class OktoClient {
     validUntil: Date | number | bigint;
     validAfter?: Date | number | bigint;
   }) {
-    if (!this.isLoggedIn()) {
+    if (!this.isLoggedIn())
       throw new BaseError('User must be logged in to generate paymaster data');
-    }
     return generatePaymasterData(
       this._vendorConfig.vendorSWA,
       this._vendorConfig.vendorPrivKey,
@@ -173,6 +194,9 @@ class OktoClient {
     );
   }
 
+  /**
+   * Executes a user operation.
+   */
   public async executeUserOp(userop: UserOp): Promise<string> {
     if (!this.isLoggedIn()) {
       throw new BaseError('User must be logged in to execute user operation');
@@ -186,6 +210,9 @@ class OktoClient {
     }
   }
 
+  /**
+   * Signs a user operation with the session's private key.
+   */
   public async signUserOp(userop: UserOp): Promise<UserOp> {
     if (!this.isLoggedIn()) {
       throw new BaseError('User must be logged in to sign user operation');
@@ -212,12 +239,15 @@ class OktoClient {
     return userop;
   }
 
-  private isLoggedIn(): boolean {
-    return this.getSessionConfig() !== undefined;
+  /**
+   * Checks if a user is logged in.
+   */
+  public isLoggedIn(): boolean {
+    return Boolean(this._sessionConfig);
   }
 
   /**
-   * Clears the current user session.
+   * Clears the current session.
    */
   public sessionClear(): void {
     this._sessionConfig = undefined;
