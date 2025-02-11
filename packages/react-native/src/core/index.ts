@@ -9,10 +9,12 @@ import { decryptData, encryptData } from '../utils/encryptionUtils.js';
 import { MMKV } from 'react-native-mmkv';
 class OktoClient extends OktoCoreClient {
   private _vendorPrivKey: string;
+  private _storage: MMKV;
 
   constructor(config: OktoClientConfig) {
     super(config);
     this._vendorPrivKey = config.vendorPrivKey;
+    this._storage = new MMKV();
   }
 
   override loginUsingOAuth(
@@ -20,14 +22,13 @@ class OktoClient extends OktoCoreClient {
   ): Promise<Address | RpcError | undefined> {
     const storage = new MMKV();
     return super.loginUsingOAuth(data, (session) => {
-      storage.set('session', encryptData(session, this._vendorPrivKey));
+      this._storage.set('session', encryptData(session, this._vendorPrivKey));
       console.log('Session set in storage:', storage.getString('session'));
     });
   }
 
   override getSessionConfig(): SessionConfig | undefined {
-    const storage = new MMKV();
-    const encryptedSession = storage.getString('session');
+    const encryptedSession = this._storage.getString('session');
     console.log('Encrypted Session:', encryptedSession);
     const decryptedSession = encryptedSession
       ? decryptData<SessionConfig>(encryptedSession, this._vendorPrivKey)
