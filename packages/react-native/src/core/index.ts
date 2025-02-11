@@ -20,20 +20,16 @@ class OktoClient extends OktoCoreClient {
   override loginUsingOAuth(
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
-    const storage = new MMKV();
     return super.loginUsingOAuth(data, (session) => {
       this._storage.set('session', encryptData(session, this._vendorPrivKey));
-      console.log('Session set in storage:', storage.getString('session'));
     });
   }
 
   override getSessionConfig(): SessionConfig | undefined {
     const encryptedSession = this._storage.getString('session');
-    console.log('Encrypted Session:', encryptedSession);
     const decryptedSession = encryptedSession
       ? decryptData<SessionConfig>(encryptedSession, this._vendorPrivKey)
       : undefined;
-    console.log('Decrypted Session:', decryptedSession);
     return decryptedSession;
   }
 }
