@@ -29,14 +29,14 @@ export async function nftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
 ): Promise<UserOp> {
-  if (!oc.isLoggedIn) {
+  if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   NFTTransferIntentParamsSchema.parse(data);
 
   if (data.recipientWalletAddress === oc.userSWA) {
     throw new BaseError(
-      'Recipient wallet address cannot be the same as the user address',
+      'Recipient wallet address cannot be same as the user address',
     );
   }
 

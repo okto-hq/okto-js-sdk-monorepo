@@ -22,7 +22,7 @@ export async function evmRawTransaction(
   oc: OktoClient,
   data: RawTransactionIntentParams,
 ): Promise<UserOp> {
-  if (!oc.isLoggedIn) {
+  if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   RawTransactionIntentParamsSchema.parse(data);

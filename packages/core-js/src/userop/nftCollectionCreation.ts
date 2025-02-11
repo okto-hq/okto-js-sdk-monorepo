@@ -29,7 +29,7 @@ async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
 ): Promise<UserOp> {
-  if (!oc.isLoggedIn) {
+  if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   NFTCollectionCreationSchema.parse(data);

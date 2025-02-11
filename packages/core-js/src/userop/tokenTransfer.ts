@@ -28,14 +28,14 @@ export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
 ): Promise<UserOp> {
-  if (!oc.isLoggedIn) {
+  if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   TokenTransferIntentParamsSchema.parse(data);
 
   if (data.recipient === oc.userSWA) {
     throw new BaseError(
-      'Recipient address cannot be the same as the user address',
+      'Recipient address cannot be same as the user address',
     );
   }
 
