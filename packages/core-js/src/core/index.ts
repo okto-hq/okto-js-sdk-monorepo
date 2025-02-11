@@ -164,7 +164,10 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    return this._sessionConfig?.userSWA;
+    if (!this._sessionConfig?.userSWA) {
+      throw new BaseError('User is not logged in');
+    }
+    return this._sessionConfig.userSWA;
   }
 
   get vendorSWA(): Hex | undefined {
@@ -256,3 +259,4 @@ class OktoClient {
 
 export default OktoClient;
 export type { SessionConfig } from './types.js';
+export { SessionKey } from '@/utils/sessionKey.js';
