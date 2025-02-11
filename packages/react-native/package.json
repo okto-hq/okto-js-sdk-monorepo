@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.0.0-dev.48",
+  "version": "0.0.0-dev.49",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -37,7 +37,8 @@
     "@react-native-async-storage/async-storage": "^2.1.1",
     "@types/react-native-get-random-values": "^1.8.2",
     "react-native-get-random-values": "^1.11.0",
-    "react-native-keychain": "^9.2.2"
+    "react-native-keychain": "^9.2.2",
+    "react-native-mmkv": "^3.2.0"
   },
   "devDependencies": {
     "@okto_web3/eslint-config": "workspace:*",

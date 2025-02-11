@@ -6,7 +6,7 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { decryptData, encryptData } from '../utils/encryptionUtils.js';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import { MMKV } from 'react-native-mmkv';
 class OktoClient extends OktoCoreClient {
   private _vendorPrivKey: string;
 
@@ -15,35 +15,25 @@ class OktoClient extends OktoCoreClient {
     this._vendorPrivKey = config.vendorPrivKey;
   }
 
-  override async loginUsingOAuth(
+  override loginUsingOAuth(
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
-    return super.loginUsingOAuth(data, async (session) => {
-      await AsyncStorage.default.setItem(
-        'session',
-        encryptData(session, this._vendorPrivKey),
-      );
+    const storage = new MMKV();
+    return super.loginUsingOAuth(data, (session) => {
+      storage.set('session', encryptData(session, this._vendorPrivKey));
+      console.log('Session set in storage:', storage.getString('session'));
     });
   }
 
   override getSessionConfig(): SessionConfig | undefined {
-    let sessionConfig: SessionConfig | undefined;
-
-    AsyncStorage.default.getItem('session')
-      .then((encryptedSession: string | null) => {
-        if (encryptedSession) {
-          sessionConfig = decryptData<SessionConfig>(
-            encryptedSession,
-            this._vendorPrivKey,
-          );
-        }
-      })
-      .catch((error: string) => {
-        console.error('Failed to get session from storage:', error);
-      });
-
-    return sessionConfig;
+    const storage = new MMKV();
+    const encryptedSession = storage.getString('session');
+    console.log('Encrypted Session:', encryptedSession);
+    const decryptedSession = encryptedSession
+      ? decryptData<SessionConfig>(encryptedSession, this._vendorPrivKey)
+      : undefined;
+    console.log('Decrypted Session:', decryptedSession);
+    return decryptedSession;
   }
-
 }
 export { OktoClient };
