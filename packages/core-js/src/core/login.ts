@@ -10,6 +10,7 @@ import {
   generateUUID,
   SessionKey,
 } from '@/utils/index.js';
+import { toBytes } from 'viem';
 import { signMessage } from 'viem/accounts';
 import type OktoClient from './index.js';
 
@@ -53,20 +54,24 @@ export async function generateAuthenticatePayload(
   payload.additionalData = ''; //TODO: Add any additional data needed during testing
 
   payload.authDataVendorSign = await signMessage({
-    message: JSON.stringify(authData),
+    message: {
+      raw: toBytes(JSON.stringify(authData)),
+    },
     privateKey: vendorPriv,
   });
-  payload.sessionDataVendorSign = await signMessage({
-    message: JSON.stringify(payload.sessionData),
-    privateKey: vendorPriv,
-  });
-
   payload.authDataUserSign = await signMessage({
-    message: JSON.stringify(authData),
+    message: {
+      raw: toBytes(JSON.stringify(authData)),
+    },
     privateKey: sessionKey.privateKeyHexWith0x,
   });
+
+  payload.sessionDataVendorSign = await signMessage({
+    message: sessionKey.ethereumAddress,
+    privateKey: vendorPriv,
+  });
   payload.sessionDataUserSign = await signMessage({
-    message: JSON.stringify(payload.sessionData),
+    message: sessionKey.ethereumAddress,
     privateKey: sessionKey.privateKeyHexWith0x,
   });
 
