@@ -1,13 +1,10 @@
-import { z } from 'zod';
-import type { Hash, Hex, UserOp } from '@/types/core.js';
-import type { AuthData } from '@/types/index.js';
-import type { Env, SessionConfig, VendorConfig } from './types.js';
 import {
   isAddress,
   isHexString,
   isPrivateKey,
   isPublicKey,
 } from '@/utils/customValidators.js';
+import { z } from 'zod';
 
 /**
  * ---------------------------------------------------------------------------
@@ -66,12 +63,6 @@ export const UserOpSchema = z.object({
   callData: isHexString('Invalid call data format'),
   paymasterData: isHexString('Invalid paymaster data format'),
 });
-
-/**
- * ---------------------------------------------------------------------------
- * Validation Methods
- * ---------------------------------------------------------------------------
- */
 
 export const validateOktoClientConfig = (data: unknown) =>
   OktoClientConfigSchema.parse(data);
