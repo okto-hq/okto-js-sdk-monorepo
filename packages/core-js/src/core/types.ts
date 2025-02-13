@@ -10,10 +10,10 @@ export interface EnvConfig {
   chainId: number;
 }
 
-export interface VendorConfig {
-  vendorPubKey: string;
-  vendorPrivKey: Hash;
-  vendorSWA: Hex;
+export interface ClientConfig {
+  clientPubKey: string;
+  clientPrivKey: Hash;
+  clientSWA: Hex;
 }
 
 export interface SessionConfig {
