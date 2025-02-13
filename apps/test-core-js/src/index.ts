@@ -1,5 +1,5 @@
 async function main() {
-  console.log('Hello, Oktov!');
+  console.log('Hello,OKTO');
 }
 
 main();

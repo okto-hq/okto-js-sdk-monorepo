@@ -17,18 +17,12 @@ import {
 import { generatePaymasterData } from './paymaster.js';
 import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
 
-/**
- * Configuration interface for initializing OktoClient
- */
 export interface OktoClientConfig {
   environment: Env;
   vendorPrivKey: Hash;
   vendorSWA: Hex;
 }
 
-/**
- * OktoClient - Handles authentication, session management, and user operations.
- */
 class OktoClient {
   private _environment: Env;
   private _vendorConfig: VendorConfig;
@@ -43,24 +37,22 @@ class OktoClient {
       vendorPubKey: getPublicKey(config.vendorPrivKey),
       vendorSWA: config.vendorSWA,
     };
-
     this._environment = config.environment;
   }
 
-  /**
-   * Returns the environment configuration based on the selected environment.
-   */
   get env(): EnvConfig {
-    return this._environment === 'sandbox'
-      ? sandboxEnvConfig
-      : productionEnvConfig;
+    switch (this._environment) {
+      case 'sandbox':
+        return sandboxEnvConfig;
+      case 'production':
+        return productionEnvConfig;
+      default:
+        return productionEnvConfig;
+    }
   }
 
-  /**
-   * Retrieves the current session configuration.
-   */
-  public getSessionConfig(): SessionConfig | undefined {
-    return this._sessionConfig;
+  protected setSessionConfig(sessionConfig: SessionConfig): void {
+    this._sessionConfig = sessionConfig;
   }
 
   /**
@@ -71,6 +63,7 @@ class OktoClient {
   public async loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
     validateAuthData(data);
 
@@ -104,6 +97,10 @@ class OktoClient {
 
       onSuccess?.(this._sessionConfig);
 
+      if (overrideSessionConfig) {
+        this._sessionConfig = overrideSessionConfig;
+      }
+
       return this.userSWA;
     } catch (error) {
       if (error instanceof RpcError) {
@@ -113,13 +110,10 @@ class OktoClient {
     }
   }
 
-  /**
-   * Verifies if the current session is valid.
-   */
   public async verifyLogin(): Promise<boolean> {
     try {
       const res = await BffClientRepository.verifySession(this);
-      const currentSession = this.getSessionConfig();
+      const currentSession = this._sessionConfig;
       if (
         res.vendorSwa == this._vendorConfig.vendorSWA &&
         res.userSwa == currentSession?.userSWA
@@ -134,13 +128,9 @@ class OktoClient {
     }
   }
 
-  /**
-   * Generates an authorization token for the current session.
-   */
   public async getAuthorizationToken() {
-    const currentSession = this.getSessionConfig();
-    const sessionPriv = currentSession?.sessionPrivKey;
-    const sessionPub = currentSession?.sessionPubKey;
+    const sessionPriv = this._sessionConfig?.sessionPrivKey;
+    const sessionPub = this._sessionConfig?.sessionPubKey;
 
     if (sessionPriv === undefined || sessionPub === undefined) {
       throw new Error('Session keys are not set');
@@ -174,9 +164,6 @@ class OktoClient {
     return this._vendorConfig.vendorSWA;
   }
 
-  /**
-   * Generates paymaster data for transactions.
-   */
   public paymasterData({
     nonce,
     validUntil,
@@ -197,9 +184,6 @@ class OktoClient {
     );
   }
 
-  /**
-   * Executes a user operation.
-   */
   public async executeUserOp(userop: UserOp): Promise<string> {
     if (!this.isLoggedIn()) {
       throw new BaseError('User must be logged in to execute user operation');
@@ -213,19 +197,16 @@ class OktoClient {
     }
   }
 
-  /**
-   * Signs a user operation with the session's private key.
-   */
   public async signUserOp(userop: UserOp): Promise<UserOp> {
     if (!this.isLoggedIn()) {
       throw new BaseError('User must be logged in to sign user operation');
     }
     validateUserOp(userop);
-    const currentSession = this.getSessionConfig();
+    const currentSession = this._sessionConfig;
     const privateKey = currentSession?.sessionPrivKey;
 
     if (privateKey === undefined) {
-      throw new Error('Session keys are not set');
+      throw new BaseError('Session keys are not set');
     }
 
     const packeduserop = generatePackedUserOp(userop);
@@ -242,16 +223,10 @@ class OktoClient {
     return userop;
   }
 
-  /**
-   * Checks if a user is logged in.
-   */
   public isLoggedIn(): boolean {
-    return Boolean(this._sessionConfig);
+    return this._sessionConfig !== undefined;
   }
 
-  /**
-   * Clears the current session.
-   */
   public sessionClear(): void {
     this._sessionConfig = undefined;
   }
@@ -259,4 +234,3 @@ class OktoClient {
 
 export default OktoClient;
 export type { SessionConfig } from './types.js';
-export { SessionKey } from '@/utils/sessionKey.js';
