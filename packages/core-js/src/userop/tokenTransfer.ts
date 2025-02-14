@@ -1,5 +1,6 @@
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
+import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
@@ -45,6 +46,17 @@ export async function tokenTransfer(
     '(string caip2Id, string recipientWalletAddress, string tokenAddress, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
+  const chains = await getChains(oc);
+  const currentChain = chains.find(
+    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
+  );
+
+  if (!currentChain) {
+    throw new BaseError(`Chain Not Supported`, {
+      details: `${data.caip2Id} is not supported for this client`,
+    });
+  }
+
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
     [
@@ -61,22 +73,22 @@ export async function tokenTransfer(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: false,
-                sponsorshipEnabled: false,
+                gsnEnabled: currentChain.gsnEnabled ?? false,
+                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
-          ), // policyinfo  //TODO: get this data from user
+          ),
           encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
             {
               isRequired: false,
               requiredNetworks: [],
               tokens: [],
             },
-          ]), // gsnData
+          ]),
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               amount: BigInt(data.amount),
-              caip2Id: data.chain,
+              caip2Id: data.caip2Id,
               recipientWalletAddress: data.recipient,
               tokenAddress: data.token,
             },
