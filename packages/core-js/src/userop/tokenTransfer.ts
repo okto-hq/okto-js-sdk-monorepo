@@ -48,12 +48,12 @@ export async function tokenTransfer(
 
   const chains = await getChains(oc);
   const currentChain = chains.find(
-    (chain) => chain.caip2Id.toLowerCase() === data.chain.toLowerCase(),
+    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
   );
 
   if (!currentChain) {
     throw new BaseError(`Chain Not Supported`, {
-      details: `${data.chain} is not supported for this client`,
+      details: `${data.caip2Id} is not supported for this client`,
     });
   }
 
@@ -88,7 +88,7 @@ export async function tokenTransfer(
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               amount: BigInt(data.amount),
-              caip2Id: data.chain,
+              caip2Id: data.caip2Id,
               recipientWalletAddress: data.recipient,
               tokenAddress: data.token,
             },

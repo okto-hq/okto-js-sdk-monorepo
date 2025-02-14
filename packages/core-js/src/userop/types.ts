@@ -7,13 +7,13 @@ import type { PartialBy } from 'viem';
  * @property amount - Amount to send, in the smallest unit (e.g., gwei for ETH).
  * @property recipient - Wallet address of the recipient.
  * @property token - The token address for the transaction.
- * @property chain - The network ID (e.g., Ethereum, Polygon).
+ * @property caip2Id - The network ID (e.g., Ethereum, Polygon).
  */
 export type TokenTransferIntentParams = {
   amount: number | bigint;
   recipient: Address;
   token: Address | '';
-  chain: string;
+  caip2Id: string;
 };
 
 /**
