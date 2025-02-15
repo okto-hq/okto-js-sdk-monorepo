@@ -1,5 +1,6 @@
 import type { Hash, Hex } from '@/types/core.js';
 import { secp256k1 } from '@noble/curves/secp256k1';
+import { keccak_256 } from '@noble/hashes/sha3';
 
 export class SessionKey {
   private priv: Uint8Array<ArrayBufferLike>;
@@ -42,6 +43,14 @@ export class SessionKey {
     return `0x${Buffer.from(this.uncompressedPublicKey).toString('hex')}`;
   }
 
+  get ethereumAddress(): Hex {
+    // Remove the first byte (public key prefix)
+    const publicKeyWithoutPrefix = this.uncompressedPublicKey.slice(1);
+    const hash = keccak_256(publicKeyWithoutPrefix);
+    // Take last 20 bytes and convert to hex with 0x prefix
+    return `0x${Buffer.from(hash.slice(-20)).toString('hex')}`;
+  }
+
   static create() {
     return new SessionKey();
   }
@@ -59,36 +68,6 @@ export class SessionKey {
   }) {
     return secp256k1.verify(payload, signature, this.uncompressedPublicKey);
   }
-}
-
-// export function createSessionKeyPair() {
-//   const privateKey = secp256k1.utils.randomPrivateKey();
-//   const uncompressedPublicKey = secp256k1.getPublicKey(privateKey, false);
-
-//   return {
-//     privateKey,
-//     uncompressedPublicKey,
-//     privateKeyHex: ('0x' + Buffer.from(privateKey).toString('hex')) as Hex,
-//     uncompressedPublicKeyHex: ('0x' +
-//       Buffer.from(uncompressedPublicKey).toString('hex')) as Hex,
-//   };
-// }
-
-// TODO: Deprecate this function
-export function signPayload(
-  payload: string | object,
-  privateKey: string,
-): string {
-  if (typeof payload === 'object') {
-    payload = JSON.stringify(payload);
-  }
-
-  payload = payload.replace('0x', '');
-  privateKey = privateKey.replace('0x', '');
-
-  const sig = secp256k1.sign(payload, privateKey);
-
-  return sig.toCompactHex();
 }
 
 // TODO: Deprecate this function

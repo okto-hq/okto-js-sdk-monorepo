@@ -15,7 +15,7 @@ import {
   validateUserOp,
 } from './oktoClientInputValidator.js';
 import { generatePaymasterData } from './paymaster.js';
-import type { Env, EnvConfig, SessionConfig, VendorConfig } from './types.js';
+import type { ClientConfig, Env, EnvConfig, SessionConfig } from './types.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -25,17 +25,17 @@ export interface OktoClientConfig {
 
 class OktoClient {
   private _environment: Env;
-  private _vendorConfig: VendorConfig;
+  private _clientConfig: ClientConfig;
   private _sessionConfig: SessionConfig | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
 
-    this._vendorConfig = {
-      vendorPrivKey: config.vendorPrivKey,
-      vendorPubKey: getPublicKey(config.vendorPrivKey),
-      vendorSWA: config.vendorSWA,
+    this._clientConfig = {
+      clientPrivKey: config.vendorPrivKey,
+      clientPubKey: getPublicKey(config.vendorPrivKey),
+      clientSWA: config.vendorSWA,
     };
     this._environment = config.environment;
   }
@@ -67,11 +67,11 @@ class OktoClient {
   ): Promise<Address | RpcError | undefined> {
     validateAuthData(data);
 
-    const vendorPrivateKey = this._vendorConfig.vendorPrivKey;
-    const vendorSWA = this._vendorConfig.vendorSWA;
+    const clientPrivateKey = this._clientConfig.clientPrivKey;
+    const clientSWA = this._clientConfig.clientSWA;
     const session = SessionKey.create();
 
-    if (!vendorPrivateKey || !vendorSWA) {
+    if (!clientPrivateKey || !clientSWA) {
       throw new Error('Vendor details not found');
     }
 
@@ -79,8 +79,8 @@ class OktoClient {
       this,
       data,
       session,
-      vendorSWA,
-      vendorPrivateKey,
+      clientSWA,
+      clientPrivateKey,
     );
 
     try {
@@ -89,6 +89,7 @@ class OktoClient {
         authPayload,
       );
 
+      // TODO: Update with SessionKey Object
       this._sessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
         sessionPubKey: session.uncompressedPublicKeyHexWith0x,
@@ -110,12 +111,18 @@ class OktoClient {
     }
   }
 
+  /**
+   * Verifies if the user is logged in.
+   * If user is not logged in, it clears the auth options.
+   *
+   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
+   */
   public async verifyLogin(): Promise<boolean> {
     try {
       const res = await BffClientRepository.verifySession(this);
       const currentSession = this._sessionConfig;
       if (
-        res.vendorSwa == this._vendorConfig.vendorSWA &&
+        res.vendorSwa == this._clientConfig.clientSWA &&
         res.userSwa == currentSession?.userSWA
       ) {
         return true;
@@ -161,7 +168,7 @@ class OktoClient {
   }
 
   get vendorSWA(): Hex | undefined {
-    return this._vendorConfig.vendorSWA;
+    return this._clientConfig.clientSWA;
   }
 
   public paymasterData({
@@ -176,8 +183,8 @@ class OktoClient {
     if (!this.isLoggedIn())
       throw new BaseError('User must be logged in to generate paymaster data');
     return generatePaymasterData(
-      this._vendorConfig.vendorSWA,
-      this._vendorConfig.vendorPrivKey,
+      this._clientConfig.clientSWA,
+      this._clientConfig.clientPrivKey,
       nonce,
       validUntil,
       validAfter,

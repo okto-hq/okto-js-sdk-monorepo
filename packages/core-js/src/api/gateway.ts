@@ -5,6 +5,7 @@ import type {
   AuthenticatePayloadParam,
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
+import type { ExecuteResult } from '@/types/gateway/execute.js';
 import { generateUUID } from '@/utils/nonce.js';
 import { serializeJSON } from '@/utils/serialize.js';
 import { getGatewayClient } from './client.js';
@@ -66,14 +67,13 @@ class GatewayClientRepository {
 
     const serliazedPayload = serializeJSON(payload);
 
-    const response = await getGatewayClient(oc).post<RpcResponse<string>>(
-      this.rpcRoute,
-      serliazedPayload,
-    );
+    const response = await getGatewayClient(oc).post<
+      RpcResponse<ExecuteResult>
+    >(this.rpcRoute, serliazedPayload);
 
     //TODO: Check if successful and throw an error if not
 
-    return response.data.result;
+    return response.data.result.jobId;
   }
 }
 

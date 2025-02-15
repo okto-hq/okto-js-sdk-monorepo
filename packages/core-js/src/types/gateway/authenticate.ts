@@ -10,7 +10,7 @@ export type AuthData =
 
 export type AuthSessionData = {
   nonce: string;
-  vendorSWA: string;
+  clientSWA: string;
   sessionPk: string;
   maxPriorityFeePerGas: string;
   maxFeePerGas: string;
@@ -21,11 +21,8 @@ export type AuthSessionData = {
 export type AuthenticatePayloadParam = {
   authData: AuthData;
   sessionData: AuthSessionData;
-  additionalData: string;
-  authDataVendorSign: string;
-  sessionDataVendorSign: string;
-  authDataUserSign: string;
-  sessionDataUserSign: string;
+  sessionPkClientSignature: string;
+  sessionDataUserSignature: string;
 };
 
 export type AuthenticateResult = {
