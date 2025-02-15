@@ -120,14 +120,13 @@ class OktoClient {
   public async verifyLogin(): Promise<boolean> {
     try {
       const res = await BffClientRepository.verifySession(this);
-      const currentSession = this._sessionConfig;
       if (
         res.vendorSwa == this._clientConfig.clientSWA &&
-        res.userSwa == currentSession?.userSWA
+        res.userSwa == this._sessionConfig?.userSWA
       ) {
         return true;
       }
-      throw new Error('Session verification failed');
+      throw new BaseError('Session verification failed');
     } catch (error) {
       console.error('Error verifying login:', error);
       this._sessionConfig = undefined;
@@ -140,7 +139,7 @@ class OktoClient {
     const sessionPub = this._sessionConfig?.sessionPubKey;
 
     if (sessionPriv === undefined || sessionPub === undefined) {
-      throw new Error('Session keys are not set');
+      throw new BaseError('Session keys are not set');
     }
 
     const data = {
@@ -209,8 +208,7 @@ class OktoClient {
       throw new BaseError('User must be logged in to sign user operation');
     }
     validateUserOp(userop);
-    const currentSession = this._sessionConfig;
-    const privateKey = currentSession?.sessionPrivKey;
+    const privateKey = this._sessionConfig?.sessionPrivKey;
 
     if (privateKey === undefined) {
       throw new BaseError('Session keys are not set');

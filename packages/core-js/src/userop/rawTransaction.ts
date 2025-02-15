@@ -1,4 +1,6 @@
 import type OktoClient from '@/core/index.js';
+import { BaseError } from '@/errors/base.js';
+import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
@@ -13,7 +15,6 @@ import {
 import { INTENT_ABI } from './abi.js';
 import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
 import { RawTransactionIntentParamsSchema } from './userOpInputValidator.js';
-import { BaseError } from '@/errors/base.js';
 
 /**
  * Creates a user operation for EVM Raw Transaction.
@@ -39,6 +40,17 @@ export async function evmRawTransaction(
   const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
+  const chains = await getChains(oc);
+  const currentChain = chains.find(
+    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
+  );
+
+  if (!currentChain) {
+    throw new BaseError(`Chain Not Supported`, {
+      details: `${data.caip2Id} is not supported for this client`,
+    });
+  }
+
   const jobparam = encodeAbiParameters(
     parseAbiParameters(jobParametersAbiType),
     [
@@ -48,9 +60,6 @@ export async function evmRawTransaction(
       },
     ],
   );
-
-  console.info('transaction:', JSON.stringify(transaction, null, 2));
-  console.info('jobparam:', jobparam);
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
@@ -68,8 +77,8 @@ export async function evmRawTransaction(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: false,
-                sponsorshipEnabled: false,
+                gsnEnabled: currentChain.gsnEnabled ?? false,
+                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
           ), // policyinfo  //TODO: get this data from user

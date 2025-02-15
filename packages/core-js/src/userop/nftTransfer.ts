@@ -1,4 +1,5 @@
 import type OktoClient from '@/core/index.js';
+import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
@@ -46,6 +47,17 @@ export async function nftTransfer(
     '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
+  const chains = await getChains(oc);
+  const currentChain = chains.find(
+    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
+  );
+
+  if (!currentChain) {
+    throw new BaseError(`Chain Not Supported`, {
+      details: `${data.caip2Id} is not supported for this client`,
+    });
+  }
+
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
     [
@@ -62,8 +74,8 @@ export async function nftTransfer(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: false,
-                sponsorshipEnabled: false,
+                gsnEnabled: currentChain.gsnEnabled ?? false,
+                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
           ),

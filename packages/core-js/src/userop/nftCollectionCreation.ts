@@ -1,4 +1,6 @@
 import type OktoClient from '@/core/index.js';
+import { BaseError } from '@/errors/index.js';
+import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
@@ -11,7 +13,6 @@ import {
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
 import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
-import { BaseError } from '@/errors/index.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -39,6 +40,17 @@ async function nftCollectionCreation(
     '(string caip2Id, string name,string description ,string metadataUri, string symbol,string type)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
+  const chains = await getChains(oc);
+  const currentChain = chains.find(
+    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
+  );
+
+  if (!currentChain) {
+    throw new BaseError(`Chain Not Supported`, {
+      details: `${data.caip2Id} is not supported for this client`,
+    });
+  }
+
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, bytes'),
     [
@@ -55,8 +67,8 @@ async function nftCollectionCreation(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: false,
-                sponsorshipEnabled: false,
+                gsnEnabled: currentChain.gsnEnabled ?? false,
+                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
           ),
