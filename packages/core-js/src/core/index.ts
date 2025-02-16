@@ -123,7 +123,7 @@ class OktoClient {
       const res = await BffClientRepository.verifySession(this);
       if (
         res.clientSWA == this._clientConfig.clientSWA &&
-        res.userSwa == this._sessionConfig?.userSWA
+        res.userSWA == this._sessionConfig?.userSWA
       ) {
         return true;
       }
