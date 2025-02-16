@@ -42,7 +42,7 @@ export async function evmRawTransaction(
 
   const chains = await getChains(oc);
   const currentChain = chains.find(
-    (chain) => chain.caip2Id.toLowerCase() === data.caip2Id.toLowerCase(),
+    (chain) => chain.caipId.toLowerCase() === data.caip2Id.toLowerCase(),
   );
 
   if (!currentChain) {
@@ -62,16 +62,17 @@ export async function evmRawTransaction(
   );
 
   const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, bytes'),
+    parseAbiParameters('bytes4, address, uint256, bytes'),
     [
       Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
       oc.env.jobManagerAddress,
+      Constants.USEROP_VALUE,
       encodeFunctionData({
         abi: INTENT_ABI,
         functionName: 'initiateJob',
         args: [
           toHex(nonceToBigInt(nonce), { size: 32 }),
-          oc.vendorSWA,
+          oc.clientSWA,
           oc.userSWA,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
@@ -90,7 +91,7 @@ export async function evmRawTransaction(
             },
           ]), // gsnData
           jobparam,
-          'RAW_TRANSACTION',
+          Constants.INTENT_TYPE.RAW_TRANSACTION,
         ],
       }),
     ],
@@ -100,13 +101,17 @@ export async function evmRawTransaction(
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
-    callGasLimit: toHex(BigInt(300_000)),
-    verificationGasLimit: toHex(BigInt(200_000)),
-    preVerificationGas: toHex(BigInt(50_000)),
-    maxFeePerGas: toHex(BigInt(2000000000)),
-    maxPriorityFeePerGas: toHex(BigInt(2000000000)),
-    paymasterPostOpGasLimit: toHex(BigInt(100000)),
-    paymasterVerificationGasLimit: toHex(BigInt(100000)),
+    callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
+    verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
+    preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
+    maxFeePerGas: toHex(Constants.GAS_LIMITS.MAX_FEE_PER_GAS),
+    maxPriorityFeePerGas: toHex(Constants.GAS_LIMITS.MAX_PRIORITY_FEE_PER_GAS),
+    paymasterPostOpGasLimit: toHex(
+      Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
+    ),
+    paymasterVerificationGasLimit: toHex(
+      Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT,
+    ),
     callData: calldata,
     paymasterData: await oc.paymasterData({
       nonce: nonce,

@@ -9,11 +9,11 @@ import { encryptData, decryptData } from '../utils/encryptionUtils.js';
 import { getLocalStorage, setLocalStorage } from 'src/utils/storageUtils.js';
 
 class OktoClient extends OktoCoreClient {
-  private _vendorPrivKey: string;
+  private _clientPrivateKey: string;
 
   constructor(config: OktoClientConfig) {
     super(config);
-    this._vendorPrivKey = config.vendorPrivKey;
+    this._clientPrivateKey = config.clientPrivateKey;
     this.initializeSessionConfig();
   }
 
@@ -22,7 +22,7 @@ class OktoClient extends OktoCoreClient {
     if (encryptedSession) {
       const sessionConfig = decryptData<SessionConfig>(
         encryptedSession,
-        this._vendorPrivKey,
+        this._clientPrivateKey,
       );
       if (sessionConfig) {
         this.setSessionConfig(sessionConfig);
@@ -34,7 +34,7 @@ class OktoClient extends OktoCoreClient {
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
     return super.loginUsingOAuth(data, (session) => {
-      setLocalStorage('session', encryptData(session, this._vendorPrivKey));
+      setLocalStorage('session', encryptData(session, this._clientPrivateKey));
       this.setSessionConfig(session);
     });
   }

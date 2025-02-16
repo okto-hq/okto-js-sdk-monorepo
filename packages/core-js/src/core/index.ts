@@ -19,8 +19,8 @@ import type { ClientConfig, Env, EnvConfig, SessionConfig } from './types.js';
 
 export interface OktoClientConfig {
   environment: Env;
-  vendorPrivKey: Hash;
-  vendorSWA: Hex;
+  clientPrivateKey: Hash;
+  clientSWA: Hex;
 }
 
 class OktoClient {
@@ -33,9 +33,9 @@ class OktoClient {
     validateOktoClientConfig(config);
 
     this._clientConfig = {
-      clientPrivKey: config.vendorPrivKey,
-      clientPubKey: getPublicKey(config.vendorPrivKey),
-      clientSWA: config.vendorSWA,
+      clientPrivKey: config.clientPrivateKey,
+      clientPubKey: getPublicKey(config.clientPrivateKey),
+      clientSWA: config.clientSWA,
     };
     this._environment = config.environment;
   }
@@ -72,7 +72,7 @@ class OktoClient {
     const session = SessionKey.create();
 
     if (!clientPrivateKey || !clientSWA) {
-      throw new Error('Vendor details not found');
+      throw new Error('Client details not found');
     }
 
     const authPayload = await generateAuthenticatePayload(
@@ -118,10 +118,11 @@ class OktoClient {
    * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
    */
   public async verifyLogin(): Promise<boolean> {
+    //TODO: change the implementation not supported from backend
     try {
       const res = await BffClientRepository.verifySession(this);
       if (
-        res.vendorSwa == this._clientConfig.clientSWA &&
+        res.clientSWA == this._clientConfig.clientSWA &&
         res.userSwa == this._sessionConfig?.userSWA
       ) {
         return true;
@@ -166,7 +167,7 @@ class OktoClient {
     return this._sessionConfig.userSWA;
   }
 
-  get vendorSWA(): Hex | undefined {
+  get clientSWA(): Hex | undefined {
     return this._clientConfig.clientSWA;
   }
 

@@ -15,8 +15,8 @@ import { z } from 'zod';
 // **Schema for Okto Client configuration**
 export const OktoClientConfigSchema = z.object({
   environment: z.enum(['sandbox', 'production']),
-  vendorPrivKey: isPrivateKey(),
-  vendorSWA: isAddress('Invalid vendor SWA format'),
+  clientPrivateKey: isPrivateKey(),
+  clientSWA: isAddress('Invalid clientSWA format'),
 });
 
 // **Schema for Authentication Data**
@@ -37,11 +37,11 @@ export const SessionConfigSchema = z.object({
   sessionKey: z.string(),
 });
 
-// **Schema for Vendor Configuration**
-export const VendorConfigSchema = z.object({
-  vendorPrivKey: isPrivateKey(),
-  vendorPubKey: isPublicKey(),
-  vendorSWA: isAddress(),
+// **Schema for Client Configuration**
+export const ClientConfigSchema = z.object({
+  clientPrivateKey: isPrivateKey(),
+  clientPubKeyKey: isPublicKey(),
+  clientSWA: isAddress(),
 });
 
 // **Schema for User Operation**
@@ -69,6 +69,6 @@ export const validateOktoClientConfig = (data: unknown) =>
 export const validateAuthData = (data: unknown) => AuthDataSchema.parse(data);
 export const validateSessionConfig = (data: unknown) =>
   SessionConfigSchema.parse(data);
-export const validateVendorConfig = (data: unknown) =>
-  VendorConfigSchema.parse(data);
+export const validateClientConfig = (data: unknown) =>
+  ClientConfigSchema.parse(data);
 export const validateUserOp = (data: unknown) => UserOpSchema.parse(data);

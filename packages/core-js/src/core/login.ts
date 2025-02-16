@@ -20,7 +20,7 @@ import type OktoClient from './index.js';
  * @param {AuthData} authData The authentication data.
  * @param {string} sessionPub The session public key.
  * @param {string} sessionPriv The session private key.
- * @param {string} clientPriv The vendor private key.
+ * @param {string} clientPriv The client private key.
  * @returns {AuthenticatePayloadParam} The authenticate payload.
  */
 export async function generateAuthenticatePayload(

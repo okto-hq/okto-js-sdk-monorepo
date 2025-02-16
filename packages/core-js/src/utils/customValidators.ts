@@ -20,7 +20,7 @@ const isHexString = (message?: string) =>
 const isPrivateKey = (message?: string) =>
   z.custom<string>(
     (val) => typeof val === 'string' && /^0x[a-fA-F0-9]{64}$/.test(val),
-    { message: message ?? 'Invalid vendor private key format' },
+    { message: message ?? 'Invalid client private key format' },
   );
 
 // Validates an Ethereum address (40-character hex string)
@@ -34,7 +34,7 @@ const isAddress = (message?: string) =>
 const isPublicKey = (message?: string) =>
   z.custom<string>(
     (val) => typeof val === 'string' && /^0x[a-fA-F0-9]{66}$/.test(val),
-    { message: message ?? 'Invalid vendor public key format' },
+    { message: message ?? 'Invalid client public key format' },
   );
 
 // Checks if a token ID is either numeric or hexadecimal (supports optional "0x" prefix)
