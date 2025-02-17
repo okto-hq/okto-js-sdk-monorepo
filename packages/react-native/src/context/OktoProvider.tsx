@@ -1,4 +1,5 @@
-import { OktoClient, type OktoClientConfig } from '@okto_web3/core-js-sdk';
+import { type OktoClientConfig } from '@okto_web3/core-js-sdk';
+import { OktoClient } from '../core/index.js';
 import type { ReactNode } from 'react';
 import { OktoContext } from './OktoContext.js';
 

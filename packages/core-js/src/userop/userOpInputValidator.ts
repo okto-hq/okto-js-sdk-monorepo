@@ -127,12 +127,12 @@ export const RawTransactionIntentParamsSchema = z // TODO: add a check against i
  */
 export const TokenTransferIntentParamsSchema = z
   .object({
-    chain: z
+    caip2Id: z
       .string()
-      .min(1, 'Chain cannot be blank')
+      .min(1, 'caip2Id cannot be blank')
       .refine(
         (val) => val.trim() === val,
-        'Chain cannot have leading or trailing spaces',
+        'caip2Id cannot have leading or trailing spaces',
       ),
     recipient: z
       .string()

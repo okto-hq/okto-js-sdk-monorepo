@@ -7,7 +7,7 @@ export const INTENT_ABI = [
         type: 'uint256',
       },
       {
-        name: '_vendorSWA',
+        name: '_clientSWA',
         type: 'address',
       },
       {

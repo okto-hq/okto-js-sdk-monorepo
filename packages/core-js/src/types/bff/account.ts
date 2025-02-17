@@ -264,7 +264,7 @@ export type OrderEstimateResponse = {
   callData: {
     intentType: string;
     jobId: string;
-    vendorId: string;
+    clientId: string;
     creatorId: string;
     policies: {
       gsnEnabled: boolean;

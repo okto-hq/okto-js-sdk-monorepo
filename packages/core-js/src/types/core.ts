@@ -4,14 +4,6 @@ export type Hex = `0x${string}`;
 export type Hash = `0x${string}`;
 export type uint256 = bigint;
 
-export type User = {
-  userId: string;
-  userAddress: string;
-  ecdsaPublicKey: string;
-  eddsaPublicKey: string;
-  sessionExpiry: string;
-};
-
 export type UserOp = {
   /** The data to pass to the `sender` during the main execution call. */
   callData?: Hex;

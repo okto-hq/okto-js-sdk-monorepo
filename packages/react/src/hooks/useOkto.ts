@@ -1,4 +1,4 @@
-import type { OktoClient } from '@okto_web3/core-js-sdk';
+import type { OktoClient } from '../core/index.js';
 import { useOktoContext } from '../context/OktoContext.js';
 
 export function useOkto(): OktoClient {

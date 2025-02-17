@@ -13,8 +13,8 @@ export default function RootLayout({
         <OktoProvider
           config={{
             environment: "sandbox",
-            vendorPrivKey: "0xa",
-            vendorSWA: "0x6",
+            clientPrivateKey: "0xa",
+            clientSWA: "0x6",
           }}
         >
           {children}

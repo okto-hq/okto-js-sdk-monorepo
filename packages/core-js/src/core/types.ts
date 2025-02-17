@@ -23,6 +23,6 @@ export interface SessionConfig {
 }
 
 export interface AuthParams {
-  vendorPrivKey: Hash;
-  vendorSWA: Hex;
+  clientPrivateKey: Hash;
+  clientSWA: Hex;
 }

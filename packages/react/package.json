@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-sdk",
-  "version": "0.0.0-dev.55",
+  "version": "0.0.0-dev.57",
   "description": "ReactJS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -40,6 +40,7 @@
     }
   },
   "dependencies": {
+    "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*"
   },
   "devDependencies": {

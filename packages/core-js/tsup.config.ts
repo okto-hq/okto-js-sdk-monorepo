@@ -6,6 +6,7 @@ export default defineConfig({
     'core/index': 'src/core/index.ts',
     'explorer/index': 'src/explorer/index.ts',
     'types/index': 'src/types/index.ts',
+    'errors/index': 'src/errors/index.ts',
     'userop/index': 'src/userop/index.ts',
   },
   format: ['cjs', 'esm'],

@@ -1,7 +1,7 @@
 import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
-import type { Hash, Hex, User, UserOp } from '@/types/core.js';
+import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
@@ -19,13 +19,12 @@ import type { ClientConfig, Env, EnvConfig, SessionConfig } from './types.js';
 
 export interface OktoClientConfig {
   environment: Env;
-  vendorPrivKey: Hash;
-  vendorSWA: Hex;
+  clientPrivateKey: Hash;
+  clientSWA: Hex;
 }
 
 class OktoClient {
   private _environment: Env;
-  private _user?: User;
   private _clientConfig: ClientConfig;
   private _sessionConfig: SessionConfig | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
@@ -34,11 +33,10 @@ class OktoClient {
     validateOktoClientConfig(config);
 
     this._clientConfig = {
-      clientPrivKey: config.vendorPrivKey,
-      clientPubKey: getPublicKey(config.vendorPrivKey),
-      clientSWA: config.vendorSWA,
+      clientPrivKey: config.clientPrivateKey,
+      clientPubKey: getPublicKey(config.clientPrivateKey),
+      clientSWA: config.clientSWA,
     };
-
     this._environment = config.environment;
   }
 
@@ -53,17 +51,22 @@ class OktoClient {
     }
   }
 
+  protected setSessionConfig(sessionConfig: SessionConfig): void {
+    this._sessionConfig = sessionConfig;
+  }
+
   /**
-   * Logs in the user using OAuth.
-   * It generates a session key pair, creates an authenticate payload, and sends it to the Gateway service.
-   * If the response is valid, it updates the user session.
-   *
-   * @param {AuthData} data The authentication data.
-   * @returns {Promise<string>} A promise that resolves to the user address.
+   * Logs in a user using OAuth authentication.
+   * @param data - Authentication data.
+   * @param onSuccess - Callback function executed on successful login.
+   * @param overrideSessionConfig - Optional session configuration to override the current session.
+   * @returns {Promise<Address | RpcError | undefined>} A promise that resolves to the user's address, an RpcError, or undefined.
    */
   public async loginUsingOAuth(
     data: AuthData,
-  ): Promise<User | RpcError | undefined> {
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
     validateAuthData(data);
 
     const clientPrivateKey = this._clientConfig.clientPrivKey;
@@ -71,7 +74,7 @@ class OktoClient {
     const session = SessionKey.create();
 
     if (!clientPrivateKey || !clientSWA) {
-      throw new Error('Vendor details not found');
+      throw new Error('Client details not found');
     }
 
     const authPayload = await generateAuthenticatePayload(
@@ -95,18 +98,17 @@ class OktoClient {
         userSWA: authRes.userAddress as Hex,
       };
 
-      this._user = {
-        ...authRes,
-      };
+      onSuccess?.(this._sessionConfig);
 
-      return this._user;
+      if (overrideSessionConfig) {
+        this._sessionConfig = overrideSessionConfig;
+      }
+
+      return this.userSWA;
     } catch (error) {
-      //TODO: Return proper error
-
       if (error instanceof RpcError) {
         return error;
       }
-
       throw error;
     }
   }
@@ -118,10 +120,18 @@ class OktoClient {
    * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
    */
   public async verifyLogin(): Promise<boolean> {
+    //TODO: change the implementation not supported from backend
     try {
-      await BffClientRepository.verifySession(this);
-      return true;
+      const res = await BffClientRepository.verifySession(this);
+      if (
+        res.clientSWA == this._clientConfig.clientSWA &&
+        res.userSWA == this._sessionConfig?.userSWA
+      ) {
+        return true;
+      }
+      throw new BaseError('Session verification failed');
     } catch (error) {
+      console.error('Error verifying login:', error);
       this._sessionConfig = undefined;
       return false;
     }
@@ -132,7 +142,7 @@ class OktoClient {
     const sessionPub = this._sessionConfig?.sessionPubKey;
 
     if (sessionPriv === undefined || sessionPub === undefined) {
-      throw new Error('Session keys are not set');
+      throw new BaseError('Session keys are not set');
     }
 
     const data = {
@@ -152,19 +162,11 @@ class OktoClient {
     return btoa(JSON.stringify(payload));
   }
 
-  /**
-   * Returns the user information.
-   * If the user is not logged in, it returns undefined.
-   */
-  get user(): User | undefined {
-    return this._user;
-  }
-
   get userSWA(): Hex | undefined {
     return this._sessionConfig?.userSWA;
   }
 
-  get vendorSWA(): Hex | undefined {
+  get clientSWA(): Hex | undefined {
     return this._clientConfig.clientSWA;
   }
 
@@ -177,9 +179,8 @@ class OktoClient {
     validUntil: Date | number | bigint;
     validAfter?: Date | number | bigint;
   }) {
-    if (!this.isLoggedIn()) {
+    if (!this.isLoggedIn())
       throw new BaseError('User must be logged in to generate paymaster data');
-    }
     return generatePaymasterData(
       this._clientConfig.clientSWA,
       this._clientConfig.clientPrivKey,
@@ -210,7 +211,7 @@ class OktoClient {
     const privateKey = this._sessionConfig?.sessionPrivKey;
 
     if (privateKey === undefined) {
-      throw new Error('Session keys are not set');
+      throw new BaseError('Session keys are not set');
     }
 
     const packeduserop = generatePackedUserOp(userop);
@@ -231,13 +232,10 @@ class OktoClient {
     return this._sessionConfig !== undefined;
   }
 
-  /**
-   * Clears the current user session.
-   */
   public sessionClear(): void {
     this._sessionConfig = undefined;
-    this._user = undefined;
   }
 }
 
 export default OktoClient;
+export type { SessionConfig } from './types.js';
