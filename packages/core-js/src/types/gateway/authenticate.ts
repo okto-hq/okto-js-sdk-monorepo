@@ -26,12 +26,10 @@ export type AuthenticatePayloadParam = {
 };
 
 export type AuthenticateResult = {
-  ecdsaPublicKey: string;
-  eddsaPublicKey: string;
-  userId: string;
-  jobId: string;
+  userSWA: string;
+  nonce: string;
+  clientSWA: string;
   sessionExpiry: string;
-  userAddress: string;
 };
 
 export type UserSessionResponse = {
