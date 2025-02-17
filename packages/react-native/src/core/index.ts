@@ -34,10 +34,21 @@ class OktoClient extends OktoCoreClient {
   override loginUsingOAuth(
     data: AuthData,
   ): Promise<Address | RpcError | undefined> {
-    return super.loginUsingOAuth(data, (session) => {
-      setStorage('session', encryptData(session, this._clientPrivateKey));
-      this.setSessionConfig(session);
-    });
+    return super.loginUsingOAuth(data);
+  }
+
+  public setSession(
+    sessionPrivateKey: `0x${string}`,
+    sessionPublicKey: `0x${string}`,
+    userSWA: `0x${string}`,
+  ): void {
+    const sessionConfig: SessionConfig = {
+      sessionPrivKey: sessionPrivateKey,
+      sessionPubKey: sessionPublicKey,
+      userSWA: userSWA,
+    };
+    this.setSessionConfig(sessionConfig);
+    setStorage('session', encryptData(sessionConfig, this._clientPrivateKey));
   }
 }
 
