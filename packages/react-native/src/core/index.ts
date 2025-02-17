@@ -7,7 +7,7 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { decryptData, encryptData } from '../utils/encryptionUtils.js';
-import { setStorage, getStorage } from '../utils/storageUtils.js';
+import { setStorage, getStorage, clearStorage } from '../utils/storageUtils.js';
 
 class OktoClient extends OktoCoreClient {
   private _clientPrivateKey: string;
@@ -38,6 +38,11 @@ class OktoClient extends OktoCoreClient {
       setStorage('session', encryptData(session, this._clientPrivateKey));
       this.setSessionConfig(session);
     });
+  }
+
+  override sessionClear(): void {
+    clearStorage();
+    return super.sessionClear();
   }
 }
 
