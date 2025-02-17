@@ -18,3 +18,11 @@ export const getLocalStorage = async (key: string) => {
   }
   return null;
 };
+
+export const clearLocalStorage = async () => {
+  try {
+    localStorage.clear();
+  } catch (e) {
+    console.error('Error clearing local storage', e);
+  }
+};

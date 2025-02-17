@@ -18,3 +18,11 @@ export const getStorage = (key: string) => {
   }
   return null;
 };
+
+export const clearStorage = () => {
+  try {
+    storage.clearAll();
+  } catch (e) {
+    console.error('Error clearing storage', e);
+  }
+};
