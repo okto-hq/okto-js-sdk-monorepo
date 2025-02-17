@@ -95,7 +95,7 @@ class OktoClient {
       this._sessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
         sessionPubKey: session.uncompressedPublicKeyHexWith0x,
-        userSWA: authRes.userAddress as Hex,
+        userSWA: authRes.userSWA as Hex,
       };
 
       onSuccess?.(this._sessionConfig);
