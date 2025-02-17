@@ -10,6 +10,12 @@ import {
   generateUUID,
   SessionKey,
 } from '@/utils/index.js';
+import {
+  encodeAbiParameters,
+  keccak256,
+  parseAbiParameters,
+  toBytes,
+} from 'viem';
 import { signMessage } from 'viem/accounts';
 import type OktoClient from './index.js';
 
@@ -50,25 +56,22 @@ export async function generateAuthenticatePayload(
     new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   );
 
-  // payload.authDataVendorSign = await signMessage({
-  //   message: {
-  //     raw: toBytes(JSON.stringify(authData)),
-  //   },
-  //   privateKey: vendorPriv,
-  // });
-  // payload.authDataUserSign = await signMessage({
-  //   message: {
-  //     raw: toBytes(JSON.stringify(authData)),
-  //   },
-  //   privateKey: sessionKey.privateKeyHexWith0x,
-  // });
+  const message = {
+    raw: toBytes(
+      keccak256(
+        encodeAbiParameters(parseAbiParameters('address'), [
+          sessionKey.ethereumAddress,
+        ]),
+      ),
+    ),
+  };
 
   payload.sessionPkClientSignature = await signMessage({
-    message: sessionKey.ethereumAddress,
+    message: message,
     privateKey: clientPriv,
   });
   payload.sessionDataUserSignature = await signMessage({
-    message: sessionKey.ethereumAddress,
+    message: message,
     privateKey: sessionKey.privateKeyHexWith0x,
   });
 

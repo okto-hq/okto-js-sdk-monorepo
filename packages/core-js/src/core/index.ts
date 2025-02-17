@@ -163,10 +163,7 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    if (!this._sessionConfig?.userSWA) {
-      throw new BaseError('User is not logged in');
-    }
-    return this._sessionConfig.userSWA;
+    return this._sessionConfig?.userSWA;
   }
 
   get clientSWA(): Hex | undefined {
