@@ -63,7 +63,7 @@ export async function tokenTransfer(
       Constants.USEROP_VALUE,
       encodeFunctionData({
         abi: INTENT_ABI,
-        functionName: 'initiateJob',
+        functionName: Constants.FUNCTION_NAME,
         args: [
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,

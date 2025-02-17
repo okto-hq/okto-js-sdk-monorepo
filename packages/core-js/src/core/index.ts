@@ -59,6 +59,8 @@ class OktoClient {
    * Logs in a user using OAuth authentication.
    * @param data - Authentication data.
    * @param onSuccess - Callback function executed on successful login.
+   * @param overrideSessionConfig - Optional session configuration to override the current session.
+   * @returns {Promise<Address | RpcError | undefined>} A promise that resolves to the user's address, an RpcError, or undefined.
    */
   public async loginUsingOAuth(
     data: AuthData,

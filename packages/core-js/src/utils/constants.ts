@@ -6,6 +6,8 @@ export class Constants {
 
   static readonly EXECUTE_USEROP_FUNCTION_SELECTOR = '0x8dd7712f';
 
+  static readonly FUNCTION_NAME = 'initiateJob';
+
   static readonly USEROP_VALUE = BigInt(0);
 
   static readonly GAS_LIMITS = {
