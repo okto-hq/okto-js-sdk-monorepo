@@ -1,13 +1,14 @@
 {
-  "extends": "@okto-sdk/typescript-config/base.json",
+  "extends": "@okto_web3/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "strict": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,0 +1,13 @@
+{
+  "extends": "@okto_web3/typescript-config/react-library.json",
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@okto_web3/core-js-sdk/*": ["../core-js/src/*"]
+    }
+  }
+}

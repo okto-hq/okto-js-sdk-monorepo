@@ -1,42 +1,59 @@
-export type ChainType = 'EVM' | 'SVM' | 'APT';
+export type ByteArray = Uint8Array;
+export type Address = `0x${string}`;
+export type Hex = `0x${string}`;
+export type Hash = `0x${string}`;
+export type uint256 = bigint;
 
-// TODO(sparsh.a): This is a placeholder for the actual implementation
-export type Address = string;
-
-export type Network = {
-  networkId: string;
-  caipBlockchainId: string;
-  name: string | undefined;
-  sponsorshipEnabled: boolean | undefined;
-  whitelisted: boolean | undefined;
-  type: ChainType | undefined;
-  onRampEnabled: boolean | undefined;
-  gsnEnabled: boolean | undefined;
+export type UserOp = {
+  /** The data to pass to the `sender` during the main execution call. */
+  callData?: Hex;
+  /** The amount of gas to allocate the main execution call */
+  callGasLimit?: Hex;
+  /** Account factory. Only for new accounts. */
+  factory?: Address | undefined;
+  /** Data for account factory. */
+  factoryData?: Hex | undefined;
+  /** Maximum fee per gas. */
+  maxFeePerGas?: Hex;
+  /** Maximum priority fee per gas. */
+  maxPriorityFeePerGas?: Hex;
+  /** Anti-replay parameter. */
+  nonce?: Hex;
+  /** Address of paymaster contract. */
+  paymaster?: Address | undefined;
+  /** Data for paymaster. */
+  paymasterData?: Hex | undefined;
+  /** The amount of gas to allocate for the paymaster post-operation code. */
+  paymasterPostOpGasLimit?: Hex | undefined;
+  /** The amount of gas to allocate for the paymaster validation code. */
+  paymasterVerificationGasLimit?: Hex | undefined;
+  /** Extra gas to pay the Bundler. */
+  preVerificationGas?: Hex;
+  /** The account making the operation. */
+  sender?: Address;
+  /** Data passed into the account to verify authorization. */
+  signature?: Hex;
+  /** The amount of gas to allocate for the verification step. */
+  verificationGasLimit?: Hex;
 };
 
-export type Wallet = {
-  network: Network;
-  address: Address;
-};
-
-export type Token = {
-  tokenId: string;
-  tokenAddress: string;
-  network: Network;
-  whitelisted: boolean | undefined;
-  onRampEnabled: boolean | undefined;
-};
-
-export type NftCollection = {
-  nftCollectionId: string;
-  collectionAddress: string;
-  network: Network;
-  whitelisted: boolean | undefined;
-  ercType: 'ERC721' | 'ERC1155';
-};
-
-export type NftMetadata = {
-  uri: string;
-  nftName: string;
-  description: string;
+export type PackedUserOp = {
+  /** Concatenation of {@link UserOperation`verificationGasLimit`} (16 bytes) and {@link UserOperation`callGasLimit`} (16 bytes) */
+  accountGasLimits: Hex;
+  /** The data to pass to the `sender` during the main execution call. */
+  callData: Hex;
+  /** Concatenation of {@link UserOperation`factory`} and {@link UserOperation`factoryData`}. */
+  initCode: Hex;
+  /** Concatenation of {@link UserOperation`maxPriorityFee`} (16 bytes) and {@link UserOperation`maxFeePerGas`} (16 bytes) */
+  gasFees: Hex;
+  /** Anti-replay parameter. */
+  nonce: Hex;
+  /** Concatenation of paymaster fields (or empty). */
+  paymasterAndData: Hex;
+  /** Extra gas to pay the Bundler. */
+  preVerificationGas: Hex;
+  /** The account making the operation. */
+  sender: Address;
+  /** Data passed into the account to verify authorization. */
+  signature?: Hex;
 };

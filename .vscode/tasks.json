@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-package",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["build", "--filter", "${input:package}"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build-app",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["build", "--filter", "${input:app}"],
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "package",
+      "type": "pickString",
+      "description": "Which package do you want to build?",
+      "options": ["core-js", "react"]
+    },
+    {
+      "id": "app",
+      "type": "pickString",
+      "description": "Which app do you want to build?",
+      "options": ["test-core-js"]
+    }
+  ]
+}

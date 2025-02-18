@@ -1,0 +1,93 @@
+{
+  "name": "@okto_web3/react-native-sdk",
+  "version": "0.0.0",
+  "description": "React-Native for Okto SDK",
+  "type": "module",
+  "source": "./src/index.ts",
+  "main": "./dist/commonjs/index.js",
+  "module": "./dist/module/index.js",
+  "types": "./dist/typescript/commonjs/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "bob build",
+    "clean": "rimraf dist && rimraf .turbo && rimraf tsconfig.tsbuildinfo && rimraf node_modules",
+    "dev:index": "tsx src/index.ts",
+    "lint": "eslint .",
+    "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
+    "check-types": "tsc --noEmit",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/typescript/module/index.d.ts",
+        "default": "./dist/module/index.js"
+      },
+      "require": {
+        "types": "./dist/typescript/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@noble/ciphers": "^1.2.1",
+    "@okto_web3/core-js-sdk": "workspace:*",
+    "@types/react-native-get-random-values": "^1.8.2",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-mmkv": "^3.2.0"
+  },
+  "devDependencies": {
+    "@okto_web3/eslint-config": "workspace:*",
+    "@okto_web3/prettier-config": "workspace:*",
+    "@okto_web3/typescript-config": "workspace:*",
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0",
+    "react-native-builder-bob": "^0.35.3",
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.10",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "keywords": [],
+  "author": "Sparsh Agarwal <sparsh.a@coindcx.com>",
+  "files": [
+    "src",
+    "dist",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "dist",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "esm": true
+        }
+      ]
+    ]
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "dist/"
+  ]
+}

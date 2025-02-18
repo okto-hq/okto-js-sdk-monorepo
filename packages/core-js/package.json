@@ -1,5 +1,5 @@
 {
-  "name": "@okto-sdk/core-js",
+  "name": "@okto_web3/core-js-sdk",
   "version": "0.0.0",
   "description": "Core JS for Okto SDK",
   "type": "module",
@@ -7,30 +7,66 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc",
+    "build": "tsup",
+    "clean": "rimraf dist && rimraf .turbo && rimraf tsconfig.tsbuildinfo && rimraf node_modules",
     "dev:index": "tsx src/index.ts",
     "lint": "eslint .",
-    "ci": "pnpm build && pnpm check-format && pnpm check-exports && npm run lint",
+    "ci": "pnpm build && pnpm check-format && pnpm check-exports && pnpm lint",
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm --profile esm-only"
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.cjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.cjs"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "import": "./dist/errors/index.js",
+      "require": "./dist/errors/index.cjs"
+    },
+    "./explorer": {
+      "types": "./dist/explorer/index.d.ts",
+      "import": "./dist/explorer/index.js",
+      "require": "./dist/explorer/index.cjs"
+    },
+    "./userop": {
+      "types": "./dist/userop/index.d.ts",
+      "import": "./dist/userop/index.js",
+      "require": "./dist/userop/index.cjs"
     }
   },
   "dependencies": {
+    "@noble/curves": "^1.8.0",
+    "@noble/hashes": "^1.7.0",
     "axios": "^1.7.9",
-    "axios-retry": "^4.5.0"
+    "axios-retry": "^4.5.0",
+    "uuid": "^11.0.4",
+    "viem": "^2.22.2",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.2",
-    "@okto-sdk/eslint-config": "workspace:*",
-    "@okto-sdk/prettier-config": "workspace:*",
-    "@okto-sdk/typescript-config": "workspace:*",
+    "@okto_web3/eslint-config": "workspace:*",
+    "@okto_web3/prettier-config": "workspace:*",
+    "@okto_web3/typescript-config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "rimraf": "^6.0.1",
+    "tsc-alias": "^1.8.10",
+    "tsup": "^8.3.6",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },

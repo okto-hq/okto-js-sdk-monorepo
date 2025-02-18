@@ -3,14 +3,19 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "build:packages": "turbo build --filter=./packages/*",
+    "build:apps": "turbo build --filter=./apps/*",
     "dev": "turbo dev",
+    "start": "turbo start",
+    "clean": "turbo clean",
     "lint": "turbo lint",
     "check-format": "turbo check-format",
     "format": "turbo format",
     "check-types": "turbo check-types",
     "check-exports": "turbo check-exports",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "changeset": "changeset"
   },
   "dependencies": {
     "@changesets/cli": "^2.27.11"
