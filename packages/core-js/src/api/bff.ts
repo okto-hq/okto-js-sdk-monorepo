@@ -72,7 +72,7 @@ class BffClientRepository {
   public static async verifySession(
     oc: OktoClient,
   ): Promise<UserSessionResponse> {
-    const response = await getBffClient(oc).post<
+    const response = await getBffClient(oc).get<
       ApiResponse<UserSessionResponse>
     >(this.routes.verifySession);
 

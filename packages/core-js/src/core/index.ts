@@ -120,16 +120,12 @@ class OktoClient {
    * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
    */
   public async verifyLogin(): Promise<boolean> {
-    //TODO: change the implementation not supported from backend
     try {
       const res = await BffClientRepository.verifySession(this);
-      if (
-        res.clientSWA == this._clientConfig.clientSWA &&
-        res.userSWA == this._sessionConfig?.userSWA
-      ) {
-        return true;
-      }
-      throw new BaseError('Session verification failed');
+      return (
+        res?.clientSwa === this._clientConfig.clientSWA &&
+        res?.userSwa === this._sessionConfig?.userSWA
+      );
     } catch (error) {
       console.error('Error verifying login:', error);
       this._sessionConfig = undefined;
