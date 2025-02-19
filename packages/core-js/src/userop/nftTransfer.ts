@@ -12,7 +12,7 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTTransferIntentParams } from './types.js';
-import { NFTTransferIntentParamsSchema } from './userOpInputValidator.js';
+import { NFTTransferIntentParamsSchema, validateSchema } from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -33,7 +33,8 @@ export async function nftTransfer(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  NFTTransferIntentParamsSchema.parse(data);
+
+  validateSchema(NFTTransferIntentParamsSchema as any, data);
 
   if (data.recipientWalletAddress === oc.userSWA) {
     throw new BaseError(

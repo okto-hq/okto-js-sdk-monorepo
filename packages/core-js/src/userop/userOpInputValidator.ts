@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import type {
   NFTCollectionCreationIntentParams,
   NFTTransferIntentParams,
@@ -11,6 +11,7 @@ import {
   isUppercaseAlpha,
 } from '@/utils/customValidators.js';
 import OktoClient from '@/core/index.js';
+import { BaseError } from '@/errors/base.js';
 
 /**
  * Schema for NFT Collection Creation parameters validation.
@@ -144,3 +145,16 @@ export const TokenTransferIntentParamsSchema = z
     ]),
   })
   .strict();
+
+export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new BaseError(
+        `Validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
+      );
+    }
+    throw error;
+  }
+};
