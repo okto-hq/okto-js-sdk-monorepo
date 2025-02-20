@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- 28a93bf: add readme
+
 ## 0.2.0
 
 ### Minor Changes

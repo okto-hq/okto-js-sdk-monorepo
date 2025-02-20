@@ -1,5 +1,13 @@
 # @okto_web3/react-sdk
 
+## 0.1.2
+
+### Patch Changes
+
+- 28a93bf: add readme
+- Updated dependencies [28a93bf]
+  - @okto_web3/core-js-sdk@0.2.1
+
 ## 0.1.1
 
 ### Patch Changes
