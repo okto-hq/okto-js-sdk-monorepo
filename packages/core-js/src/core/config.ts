@@ -6,6 +6,7 @@ export const stagingEnvConfig: EnvConfig = {
   bffBaseUrl: 'https://apigw.oktostage.com',
   paymasterAddress: Constants.ENV_CONFIG.STAGING.PAYMASTER_ADDRESS,
   jobManagerAddress: Constants.ENV_CONFIG.STAGING.JOB_MANAGER_ADDRESS,
+  entryPointAddress: Constants.ENV_CONFIG.STAGING.ENTRYPOINT_CONTRACT_ADDRESS,
   chainId: Constants.ENV_CONFIG.STAGING.CHAIN_ID,
 };
 
@@ -14,6 +15,7 @@ export const sandboxEnvConfig: EnvConfig = {
   bffBaseUrl: 'https://sandbox-api.okto.tech',
   paymasterAddress: Constants.ENV_CONFIG.SANDBOX.PAYMASTER_ADDRESS,
   jobManagerAddress: Constants.ENV_CONFIG.SANDBOX.JOB_MANAGER_ADDRESS,
+  entryPointAddress: Constants.ENV_CONFIG.SANDBOX.ENTRYPOINT_CONTRACT_ADDRESS,
   chainId: Constants.ENV_CONFIG.SANDBOX.CHAIN_ID,
 };
 
