@@ -13,7 +13,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
-import { RawTransactionIntentParamsSchema, validateSchema } from './userOpInputValidator.js';
+import {
+  RawTransactionIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 import { BaseError } from '@/errors/base.js';
 
 /**

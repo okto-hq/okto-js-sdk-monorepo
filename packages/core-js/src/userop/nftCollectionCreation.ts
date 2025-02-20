@@ -11,7 +11,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
-import { NFTCollectionCreationSchema, validateSchema } from './userOpInputValidator.js';
+import {
+  NFTCollectionCreationSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 import { BaseError } from '@/errors/index.js';
 
 /**

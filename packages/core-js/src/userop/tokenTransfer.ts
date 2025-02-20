@@ -12,7 +12,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
-import { TokenTransferIntentParamsSchema, validateSchema } from './userOpInputValidator.js';
+import {
+  TokenTransferIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token transfer.
