@@ -12,7 +12,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
-import { TokenTransferIntentParamsSchema } from './userOpInputValidator.js';
+import {
+  TokenTransferIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token transfer.
@@ -32,7 +35,7 @@ export async function tokenTransfer(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  TokenTransferIntentParamsSchema.parse(data);
+  validateSchema(TokenTransferIntentParamsSchema, data);
 
   if (data.recipient === oc.userSWA) {
     throw new BaseError('Recipient address cannot be same as the user address');

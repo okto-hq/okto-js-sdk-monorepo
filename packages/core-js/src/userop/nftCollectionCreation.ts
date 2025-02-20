@@ -1,5 +1,4 @@
 import type OktoClient from '@/core/index.js';
-import { BaseError } from '@/errors/index.js';
 import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
@@ -12,7 +11,11 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
-import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
+import {
+  NFTCollectionCreationSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
+import { BaseError } from '@/errors/index.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -33,7 +36,7 @@ async function nftCollectionCreation(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  NFTCollectionCreationSchema.parse(data);
+  validateSchema(NFTCollectionCreationSchema, data);
   const nonce = generateUUID();
 
   const jobParametersAbiType =
