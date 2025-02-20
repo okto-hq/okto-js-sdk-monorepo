@@ -7,7 +7,7 @@ import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
-import { productionEnvConfig, sandboxEnvConfig } from './config.js';
+import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
@@ -42,12 +42,14 @@ class OktoClient {
 
   get env(): EnvConfig {
     switch (this._environment) {
+      case 'staging':
+        return stagingEnvConfig;
       case 'sandbox':
         return sandboxEnvConfig;
-      case 'production':
-        return productionEnvConfig;
+      // case 'production':
+      //   return productionEnvConfig;
       default:
-        return productionEnvConfig;
+        return sandboxEnvConfig;
     }
   }
 

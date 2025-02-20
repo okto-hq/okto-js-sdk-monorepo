@@ -1,6 +1,6 @@
 import type { Address, Hash, Hex } from '@/types/core.js';
 
-export type Env = 'sandbox' | 'production';
+export type Env = 'staging' | 'sandbox';
 
 export interface EnvConfig {
   gatewayBaseUrl: string;
