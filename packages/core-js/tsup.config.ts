@@ -8,6 +8,7 @@ export default defineConfig({
     'types/index': 'src/types/index.ts',
     'errors/index': 'src/errors/index.ts',
     'userop/index': 'src/userop/index.ts',
+    'abstract/index': 'src/abstract/index.ts',
   },
   format: ['cjs', 'esm'],
   dts: true,
