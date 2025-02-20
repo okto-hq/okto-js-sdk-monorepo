@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/core-js-sdk",
-  "version": "0.0.0",
+  "version": "0.0.0-dev.69",
   "description": "Core JS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -47,6 +47,11 @@
       "types": "./dist/userop/index.d.ts",
       "import": "./dist/userop/index.js",
       "require": "./dist/userop/index.cjs"
+    },
+    "./abstract": {
+      "types": "./dist/abstract/index.d.ts",
+      "import": "./dist/abstract/index.js",
+      "require": "./dist/abstract/index.cjs"
     }
   },
   "dependencies": {

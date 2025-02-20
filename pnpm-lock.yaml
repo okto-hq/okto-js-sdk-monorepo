@@ -252,15 +252,15 @@ importers:
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
-      '@react-native-community/async-storage':
-        specifier: ^1.12.1
-        version: 1.12.1(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       '@types/react-native-get-random-values':
         specifier: ^1.8.2
         version: 1.8.2
       react-native-get-random-values:
         specifier: ^1.11.0
         version: 1.11.0(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))
+      react-native-mmkv:
+        specifier: ^3.2.0
+        version: 3.2.0(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@okto_web3/eslint-config':
         specifier: workspace:*
@@ -1941,13 +1941,6 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@react-native-community/async-storage@1.12.1':
-    resolution: {integrity: sha512-70WGaH3PKYASi4BThuEEKMkyAgE9k7VytBqmgPRx3MzJx9/MkspwqJGmn3QLCgHLIFUgF1pit2mWICbRJ3T3lg==}
-    deprecated: 'Async Storage has moved to new organization: https://github.com/react-native-async-storage/async-storage'
-    peerDependencies:
-      react: ^16.8
-      react-native: '>=0.59'
-
   '@react-native/assets-registry@0.77.0':
     resolution: {integrity: sha512-Ms4tYYAMScgINAXIhE4riCFJPPL/yltughHS950l0VP5sm5glbimn9n7RFn9Tc8cipX74/ddbk19+ydK2iDMmA==}
     engines: {node: '>=18'}
@@ -3060,11 +3053,6 @@ packages:
       babel-plugin-macros:
         optional: true
 
-  deep-assign@3.0.0:
-    resolution: {integrity: sha512-YX2i9XjJ7h5q/aQ/IM9PEwEnDqETAIYbggmdDB3HLTlSgo1CxPsj6pvhPG68rq6SVE0+p+6Ywsm5fTYNrYtBWw==}
-    engines: {node: '>=0.10.0'}
-    deprecated: Check out `lodash.merge` or `merge-options` instead.
-
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
@@ -4101,10 +4089,6 @@ packages:
   is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
-
-  is-obj@1.0.1:
-    resolution: {integrity: sha512-l4RyHgRqGN4Y3+9JHVrNqO+tN0rV5My76uW5/nuO4K1b6vw5G8d/cmFjP9tRfEsdhZNt0IFdZuK/c2Vr4Nb+Qg==}
-    engines: {node: '>=0.10.0'}
 
   is-obj@2.0.0:
     resolution: {integrity: sha512-drqDG3cbczxxEJRoOXcOjtdp1J/lyp1mNn0xaznRs8+muBhgQcrnbspox5X5fOw0HnMnbfDzvnEMEtqDEJEo8w==}
@@ -5531,6 +5515,12 @@ packages:
     resolution: {integrity: sha512-4BTbDbRmS7iPdhYLRcz3PGFIpFJBwNZg9g42iwa2P6FOv9vZj/xJc678RZXnLNZzd0qd7Q3CCF6Yd+CU2eoXKQ==}
     peerDependencies:
       react-native: '>=0.56'
+
+  react-native-mmkv@3.2.0:
+    resolution: {integrity: sha512-9y7K//1MaU46TFrXkyU0wT5VGk9Y2FDLFV6NPl+z3jTbm2G7SC1UIxneF6CfhSmBX5CfKze9SO7kwDuRx7flpQ==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native@0.77.0:
     resolution: {integrity: sha512-oCgHLGHFIp6F5UbyHSedyUXrZg6/GPe727freGFvlT7BjPJ3K6yvvdlsp7OEXSAHz6Fe7BI2n5cpUyqmP9Zn+Q==}
@@ -8582,12 +8572,6 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@react-native-community/async-storage@1.12.1(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      deep-assign: 3.0.0
-      react: 18.3.1
-      react-native: 0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1)
-
   '@react-native/assets-registry@0.77.0': {}
 
   '@react-native/babel-plugin-codegen@0.77.0(@babel/preset-env@7.26.8(@babel/core@7.26.8))':
@@ -9878,10 +9862,6 @@ snapshots:
 
   dedent@1.5.3: {}
 
-  deep-assign@3.0.0:
-    dependencies:
-      is-obj: 1.0.1
-
   deep-is@0.1.4: {}
 
   defaults@1.0.4:
@@ -11156,8 +11136,6 @@ snapshots:
       has-tostringtag: 1.0.2
 
   is-number@7.0.0: {}
-
-  is-obj@1.0.1: {}
 
   is-obj@2.0.0: {}
 
@@ -12977,6 +12955,11 @@ snapshots:
   react-native-get-random-values@1.11.0(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1)):
     dependencies:
       fast-base64-decode: 1.0.0
+      react-native: 0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1)
+
+  react-native-mmkv@3.2.0(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
       react-native: 0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1)
 
   react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1):
