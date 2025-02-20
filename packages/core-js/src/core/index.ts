@@ -7,7 +7,7 @@ import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
 import { signMessage } from 'viem/accounts';
-import { productionEnvConfig, sandboxEnvConfig } from './config.js';
+import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
@@ -42,12 +42,14 @@ class OktoClient {
 
   get env(): EnvConfig {
     switch (this._environment) {
+      case 'staging':
+        return stagingEnvConfig;
       case 'sandbox':
         return sandboxEnvConfig;
-      case 'production':
-        return productionEnvConfig;
+      // case 'production':
+      //   return productionEnvConfig;
       default:
-        return productionEnvConfig;
+        return sandboxEnvConfig;
     }
   }
 
@@ -120,16 +122,12 @@ class OktoClient {
    * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating if the user is logged in.
    */
   public async verifyLogin(): Promise<boolean> {
-    //TODO: change the implementation not supported from backend
     try {
       const res = await BffClientRepository.verifySession(this);
-      if (
-        res.clientSWA == this._clientConfig.clientSWA &&
-        res.userSWA == this._sessionConfig?.userSWA
-      ) {
-        return true;
-      }
-      throw new BaseError('Session verification failed');
+      return (
+        res?.clientSwa === this._clientConfig.clientSWA &&
+        res?.userSwa === this._sessionConfig?.userSWA
+      );
     } catch (error) {
       console.error('Error verifying login:', error);
       this._sessionConfig = undefined;

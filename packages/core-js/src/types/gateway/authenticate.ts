@@ -34,9 +34,9 @@ export type AuthenticateResult = {
 
 export type UserSessionResponse = {
   userId: string;
-  userSWA: string;
+  userSwa: string;
   clientId: string;
-  clientSWA: string;
+  clientSwa: string;
   isSessionAdded: boolean;
   signAuthRelayerUserOps: string;
 };
