@@ -11,7 +11,7 @@ export const stagingEnvConfig: EnvConfig = {
 
 export const sandboxEnvConfig: EnvConfig = {
   gatewayBaseUrl: 'https://sandbox-okto-gateway.oktostage.com',
-  bffBaseUrl: 'https://3p-bff.oktostage.com',
+  bffBaseUrl: 'https://sandbox-api.okto.tech',
   paymasterAddress: Constants.ENV_CONFIG.SANDBOX.PAYMASTER_ADDRESS,
   jobManagerAddress: Constants.ENV_CONFIG.SANDBOX.JOB_MANAGER_ADDRESS,
   chainId: Constants.ENV_CONFIG.SANDBOX.CHAIN_ID,
