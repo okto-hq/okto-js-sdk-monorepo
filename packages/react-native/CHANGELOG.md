@@ -1,5 +1,16 @@
 # @okto_web3/react-native-sdk
 
+## 0.2.0
+
+### Minor Changes
+
+- f2c51c4: entrypoint contract update
+
+### Patch Changes
+
+- Updated dependencies [f2c51c4]
+  - @okto_web3/core-js-sdk@0.3.0
+
 ## 0.1.2
 
 ### Patch Changes

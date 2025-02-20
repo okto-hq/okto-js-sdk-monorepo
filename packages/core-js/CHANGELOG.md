@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- f2c51c4: entrypoint contract update
+
 ## 0.2.1
 
 ### Patch Changes
