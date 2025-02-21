@@ -2,10 +2,9 @@ import {
   OktoClient as OktoCoreClient,
   type OktoClientConfig,
 } from '@okto_web3/core-js-sdk';
+import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
-import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
-import { encryptData, decryptData } from '../utils/encryptionUtils.js';
 import {
   clearLocalStorage,
   getLocalStorage,
@@ -13,33 +12,26 @@ import {
 } from 'src/utils/storageUtils.js';
 
 class OktoClient extends OktoCoreClient {
-  private _clientPrivateKey: string;
-
   constructor(config: OktoClientConfig) {
     super(config);
-    this._clientPrivateKey = config.clientPrivateKey;
     this.initializeSessionConfig();
   }
 
   private async initializeSessionConfig(): Promise<void> {
-    const encryptedSession = await getLocalStorage('session');
-    if (encryptedSession) {
-      const sessionConfig = decryptData<SessionConfig>(
-        encryptedSession,
-        this._clientPrivateKey,
-      );
-      if (sessionConfig) {
-        this.setSessionConfig(sessionConfig);
-      }
+    const session = await getLocalStorage('okto_session');
+    if (session) {
+      this.setSessionConfig(JSON.parse(session));
     }
   }
 
   override loginUsingOAuth(
     data: AuthData,
+    onSuccess?: (session: SessionConfig) => void,
   ): Promise<Address | RpcError | undefined> {
     return super.loginUsingOAuth(data, (session) => {
-      setLocalStorage('session', encryptData(session, this._clientPrivateKey));
+      setLocalStorage('okto_session', JSON.stringify(session));
       this.setSessionConfig(session);
+      onSuccess?.(session);
     });
   }
 
