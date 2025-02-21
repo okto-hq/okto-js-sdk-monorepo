@@ -30,7 +30,7 @@ export default function Home() {
 
     console.log(oc);
 
-    console.log(oc.user);
+    console.log(oc.userSWA);
   };
 
   return (
