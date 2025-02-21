@@ -39,3 +39,4 @@ class OktoClient extends OktoCoreClient {
 }
 
 export { OktoClient };
+export type { OktoClientConfig };
