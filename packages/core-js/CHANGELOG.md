@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.3.1
+
+### Patch Changes
+
+- 2d3f0ae: add better session management
+
 ## 0.3.0
 
 ### Minor Changes

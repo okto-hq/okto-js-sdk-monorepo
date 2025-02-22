@@ -1,5 +1,13 @@
 # @okto_web3/react-native-sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- 2d3f0ae: add better session management
+- Updated dependencies [2d3f0ae]
+  - @okto_web3/core-js-sdk@0.3.1
+
 ## 0.2.0
 
 ### Minor Changes
