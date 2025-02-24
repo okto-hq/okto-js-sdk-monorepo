@@ -6,6 +6,11 @@ import type {
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
 import type { ExecuteResult } from '@/types/gateway/execute.js';
+import type {
+  GetUserKeysResult,
+  SignMessageParams,
+  SignMessageResult,
+} from '@/types/gateway/signMessage.js';
 import { generateUUID } from '@/utils/nonce.js';
 import { serializeJSON } from '@/utils/serialize.js';
 import { getGatewayClient } from './client.js';
@@ -16,6 +21,8 @@ class GatewayClientRepository {
   private static methods = {
     authenticate: 'authenticate',
     execute: 'execute',
+    GetUserKeys: 'GetUserKeys',
+    SignMessage: 'SignMessage',
   };
 
   /**
@@ -74,6 +81,43 @@ class GatewayClientRepository {
     //TODO: Check if successful and throw an error if not
 
     return response.data.result.jobId;
+  }
+
+  public static async GetUserKeys(oc: OktoClient): Promise<GetUserKeysResult> {
+    const payload: RpcPayload<[]> = {
+      method: this.methods.GetUserKeys,
+      jsonrpc: '2.0',
+      id: generateUUID(),
+      params: [],
+    };
+
+    const serliazedPayload = serializeJSON(payload);
+
+    const response = await getGatewayClient(oc).post<
+      RpcResponse<GetUserKeysResult>
+    >(this.rpcRoute, serliazedPayload);
+
+    return response.data.result;
+  }
+
+  public static async SignMessage(
+    oc: OktoClient,
+    data: SignMessageParams,
+  ): Promise<SignMessageResult> {
+    const payload: RpcPayload<SignMessageParams[]> = {
+      method: this.methods.SignMessage,
+      jsonrpc: '2.0',
+      id: generateUUID(),
+      params: [data],
+    };
+
+    const serliazedPayload = serializeJSON(payload);
+
+    const response = await getGatewayClient(oc).post<
+      RpcResponse<SignMessageResult>
+    >(this.rpcRoute, serliazedPayload);
+
+    return response.data.result;
   }
 }
 
