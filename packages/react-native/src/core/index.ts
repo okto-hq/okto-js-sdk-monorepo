@@ -33,7 +33,7 @@ class OktoClient extends OktoCoreClient {
   }
 
   override sessionClear(): void {
-    clearStorage();
+    clearStorage('okto_session');
     return super.sessionClear();
   }
 }
