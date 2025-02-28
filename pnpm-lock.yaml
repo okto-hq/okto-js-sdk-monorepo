@@ -45,6 +45,9 @@ importers:
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../../packages/core-js
+      viem:
+        specifier: ^2.22.2
+        version: 2.23.0(typescript@5.7.3)(zod@3.24.1)
     devDependencies:
       '@okto_web3/eslint-config':
         specifier: workspace:*
