@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.5.0
+
+### Minor Changes
+
+- d2845ef: add support for signMessage and signTypedData
+
 ## 0.4.0
 
 ### Minor Changes

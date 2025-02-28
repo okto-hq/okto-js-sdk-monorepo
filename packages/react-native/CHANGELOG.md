@@ -1,5 +1,16 @@
 # @okto_web3/react-native-sdk
 
+## 0.4.0
+
+### Minor Changes
+
+- d2845ef: add support for signMessage and signTypedData
+
+### Patch Changes
+
+- Updated dependencies [d2845ef]
+  - @okto_web3/core-js-sdk@0.5.0
+
 ## 0.3.0
 
 ### Minor Changes
