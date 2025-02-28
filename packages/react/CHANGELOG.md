@@ -1,5 +1,16 @@
 # @okto_web3/react-sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- fix local storage
+
+### Patch Changes
+
+- Updated dependencies
+  - @okto_web3/core-js-sdk@0.4.0
+
 ## 0.2.1
 
 ### Patch Changes

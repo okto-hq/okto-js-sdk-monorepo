@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.4.0
+
+### Minor Changes
+
+- fix local storage
+
 ## 0.3.1
 
 ### Patch Changes
