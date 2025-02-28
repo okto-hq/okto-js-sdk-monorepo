@@ -11,13 +11,14 @@ import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
-    this.initializeSessionConfig();
+    this.initializeSession();
   }
 
-  private initializeSessionConfig(): void {
+  private initializeSession(): void {
     const session = getStorage('okto_session');
     if (session) {
       this.setSessionConfig(JSON.parse(session));
+      this.syncUserKeys();
     }
   }
 
