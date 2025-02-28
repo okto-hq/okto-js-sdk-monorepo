@@ -2,11 +2,12 @@ import BffClientRepository from '@/api/bff.js';
 import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
+import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
 import type { AuthData } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
-import { signMessage } from 'viem/accounts';
+import { signMessage as viemSignMessage } from 'viem/accounts';
 import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
@@ -15,6 +16,7 @@ import {
   validateUserOp,
 } from './oktoClientInputValidator.js';
 import { generatePaymasterData } from './paymaster.js';
+import { generateSignMessagePayload } from './signMessage.js';
 import type { ClientConfig, Env, EnvConfig, SessionConfig } from './types.js';
 
 export interface OktoClientConfig {
@@ -27,6 +29,7 @@ class OktoClient {
   private _environment: Env;
   private _clientConfig: ClientConfig;
   private _sessionConfig: SessionConfig | undefined;
+  private _userKeys: GetUserKeysResult | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
 
   constructor(config: OktoClientConfig) {
@@ -100,6 +103,7 @@ class OktoClient {
         userSWA: authRes.userSWA as Hex,
       };
 
+      await this.syncUserKeys();
       onSuccess?.(this._sessionConfig);
 
       if (overrideSessionConfig) {
@@ -135,6 +139,22 @@ class OktoClient {
     }
   }
 
+  public async syncUserKeys(): Promise<void> {
+    try {
+      if (!this.isLoggedIn()) {
+        throw new BaseError('User must be logged in to sync user keys');
+      }
+
+      const res = await GatewayClientRepository.GetUserKeys(this);
+      this._userKeys = res;
+
+      console.log(res);
+    } catch (error) {
+      console.error('Error syncing user keys:', error);
+      throw error;
+    }
+  }
+
   public async getAuthorizationToken() {
     const sessionPriv = this._sessionConfig?.sessionPrivKey;
     const sessionPub = this._sessionConfig?.sessionPubKey;
@@ -151,7 +171,7 @@ class OktoClient {
     const payload = {
       type: 'ecdsa_uncompressed',
       data: data,
-      data_signature: await signMessage({
+      data_signature: await viemSignMessage({
         message: JSON.stringify(data),
         privateKey: sessionPriv,
       }),
@@ -214,7 +234,7 @@ class OktoClient {
 
     const packeduserop = generatePackedUserOp(userop);
     const hash = generateUserOpHash(this, packeduserop);
-    const sig = await signMessage({
+    const sig = await viemSignMessage({
       message: {
         raw: fromHex(hash, 'bytes'),
       },
@@ -224,6 +244,78 @@ class OktoClient {
     userop.signature = sig;
 
     return userop;
+  }
+
+  public async signMessage(
+    message: string,
+  ): Promise<string | RpcError | undefined> {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to sign message');
+    }
+
+    if (this._sessionConfig === undefined) {
+      throw new BaseError('Session keys are not set');
+    }
+
+    if (this._userKeys === undefined) {
+      throw new BaseError('User keys are not set');
+    }
+
+    const signPayload = await generateSignMessagePayload(
+      this._userKeys,
+      this._sessionConfig,
+      message,
+      'EIP191',
+    );
+
+    try {
+      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      return `0x${res[0]?.signature}`;
+    } catch (error) {
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
+  public async signTypedData(
+    data: string | object,
+  ): Promise<string | RpcError | undefined> {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to sign message');
+    }
+
+    if (this._sessionConfig === undefined) {
+      throw new BaseError('Session keys are not set');
+    }
+
+    if (this._userKeys === undefined) {
+      throw new BaseError('User keys are not set');
+    }
+
+    if (typeof data === 'object') {
+      data = JSON.stringify(data);
+    }
+
+    //TODO: Validate Data against EIP712 schema
+
+    const signPayload = await generateSignMessagePayload(
+      this._userKeys,
+      this._sessionConfig,
+      data,
+      'EIP712',
+    );
+
+    try {
+      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      return `0x${res[0]?.signature}`;
+    } catch (error) {
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
   }
 
   public isLoggedIn(): boolean {

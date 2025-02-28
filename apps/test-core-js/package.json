@@ -16,7 +16,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@okto_web3/core-js-sdk": "workspace:*"
+    "@okto_web3/core-js-sdk": "workspace:*",
+    "viem": "^2.22.2"
   },
   "devDependencies": {
     "@okto_web3/eslint-config": "workspace:*",

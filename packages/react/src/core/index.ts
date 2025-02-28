@@ -14,13 +14,14 @@ import {
 class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
-    this.initializeSessionConfig();
+    this.initializeSession();
   }
 
-  private async initializeSessionConfig(): Promise<void> {
+  private async initializeSession(): Promise<void> {
     const session = await getLocalStorage('okto_session');
     if (session) {
       this.setSessionConfig(JSON.parse(session));
+      this.syncUserKeys();
     }
   }
 
