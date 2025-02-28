@@ -21,8 +21,8 @@ class GatewayClientRepository {
   private static methods = {
     authenticate: 'authenticate',
     execute: 'execute',
-    GetUserKeys: 'GetUserKeys',
-    SignMessage: 'SignMessage',
+    GetUserKeys: 'getUserKeys',
+    SignMessage: 'signMessage',
   };
 
   /**

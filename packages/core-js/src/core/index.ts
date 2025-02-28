@@ -103,7 +103,7 @@ class OktoClient {
         userSWA: authRes.userSWA as Hex,
       };
 
-      this.syncUserKeys();
+      await this.syncUserKeys();
       onSuccess?.(this._sessionConfig);
 
       if (overrideSessionConfig) {
@@ -139,7 +139,7 @@ class OktoClient {
     }
   }
 
-  private async syncUserKeys(): Promise<void> {
+  public async syncUserKeys(): Promise<void> {
     try {
       if (!this.isLoggedIn()) {
         throw new BaseError('User must be logged in to sync user keys');
@@ -147,6 +147,8 @@ class OktoClient {
 
       const res = await GatewayClientRepository.GetUserKeys(this);
       this._userKeys = res;
+
+      console.log(res);
     } catch (error) {
       console.error('Error syncing user keys:', error);
       throw error;
@@ -251,9 +253,7 @@ class OktoClient {
       throw new BaseError('User must be logged in to sign message');
     }
 
-    const privateKey = this._sessionConfig?.sessionPrivKey;
-
-    if (privateKey === undefined) {
+    if (this._sessionConfig === undefined) {
       throw new BaseError('Session keys are not set');
     }
 
@@ -262,9 +262,8 @@ class OktoClient {
     }
 
     const signPayload = await generateSignMessagePayload(
-      this,
       this._userKeys,
-      privateKey,
+      this._sessionConfig,
       message,
       'EIP191',
     );

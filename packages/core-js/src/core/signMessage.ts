@@ -1,4 +1,3 @@
-import type { Hex } from '@/types/core.js';
 import type {
   GetUserKeysResult,
   SignMessageParams,
@@ -8,12 +7,13 @@ import { sha256 } from '@noble/hashes/sha2';
 import { canonicalize } from 'json-canonicalize';
 import { toHex } from 'viem';
 import { signMessage } from 'viem/accounts';
-import type OktoClient from './index.js';
+import type { SessionConfig } from './types.js';
 
 export async function generateSignMessagePayload(
-  oc: OktoClient,
   userKeys: GetUserKeysResult,
-  clientPrivateKey: Hex,
+  session: SessionConfig,
+  // userSWA: Hex,
+  // clientPrivateKey: Hex,
   message: string,
   signType: 'EIP191',
 ): Promise<SignMessageParams> {
@@ -22,13 +22,14 @@ export async function generateSignMessagePayload(
     requestType: signType,
   };
 
+  const transaction_id = generateUUID();
+
   const base64_message_to_sign = {
-    transaction_id: canonicalize(raw_message_to_sign),
+    [transaction_id]: canonicalize(raw_message_to_sign),
   };
 
   const base64_message = Buffer.from(
-    JSON.stringify(base64_message_to_sign),
-    'utf-8',
+    canonicalize(base64_message_to_sign),
   ).toString('base64');
 
   const setup_options = {
@@ -42,27 +43,29 @@ export async function generateSignMessagePayload(
 
   const sha_1 = sha256(canonicalize_setup_options);
   const sha_2 = sha256(sha_1);
-
   const challenge = toHex(sha_2);
 
-  const paylaod = {
-    challenge: challenge,
-    setup: setup_options,
-  };
-
   const enc = new TextEncoder();
+  const paylaod = enc.encode(
+    canonicalize({
+      challenge: challenge,
+      setup: setup_options,
+    }),
+  );
+
   const sig = await signMessage({
     message: {
-      raw: enc.encode(JSON.stringify(paylaod)),
+      raw: paylaod,
     },
-    privateKey: clientPrivateKey,
+    privateKey: session.sessionPrivKey,
   });
 
   const payload: SignMessageParams = {
     data: {
       userData: {
+        userSWA: session.userSWA,
         jobId: generateUUID(),
-        sessionPk: clientPrivateKey,
+        sessionPk: session.sessionPubKey,
       },
       transactions: [
         {

@@ -1,3 +1,5 @@
+import type { Hex } from '../core.js';
+
 export type GetUserKeysResult = {
   userId: string;
   userSWA: string;
@@ -10,6 +12,7 @@ export type GetUserKeysResult = {
 export type SignMessageParams = {
   data: {
     userData: {
+      userSWA: Hex;
       jobId: string;
       sessionPk: string;
     };
