@@ -26,10 +26,6 @@ export type SignMessageParams = {
 };
 
 export type SignMessageResult = {
-  status: string;
-  signRequestId: string;
-  data: {
-    transactionId: string;
-    signature: string;
-  }[];
-};
+  transactionId: string;
+  signature: string;
+}[];

@@ -3,19 +3,16 @@ import type {
   SignMessageParams,
 } from '@/types/gateway/signMessage.js';
 import { generateUUID } from '@/utils/nonce.js';
-import { sha256 } from '@noble/hashes/sha2';
+import crypto from 'crypto';
 import { canonicalize } from 'json-canonicalize';
-import { toHex } from 'viem';
 import { signMessage } from 'viem/accounts';
 import type { SessionConfig } from './types.js';
 
 export async function generateSignMessagePayload(
   userKeys: GetUserKeysResult,
   session: SessionConfig,
-  // userSWA: Hex,
-  // clientPrivateKey: Hex,
   message: string,
-  signType: 'EIP191',
+  signType: 'EIP191' | 'EIP712',
 ): Promise<SignMessageParams> {
   const raw_message_to_sign = {
     message: message,
@@ -41,9 +38,12 @@ export async function generateSignMessagePayload(
 
   const canonicalize_setup_options = canonicalize(setup_options);
 
-  const sha_1 = sha256(canonicalize_setup_options);
-  const sha_2 = sha256(sha_1);
-  const challenge = toHex(sha_2);
+  const sha_1 = crypto
+    .createHash('sha256')
+    .update(canonicalize_setup_options, 'utf8')
+    .digest();
+  const sha_2 = crypto.createHash('sha256').update(sha_1).digest();
+  const challenge = sha_2.toString('hex');
 
   const enc = new TextEncoder();
   const paylaod = enc.encode(
@@ -69,7 +69,7 @@ export async function generateSignMessagePayload(
       },
       transactions: [
         {
-          transactionId: generateUUID(),
+          transactionId: transaction_id,
           method: signType,
           signingMessage: message,
           userSessionSignature: sig,

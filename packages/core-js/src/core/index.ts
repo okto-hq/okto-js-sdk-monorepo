@@ -270,10 +270,46 @@ class OktoClient {
 
     try {
       const res = await GatewayClientRepository.SignMessage(this, signPayload);
-
-      if (res.status == 'COMPLETE') {
-        return res.data[0]?.signature;
+      return `0x${res[0]?.signature}`;
+    } catch (error) {
+      if (error instanceof RpcError) {
+        return error;
       }
+      throw error;
+    }
+  }
+
+  public async signTypedData(
+    data: string | object,
+  ): Promise<string | RpcError | undefined> {
+    if (!this.isLoggedIn()) {
+      throw new BaseError('User must be logged in to sign message');
+    }
+
+    if (this._sessionConfig === undefined) {
+      throw new BaseError('Session keys are not set');
+    }
+
+    if (this._userKeys === undefined) {
+      throw new BaseError('User keys are not set');
+    }
+
+    if (typeof data === 'object') {
+      data = JSON.stringify(data);
+    }
+
+    //TODO: Validate Data against EIP712 schema
+
+    const signPayload = await generateSignMessagePayload(
+      this._userKeys,
+      this._sessionConfig,
+      data,
+      'EIP712',
+    );
+
+    try {
+      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      return `0x${res[0]?.signature}`;
     } catch (error) {
       if (error instanceof RpcError) {
         return error;
