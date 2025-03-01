@@ -1,5 +1,13 @@
 # @okto_web3/react-sdk
 
+## 0.4.1
+
+### Patch Changes
+
+- add getUserOperationGasPrice call
+- Updated dependencies
+  - @okto_web3/core-js-sdk@0.5.1
+
 ## 0.4.0
 
 ### Minor Changes

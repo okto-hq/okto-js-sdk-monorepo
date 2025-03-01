@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.5.1
+
+### Patch Changes
+
+- add getUserOperationGasPrice call
+
 ## 0.5.0
 
 ### Minor Changes
