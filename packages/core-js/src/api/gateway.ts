@@ -6,6 +6,7 @@ import type {
   AuthenticateResult,
 } from '@/types/gateway/authenticate.js';
 import type { ExecuteResult } from '@/types/gateway/execute.js';
+import type { getUserOperationGasPriceResult } from '@/types/gateway/g.js';
 import type {
   GetUserKeysResult,
   SignMessageParams,
@@ -115,6 +116,25 @@ class GatewayClientRepository {
 
     const response = await getGatewayClient(oc).post<
       RpcResponse<SignMessageResult>
+    >(this.rpcRoute, serliazedPayload);
+
+    return response.data.result;
+  }
+
+  public static async getUserOperationGasPrice(
+    oc: OktoClient,
+  ): Promise<getUserOperationGasPriceResult> {
+    const payload: RpcPayload<[]> = {
+      method: 'getUserOperationGasPrice',
+      jsonrpc: '2.0',
+      id: generateUUID(),
+      params: [],
+    };
+
+    const serliazedPayload = serializeJSON(payload);
+
+    const response = await getGatewayClient(oc).post<
+      RpcResponse<getUserOperationGasPriceResult>
     >(this.rpcRoute, serliazedPayload);
 
     return response.data.result;

@@ -1,3 +1,4 @@
+import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { getChains } from '@/explorer/chain.js';
 import type { UserOp } from '@/types/core.js';
@@ -105,6 +106,8 @@ export async function nftTransfer(
     ],
   );
 
+  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
@@ -112,8 +115,8 @@ export async function nftTransfer(
     callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: toHex(Constants.GAS_LIMITS.MAX_FEE_PER_GAS),
-    maxPriorityFeePerGas: toHex(Constants.GAS_LIMITS.MAX_PRIORITY_FEE_PER_GAS),
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit: toHex(
       Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
     ),
