@@ -36,23 +36,70 @@ export type NFTTransferIntentParams = {
 };
 
 /**
- * Parameters required for creating an NFT collection.
+ * Parameters for creating a new NFT collection
  *
- * @property caip2Id - The network identifier, formatted as a CAIP network ID.
- * @property name - The name of the NFT collection.
- * @property description - A description of the NFT collection.
- * @property metadataUri - The URI pointing to the metadata of the NFT collection.
- * @property symbol - The symbol representing the NFT collection.
- * @property type - The type of the NFT collection. For EVMs, this could be "1155".
+ * @property caip2Id - Chain identifier in CAIP-2 format (e.g., "eip155:1" for Ethereum mainnet)
+ * @property name - Name of the NFT collection
+ * @property uri - URI pointing to collection metadata (typically IPFS or similar)
+ * @property data - Additional collection metadata
+ * @property data.attributes - JSON string containing collection attributes
+ * @property data.symbol - Collection symbol (e.g., "BAYC" for Bored Ape Yacht Club)
+ * @property data.type - Type of collection (e.g., "ERC721", "ERC1155")
+ * @property data.description - Human-readable description of the collection
  */
-export type NFTCollectionCreationIntentParams = {
+export interface NftCreateCollectionParams {
   caip2Id: string;
   name: string;
-  description: string;
-  metadataUri: string;
-  symbol: string;
-  type: string;
-};
+  uri: string;
+  data: {
+    attributes: string;
+    symbol: string;
+    type: string;
+    description: string;
+  };
+}
+
+/**
+ * Parameters for minting a new NFT within an existing collection
+ *
+ * @property caip2Id - Chain identifier in CAIP-2 format (e.g., "eip155:1" for Ethereum mainnet)
+ * @property nftName - Name of the individual NFT being minted
+ * @property collectionAddress - Contract address of the collection to mint the NFT in
+ * @property uri - URI pointing to the NFT's metadata (typically IPFS or similar)
+ * @property data - Additional NFT metadata
+ * @property data.recipientWalletAddress - Wallet address that will receive the newly minted NFT
+ * @property data.description - Human-readable description of the NFT
+ * @property data.properties - Array of custom properties/traits for the NFT
+ * @property data.properties[].name - Name of the property/trait
+ * @property data.properties[].valueType - Data type of the value (e.g., "string", "number", "boolean")
+ * @property data.properties[].value - Actual value of the property/trait
+ */
+export interface NftMintParams {
+  caip2Id: string;
+  nftName: string;
+  collectionAddress: string;
+  uri: string;
+  data: {
+    recipientWalletAddress: string;
+    description: string;
+    properties: Array<{
+      name: string;
+      valueType: string;
+      value: string;
+    }>;
+  };
+}
+
+export interface AptosRawTransaction {
+  function: string;
+  typeArguments: string[];
+  functionArguments: (string | number)[];
+}
+
+export interface AptosRawTransactionIntentParams {
+  caip2Id: string;
+  transactions: AptosRawTransaction[];
+}
 
 /**
  * Parameters required for minting an NFT.
@@ -85,7 +132,7 @@ export type EVMRawTransaction = {
   value: Hash;
 };
 
-export type RawTransactionIntentParams = {
+export type EVMRawTransactionIntentParams = {
   caip2Id: string;
   transaction: Omit<PartialBy<EVMRawTransaction, 'data' | 'value'>, 'value'> & {
     value?: number | bigint;

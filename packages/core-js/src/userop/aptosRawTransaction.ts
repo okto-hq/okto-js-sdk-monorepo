@@ -8,36 +8,35 @@ import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
   encodeAbiParameters,
   encodeFunctionData,
-  numberToHex,
   parseAbiParameters,
   stringToBytes,
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
+import type {
+  AptosRawTransaction,
+  AptosRawTransactionIntentParams,
+} from './types.js';
 import {
-  RawTransactionIntentParamsSchema,
+  AptosRawTransactionIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
 
 /**
- * Creates a user operation for EVM Raw Transaction.
+ * Creates a user operation for Aptos Raw Transaction.
+ *
+ * @param oc - The OktoClient instance used to interact with the blockchain.
+ * @param data - The parameters for the Aptos raw transaction.
+ * @returns The User Operation (UserOp) for the Aptos raw transaction.
  */
-export async function evmRawTransaction(
+export async function aptosRawTransaction(
   oc: OktoClient,
-  data: RawTransactionIntentParams,
+  data: AptosRawTransactionIntentParams,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  validateSchema(RawTransactionIntentParamsSchema, data);
-
-  const transaction: EVMRawTransaction = {
-    from: data.transaction.from,
-    to: data.transaction.to,
-    data: data.transaction.data ?? '0x',
-    value: numberToHex(data.transaction.value ?? 0),
-  };
+  validateSchema(AptosRawTransactionIntentParamsSchema, data);
 
   const nonce = generateUUID();
 
@@ -55,12 +54,27 @@ export async function evmRawTransaction(
     });
   }
 
+  if (!data.caip2Id.toLowerCase().startsWith('aptos:')) {
+    throw new BaseError('Invalid chain for Aptos transaction', {
+      details: `${data.caip2Id} is not an Aptos chain`,
+    });
+  }
+
+  const transactionsBytes = data.transactions.map((transaction) => {
+    const aptosTransaction: AptosRawTransaction = {
+      function: transaction.function,
+      typeArguments: transaction.typeArguments || [],
+      functionArguments: transaction.functionArguments || [],
+    };
+    return toHex(stringToBytes(JSON.stringify(aptosTransaction)));
+  });
+
   const jobparam = encodeAbiParameters(
     parseAbiParameters(jobParametersAbiType),
     [
       {
         caip2Id: data.caip2Id,
-        transactions: [toHex(stringToBytes(JSON.stringify(transaction)))],
+        transactions: transactionsBytes,
       },
     ],
   );
@@ -86,14 +100,14 @@ export async function evmRawTransaction(
                 sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
-          ), // policyinfo  //TODO: get this data from user
+          ),
           encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
             {
               isRequired: false,
               requiredNetworks: [],
               tokens: [],
             },
-          ]), // gsnData
+          ]),
           jobparam,
           Constants.INTENT_TYPE.RAW_TRANSACTION,
         ],
