@@ -13,12 +13,10 @@ export const INTENT_ABI = [
       {
         name: '_userSWA',
         type: 'address',
-        internalType: 'address',
       },
       {
         name: '_feePayerAddress',
         type: 'address',
-        internalType: 'address',
       },
       {
         name: '_policyInfo',
