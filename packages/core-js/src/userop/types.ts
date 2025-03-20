@@ -90,10 +90,22 @@ export interface NftMintParams {
   };
 }
 
+export type AptosFunctionArgumentTypes =
+  | boolean
+  | number
+  | bigint
+  | string
+  | null
+  | undefined
+  | Uint8Array
+  | ArrayBuffer
+  | Array<AptosFunctionArgumentTypes>;
+
+  
 export interface AptosRawTransaction {
   function: string;
   typeArguments: string[];
-  functionArguments: (string | number)[];
+  functionArguments: AptosFunctionArgumentTypes[];
 }
 
 export interface AptosRawTransactionIntentParams {
