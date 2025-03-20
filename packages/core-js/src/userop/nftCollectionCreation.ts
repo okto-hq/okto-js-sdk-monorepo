@@ -1,6 +1,6 @@
 import type OktoClient from '@/core/index.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -32,11 +32,17 @@ import { BaseError } from '@/errors/index.js';
 async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   validateSchema(NFTCollectionCreationSchema, data);
+
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+  }
+
   const nonce = generateUUID();
 
   const jobParametersAbiType =
@@ -67,7 +73,7 @@ async function nftCollectionCreation(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
-          Constants.FEE_PAYER_ADDRESS,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
