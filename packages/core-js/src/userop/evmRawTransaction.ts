@@ -81,6 +81,7 @@ export async function evmRawTransaction(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          Constants.FEE_PAYER_ADDRESS,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
