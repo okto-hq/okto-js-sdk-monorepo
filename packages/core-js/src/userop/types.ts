@@ -101,7 +101,6 @@ export type AptosFunctionArgumentTypes =
   | ArrayBuffer
   | Array<AptosFunctionArgumentTypes>;
 
-  
 export interface AptosRawTransaction {
   function: string;
   typeArguments: string[];

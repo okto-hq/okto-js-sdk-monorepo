@@ -2,7 +2,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -32,11 +32,16 @@ import {
 export async function aptosRawTransaction(
   oc: OktoClient,
   data: AptosRawTransactionIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
   validateSchema(AptosRawTransactionIntentParamsSchema, data);
+
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+  }
 
   const nonce = generateUUID();
 
@@ -92,6 +97,7 @@ export async function aptosRawTransaction(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [

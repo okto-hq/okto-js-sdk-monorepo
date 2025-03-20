@@ -160,7 +160,32 @@ export const AptosRawTransactionIntentParamsSchema = z
             .min(1, 'Function cannot be empty'),
           typeArguments: z.array(z.string()).optional().default([]),
           functionArguments: z
-            .array(z.union([z.string(), z.number()]))
+            .array(
+              z.union([
+                z.string(),
+                z.number(),
+                z.boolean(),
+                z.bigint(),
+                z.null(),
+                z.undefined(),
+                z.instanceof(Uint8Array),
+                z.instanceof(ArrayBuffer),
+                z.array(
+                  z.lazy(() =>
+                    z.union([
+                      z.string(),
+                      z.number(),
+                      z.boolean(),
+                      z.bigint(),
+                      z.null(),
+                      z.undefined(),
+                      z.instanceof(Uint8Array),
+                      z.instanceof(ArrayBuffer),
+                    ]),
+                  ),
+                ),
+              ]),
+            )
             .optional()
             .default([]),
         }),
