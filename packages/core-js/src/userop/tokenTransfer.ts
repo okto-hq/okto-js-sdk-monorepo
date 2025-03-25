@@ -2,7 +2,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -29,9 +29,11 @@ import {
  * @param data - The parameters for transferring the token (caip2Id, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
+// TODO: Implement a destructured param instead before V1 release
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
@@ -40,6 +42,10 @@ export async function tokenTransfer(
 
   if (data.recipient === oc.userSWA) {
     throw new BaseError('Recipient address cannot be same as the user address');
+  }
+
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
   const nonce = generateUUID();
@@ -72,6 +78,7 @@ export async function tokenTransfer(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
