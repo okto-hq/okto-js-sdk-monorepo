@@ -14,25 +14,25 @@ export async function generateSignMessagePayload(
   message: string,
   signType: 'EIP191' | 'EIP712',
 ): Promise<SignMessageParams> {
+  //* Order of keys is important here
   const raw_message_to_sign = {
-    message: message,
     requestType: signType,
+    signingMessage: message,
   };
 
   const transaction_id = generateUUID();
 
   const base64_message_to_sign = {
-    [transaction_id]: canonicalize(raw_message_to_sign),
+    [transaction_id]: raw_message_to_sign,
   };
 
-  const base64_message = Buffer.from(
-    canonicalize(base64_message_to_sign),
-  ).toString('base64');
+  const base64_message = canonicalize(base64_message_to_sign);
 
   const setup_options = {
     t: 3, // Threshold; 3,5 MPC
     key_id: userKeys.ecdsaKeyId,
     message: base64_message,
+    // TODO: Add support for other signing algorithms (e.g. ed25519)
     signAlg: 'secp256k1',
   };
 
@@ -46,16 +46,16 @@ export async function generateSignMessagePayload(
   const challenge = sha_2.toString('hex');
 
   const enc = new TextEncoder();
-  const paylaod = enc.encode(
+  const rawMessagePayload = enc.encode(
     canonicalize({
-      challenge: challenge,
       setup: setup_options,
+      challenge: challenge,
     }),
   );
 
   const sig = await signMessage({
     message: {
-      raw: paylaod,
+      raw: rawMessagePayload,
     },
     privateKey: session.sessionPrivKey,
   });
