@@ -292,9 +292,6 @@ importers:
       tsc-alias:
         specifier: ^1.8.10
         version: 1.8.10
-      tsup:
-        specifier: ^8.3.6
-        version: 8.3.6(jiti@2.4.2)(postcss@8.5.1)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
       typescript:
         specifier: ^5.7.2
         version: 5.7.3

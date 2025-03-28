@@ -1,12 +1,12 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1",
+  "version": "0.4.1-dev.10",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
   "main": "./dist/commonjs/index.js",
+  "types": "./dist/typescript/index.d.ts",
   "module": "./dist/module/index.js",
-  "types": "./dist/typescript/commonjs/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
     "build": "bob build",
@@ -18,18 +18,6 @@
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
-  },
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/typescript/module/index.d.ts",
-        "default": "./dist/module/index.js"
-      },
-      "require": {
-        "types": "./dist/typescript/commonjs/index.d.ts",
-        "default": "./dist/commonjs/index.js"
-      }
-    }
   },
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
@@ -47,7 +35,6 @@
     "react-native-builder-bob": "^0.35.3",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
-    "tsup": "^8.3.6",
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
@@ -62,28 +49,14 @@
     "!**/__fixtures__",
     "!**/__mocks__"
   ],
+  "react-native": "src/index.ts",
   "react-native-builder-bob": {
     "source": "src",
     "output": "dist",
     "targets": [
-      [
-        "commonjs",
-        {
-          "esm": true
-        }
-      ],
-      [
-        "module",
-        {
-          "esm": true
-        }
-      ],
-      [
-        "typescript",
-        {
-          "esm": true
-        }
-      ]
+      "commonjs",
+      "module",
+      "typescript"
     ]
   },
   "eslintIgnore": [
