@@ -22,7 +22,7 @@
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*",
-    "@types/react-native-get-random-values": "^1.8.2",
+    "base-64": "^1.0.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-mmkv": "^3.2.0"
   },
@@ -30,14 +30,16 @@
     "@okto_web3/eslint-config": "workspace:*",
     "@okto_web3/prettier-config": "workspace:*",
     "@okto_web3/typescript-config": "workspace:*",
+    "@types/base-64": "^1.0.2",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
+    "@types/react-native-get-random-values": "^1.8.2",
+    "babel-plugin-module-resolver": "^5.0.0",
     "react": "^18.2.0",
     "react-native-builder-bob": "^0.35.3",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
-    "typescript": "^5.7.2",
-    "babel-plugin-module-resolver": "^5.0.0"
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"

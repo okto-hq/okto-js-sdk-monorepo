@@ -1,4 +1,5 @@
 import 'react-native-get-random-values';
+import './polyfills';
 
 export { OktoProvider } from './context/OktoProvider.js';
 export { OktoClient } from './core/index.js';

@@ -258,9 +258,9 @@ importers:
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
-      '@types/react-native-get-random-values':
-        specifier: ^1.8.2
-        version: 1.8.2
+      base-64:
+        specifier: ^1.0.0
+        version: 1.0.0
       react-native-get-random-values:
         specifier: ^1.11.0
         version: 1.11.0(react-native@0.77.0(@babel/core@7.26.8)(@babel/preset-env@7.26.8(@babel/core@7.26.8))(@types/react@18.3.18)(react@18.3.1))
@@ -277,12 +277,18 @@ importers:
       '@okto_web3/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/base-64':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@types/node':
         specifier: ^20.0.0
         version: 20.17.17
       '@types/react':
         specifier: ^18.2.0
         version: 18.3.18
+      '@types/react-native-get-random-values':
+        specifier: ^1.8.2
+        version: 1.8.2
       babel-plugin-module-resolver:
         specifier: ^5.0.0
         version: 5.0.2
@@ -2191,6 +2197,9 @@ packages:
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
 
+  '@types/base-64@1.0.2':
+    resolution: {integrity: sha512-uPgKMmM9fmn7I+Zi6YBqctOye4SlJsHKcisjHIMWpb2YKZRc36GpKyNuQ03JcT+oNXg1m7Uv4wU94EVltn8/cw==}
+
   '@types/conventional-commits-parser@5.0.1':
     resolution: {integrity: sha512-7uz5EHdzz2TqoMfV7ee61Egf5y6NkcO4FB/1iCCQnbeiI1F3xzv3vK5dBCXUCLQgGYS+mUeigK1iKQzvED+QnQ==}
 
@@ -2593,6 +2602,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  base-64@1.0.0:
+    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -8878,6 +8890,8 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.8
 
+  '@types/base-64@1.0.2': {}
+
   '@types/conventional-commits-parser@5.0.1':
     dependencies:
       '@types/node': 20.17.17
@@ -9353,6 +9367,8 @@ snapshots:
       babel-preset-current-node-syntax: 1.1.0(@babel/core@7.26.8)
 
   balanced-match@1.0.2: {}
+
+  base-64@1.0.0: {}
 
   base64-js@1.5.1: {}
 
