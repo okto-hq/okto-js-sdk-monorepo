@@ -1,12 +1,15 @@
 {
-  "extends": "@okto_web3/typescript-config/react-library.json",
+  "extends": "@okto_web3/typescript-config/react-native.json",
   "include": ["src"],
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["lib", "node_modules", "src/__tests__"],
+
   "compilerOptions": {
-    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@okto_web3/core-js-sdk/*": ["../core-js/src/*"]
-    }
+      "@okto_web3/core-js-sdk/*": ["../core-js/src/*"],
+      "@/*": ["../core-js/src/*", "src/*"]
+    },
+    "lib": ["esnext", "dom"],
+    "types": ["node"]
   }
 }

@@ -1,17 +1,10 @@
-import { z, ZodError } from 'zod';
-import type {
-  NFTCollectionCreationIntentParams,
-  NFTTransferIntentParams,
-  RawTransactionIntentParams,
-  TokenTransferIntentParams,
-} from './types.js';
+import { BaseError } from '@/errors/base.js';
 import {
   isHexString,
   isTokenId,
   isUppercaseAlpha,
 } from '@/utils/customValidators.js';
-import OktoClient from '@/core/index.js';
-import { BaseError } from '@/errors/base.js';
+import { z, ZodError } from 'zod';
 
 /**
  * Schema for NFT Collection Creation parameters validation.
