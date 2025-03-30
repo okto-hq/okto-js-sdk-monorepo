@@ -1,12 +1,19 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.11",
+  "version": "0.4.1-dev.12",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
   "main": "./dist/commonjs/index.js",
   "types": "./dist/typescript/react-native/src/index.d.ts",
   "module": "./dist/module/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/typescript/react-native/src/index.d.ts",
+      "import": "./dist/module/index.js",
+      "require": "./dist/commonjs/index.js"
+    }
+  },
   "scripts": {
     "dev": "tsc --watch",
     "build": "bob build",
