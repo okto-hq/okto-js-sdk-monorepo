@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData } from '@/types/index.js';
+import type { AuthData, AuthenticateResult } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -116,6 +116,67 @@ class OktoClient {
         return error;
       }
       throw error;
+    }
+  }
+
+  /**
+   * Authenticates a user using a JWT token.
+   * @param params - An object containing the JWT token and optionally the authentication provider.
+   * @param params.jwtToken - The JWT token.
+   * @param params.authProvider - The authentication provider, defaults to 'client_jwt'.
+   * @returns {Promise<AuthenticateResult | RpcError | undefined>} A promise that resolves to an AuthenticateResult object, an RpcError, or undefined.
+   */
+  public async authenticateWithJwt(params: {
+    jwtToken: string;
+  }): Promise<Address | RpcError | undefined> {
+    if (!params.jwtToken) {
+      throw new Error("jwtToken can't be empty");
+    }
+
+    const clientPrivateKey = this._clientConfig.clientPrivKey;
+    const clientSWA = this._clientConfig.clientSWA;
+    const session = SessionKey.create();
+
+    if (!clientPrivateKey || !clientSWA) {
+      throw new Error('Client configuration not initialized');
+    }
+
+    const authPayload = await generateAuthenticatePayload(
+      this,
+      {
+        idToken: params.jwtToken,
+        provider: 'client_jwt',
+      },
+      session,
+      clientSWA,
+      clientPrivateKey,
+    );
+
+    try {
+      const authResponse = await GatewayClientRepository.authenticate(
+        this,
+        authPayload,
+      );
+
+      // Set session configuration
+      this.setSessionConfig({
+        sessionPrivKey: session.privateKeyHexWith0x,
+        sessionPubKey: session.uncompressedPublicKeyHexWith0x,
+        userSWA: authResponse.userSWA as Hex,
+      });
+
+      // Sync user keys for subsequent operations
+      await this.syncUserKeys();
+
+      return this.userSWA;
+    } catch (error) {
+      this.sessionClear(); // Reset session on failure
+      if (error instanceof RpcError) {
+        throw new Error(`Authentication failed: ${error.message}`);
+      }
+      throw new Error(
+        `Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

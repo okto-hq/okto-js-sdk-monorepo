@@ -1,7 +1,11 @@
 export type AuthData =
   | {
       idToken: string;
-      provider: 'google';
+      provider: 'client_jwt';
+    }
+  | {
+      idToken: string;
+      provider: 'google' | 'client_jwt';
     }
   | {
       authToken: string;
