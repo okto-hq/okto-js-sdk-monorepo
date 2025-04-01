@@ -1,22 +1,17 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.14",
+  "version": "0.4.1-dev.15",
   "description": "React-Native for Okto SDK",
   "type": "module",
-  "source": "./src/index.ts",
   "main": "./dist/commonjs/index.js",
   "types": "./dist/typescript/react-native/src/index.d.ts",
   "module": "./dist/module/index.js",
+  "source": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./dist/typescript/react-native/src/index.d.ts",
       "import": "./dist/module/index.js",
       "require": "./dist/commonjs/index.js"
-    },
-    "./core": {
-      "types": "./dist/typescript/react-native/src/core/index.d.ts",
-      "import": "./dist/module/core/index.js",
-      "require": "./dist/commonjs/core/index.js"
     },
     "./explorer": {
       "types": "./dist/typescript/react-native/src/explorer/index.d.ts",
@@ -49,7 +44,7 @@
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
+    "check-exports": "attw --pack . --profile node16 --ignore-rules=cjs-resolves-to-esm"
   },
   "dependencies": {
     "@noble/ciphers": "^1.2.1",

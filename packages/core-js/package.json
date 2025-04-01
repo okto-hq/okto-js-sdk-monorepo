@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/core-js-sdk",
-  "version": "0.5.1-dev.11",
+  "version": "0.5.1-dev.15",
   "description": "Core JS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -15,43 +15,78 @@
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
+    "check-exports": "attw --pack . --profile node16 --ignore-rules=cjs-resolves-to-esm"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./core": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js",
-      "require": "./dist/core/index.cjs"
+      "import": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
     },
     "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.cjs"
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/types/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.cts",
+        "default": "./dist/types/index.cjs"
+      }
     },
     "./errors": {
-      "types": "./dist/errors/index.d.ts",
-      "import": "./dist/errors/index.js",
-      "require": "./dist/errors/index.cjs"
+      "import": {
+        "types": "./dist/errors/index.d.ts",
+        "default": "./dist/errors/index.js"
+      },
+      "require": {
+        "types": "./dist/errors/index.d.cts",
+        "default": "./dist/errors/index.cjs"
+      }
     },
     "./explorer": {
-      "types": "./dist/explorer/index.d.ts",
-      "import": "./dist/explorer/index.js",
-      "require": "./dist/explorer/index.cjs"
+      "import": {
+        "types": "./dist/explorer/index.d.ts",
+        "default": "./dist/explorer/index.js"
+      },
+      "require": {
+        "types": "./dist/explorer/index.d.cts",
+        "default": "./dist/explorer/index.cjs"
+      }
     },
     "./userop": {
-      "types": "./dist/userop/index.d.ts",
-      "import": "./dist/userop/index.js",
-      "require": "./dist/userop/index.cjs"
+      "import": {
+        "types": "./dist/userop/index.d.ts",
+        "default": "./dist/userop/index.js"
+      },
+      "require": {
+        "types": "./dist/userop/index.d.cts",
+        "default": "./dist/userop/index.cjs"
+      }
     },
     "./abstract": {
-      "types": "./dist/abstract/index.d.ts",
-      "import": "./dist/abstract/index.js",
-      "require": "./dist/abstract/index.cjs"
+      "import": {
+        "types": "./dist/abstract/index.d.ts",
+        "default": "./dist/abstract/index.js"
+      },
+      "require": {
+        "types": "./dist/abstract/index.d.cts",
+        "default": "./dist/abstract/index.cjs"
+      }
     }
   },
   "dependencies": {
