@@ -12,6 +12,31 @@
       "types": "./dist/typescript/react-native/src/index.d.ts",
       "import": "./dist/module/index.js",
       "require": "./dist/commonjs/index.js"
+    },
+    "./core": {
+      "types": "./dist/typescript/react-native/src/core/index.d.ts",
+      "import": "./dist/module/core/index.js",
+      "require": "./dist/commonjs/core/index.js"
+    },
+    "./explorer": {
+      "types": "./dist/typescript/react-native/src/explorer/index.d.ts",
+      "import": "./dist/module/explorer/index.js",
+      "require": "./dist/commonjs/explorer/index.js"
+    },
+    "./userop": {
+      "types": "./dist/typescript/react-native/src/userop/index.d.ts",
+      "import": "./dist/module/userop/index.js",
+      "require": "./dist/commonjs/userop/index.js"
+    },
+    "./abstract": {
+      "types": "./dist/typescript/react-native/src/abstract/index.d.ts",
+      "import": "./dist/module/abstract/index.js",
+      "require": "./dist/commonjs/abstract/index.js"
+    },
+    "./types": {
+      "types": "./dist/typescript/react-native/src/index.d.ts",
+      "import": "./dist/module/index.js",
+      "require": "./dist/commonjs/index.js"
     }
   },
   "scripts": {
@@ -65,9 +90,40 @@
     "source": "src",
     "output": "dist",
     "targets": [
-      "commonjs",
-      "module",
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
       "typescript"
+    ],
+    "plugins": [
+      [
+        "module-resolver",
+        {
+          "root": [
+            "./src"
+          ],
+          "extensions": [
+            ".ios.js",
+            ".android.js",
+            ".js",
+            ".ts",
+            ".tsx",
+            ".json"
+          ],
+          "alias": {
+            "@okto_web3/core-js-sdk": "../core-js/src"
+          }
+        }
+      ]
     ]
   },
   "eslintIgnore": [
