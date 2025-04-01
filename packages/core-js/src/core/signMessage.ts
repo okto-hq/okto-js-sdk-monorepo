@@ -3,7 +3,8 @@ import type {
   SignMessageParams,
 } from '@/types/gateway/signMessage.js';
 import { generateUUID } from '@/utils/nonce.js';
-import crypto from 'crypto';
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex } from '@noble/hashes/utils';
 import { canonicalize } from 'json-canonicalize';
 import { signMessage } from 'viem/accounts';
 import type { SessionConfig } from './types.js';
@@ -38,12 +39,10 @@ export async function generateSignMessagePayload(
 
   const canonicalize_setup_options = canonicalize(setup_options);
 
-  const sha_1 = crypto
-    .createHash('sha256')
-    .update(canonicalize_setup_options, 'utf8')
-    .digest();
-  const sha_2 = crypto.createHash('sha256').update(sha_1).digest();
-  const challenge = sha_2.toString('hex');
+  // Replace Node.js crypto with @noble/hashes implementation
+  const sha_1 = sha256(new TextEncoder().encode(canonicalize_setup_options));
+  const sha_2 = sha256(sha_1);
+  const challenge = bytesToHex(sha_2); // Convert Uint8Array to hex string
 
   const enc = new TextEncoder();
   const rawMessagePayload = enc.encode(
