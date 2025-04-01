@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.16",
+  "version": "0.4.1-dev.18",
   "description": "React-Native for Okto SDK",
   "main": "./dist/commonjs/index.js",
   "types": "./dist/typescript/react-native/src/index.d.ts",
@@ -49,7 +49,6 @@
     "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*",
     "base-64": "^1.0.0",
-    "react-native-get-random-values": "^1.11.0",
     "react-native-mmkv": "^3.2.0"
   },
   "devDependencies": {
@@ -63,12 +62,16 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "react": "^18.2.0",
     "react-native-builder-bob": "^0.35.3",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-randombytes": "^3.6.1",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-randombytes": "^3.6.1"
   },
   "keywords": [],
   "author": "Sparsh Agarwal <sparsh.a@coindcx.com>",
