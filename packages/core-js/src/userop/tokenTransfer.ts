@@ -29,6 +29,7 @@ import {
  * @param data - The parameters for transferring the token (caip2Id, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
+// TODO: Implement a destructured param instead before V1 release
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
