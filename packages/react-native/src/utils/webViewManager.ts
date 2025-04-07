@@ -32,7 +32,7 @@ export class WebViewManager {
   // Register callbacks from your React component
   registerCallbacks(
     showWebView: (params: WebViewParams) => void,
-    hideWebView: () => void
+    hideWebView: () => void,
   ): void {
     this.showWebViewCallback = showWebView;
     this.hideWebViewCallback = hideWebView;
@@ -47,19 +47,23 @@ export class WebViewManager {
   // Launch authentication WebView
   launchAuthFlow(options: WebViewManagerOptions): void {
     if (!this.showWebViewCallback) {
-      throw new Error('WebView callbacks not registered. Call registerCallbacks first.');
+      throw new Error(
+        'WebView callbacks not registered. Call registerCallbacks first.',
+      );
     }
 
-    const messageId = options.messageId || `auth_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const messageId =
+      options.messageId ||
+      `auth_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     // Create message handler
     const onMessage = (event: any) => {
       try {
         const data = JSON.parse(event.nativeEvent.data);
-        
+
         // Verify this message is for our auth flow
         if (data.messageId !== messageId) return;
-        
+
         if (data.type === 'AUTH_SUCCESS') {
           if (this.hideWebViewCallback) {
             this.hideWebViewCallback();
@@ -91,7 +95,7 @@ export class WebViewManager {
     this.showWebViewCallback({
       url: options.authUrl,
       messageId,
-      onMessage
+      onMessage,
     });
   }
 
@@ -110,18 +114,19 @@ export class WebViewManager {
     environment: string;
     callbackUrl?: string;
   }): string {
-    const baseUrl = params.environment === 'sandbox' 
-      ? 'https://sandbox-onboarding.okto.tech' 
-      : 'https://onboarding.oktostage.com';
-    
+    const baseUrl =
+      params.environment === 'sandbox'
+        ? 'https://sandbox-onboarding.okto.tech'
+        : 'https://onboarding.oktostage.com';
+
     const queryParams = new URLSearchParams({
       messageId: params.messageId,
       providerTypes: params.providerTypes.join(','),
       apiKey: params.apiKey,
       platform: Platform.OS,
-      ...(params.callbackUrl ? { callbackUrl: params.callbackUrl } : {})
+      ...(params.callbackUrl ? { callbackUrl: params.callbackUrl } : {}),
     });
-    
+
     return `${baseUrl}/auth?${queryParams.toString()}`;
   }
 }
