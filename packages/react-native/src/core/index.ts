@@ -7,6 +7,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import { navigate } from '../core/navigation.js';
 
 class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
@@ -38,6 +39,12 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 }
+
+export const SDK = {
+  openWebview: () => {
+    navigate('WebviewScreen');
+  },
+};
 
 export { OktoClient };
 export type { OktoClientConfig };
