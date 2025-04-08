@@ -40,11 +40,5 @@ class OktoClient extends OktoCoreClient {
   }
 }
 
-export const SDK = {
-  openWebview: () => {
-    navigate('WebviewScreen');
-  },
-};
-
 export { OktoClient };
 export type { OktoClientConfig };
