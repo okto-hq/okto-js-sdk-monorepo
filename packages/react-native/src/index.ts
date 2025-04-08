@@ -14,9 +14,10 @@ export * from './screen.js';
 export * from './core/navigation.js';
 
 export const SDK = {
-    
     openWebview: () => {
     console.log("karan is here in openWebview");
-      navigate('WebviewScreen');
+      navigate('WebViewScreen', {
+        url: 'https://www.google.com/'
+      });
     },
   };

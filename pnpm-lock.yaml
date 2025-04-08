@@ -276,6 +276,9 @@ importers:
       react-native-mmkv:
         specifier: ^3.2.0
         version: 3.2.0(react-native@0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
+      react-native-safe-area-context:
+        specifier: ^5.3.0
+        version: 5.3.0(react-native@0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
       react-native-webview:
         specifier: ^13.13.5
         version: 13.13.5(react-native@0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1))(react@18.3.1)
@@ -5465,6 +5468,12 @@ packages:
 
   react-native-mmkv@3.2.0:
     resolution: {integrity: sha512-9y7K//1MaU46TFrXkyU0wT5VGk9Y2FDLFV6NPl+z3jTbm2G7SC1UIxneF6CfhSmBX5CfKze9SO7kwDuRx7flpQ==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-safe-area-context@5.3.0:
+    resolution: {integrity: sha512-glV9bwuozTjf/JDBIBm+ITnukHNaUT3nucgdeADwjtHsfEN3RL5UO6nq99vvdWv5j/O9yCZBvFncM1BBQ+UvpQ==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -12774,6 +12783,11 @@ snapshots:
       react-native: 0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1)
 
   react-native-mmkv@3.2.0(react-native@0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-native: 0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1)
+
+  react-native-safe-area-context@5.3.0(react-native@0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
       react-native: 0.79.0(@babel/core@7.26.8)(@types/react@18.3.18)(react@18.3.1)

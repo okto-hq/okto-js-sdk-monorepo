@@ -1,22 +1,23 @@
+// src/components/WebViewScreen/WebViewScreen.tsx
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const INTERNAL_WEBVIEW_URL = 'https://www.google.com/';
+
 const CustomWebView = WebView as unknown as React.ComponentType<any>;
 
+interface WebViewScreenProps {
+  url: string;
+}
 
-export const WebviewScreen = () => {
-    console.log("karan is here in webview screen");
+export const WebViewScreen = ({ url }: WebViewScreenProps) => {
   return (
-    <View style={styles.container}>
-      <CustomWebView source={{ uri: INTERNAL_WEBVIEW_URL }}/>
-    </View>
+    // <SafeAreaView style={{ flex: 1 }}>
+      <CustomWebView 
+        source={{ uri: url }}
+        startInLoadingState={true}
+        javaScriptEnabled={true}
+      />
+    // {/* </SafeAreaView> */}
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
