@@ -7,6 +7,7 @@ const CustomWebView = WebView as unknown as React.ComponentType<any>;
 
 
 export const WebviewScreen = () => {
+    console.log("karan is here in webview screen");
   return (
     <View style={styles.container}>
       <CustomWebView source={{ uri: INTERNAL_WEBVIEW_URL }}/>

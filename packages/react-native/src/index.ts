@@ -11,7 +11,9 @@ export type * from './types/index.js';
 export * from './userop/index.js';
 
 export const SDK = {
+    
     openWebview: () => {
+    console.log("karan is here in openWebview");
       navigate('WebviewScreen');
     },
   };
