@@ -218,7 +218,7 @@ const OktoWebViewModal: React.FC<OktoWebViewModalProps> = ({
           injectedJavaScript={injectedJavaScript}
           onMessage={handleMessage}
           onLoad={() => setIsWebViewReady(true)}
-          originWhitelist={['*']} // Consider restricting this in production
+          originWhitelist={['*']} 
           javaScriptEnabled={true}
           domStorageEnabled={true}
           {...webViewProps}

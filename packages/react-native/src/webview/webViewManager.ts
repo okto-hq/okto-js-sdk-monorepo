@@ -1,8 +1,16 @@
-import React from 'react';
-// import { Modal } from 'react-native';
 import { type WebViewProps } from 'react-native-webview';
-// import { OktoWebViewComponent } from './OktoWebView.js';
 import type { HostReqIntf, HostResIntf } from '../types/webView.js';
+
+let navigationRef: any = null;
+let modalControlRef: any = null;
+
+export function setNavigationRef(ref: any) {
+  navigationRef = ref;
+}
+
+export function setModalControlRef(ref: any) {
+  modalControlRef = ref;
+}
 
 // Singleton instance to manage the WebView state
 export class OktoWebViewManager {
@@ -17,7 +25,7 @@ export class OktoWebViewManager {
   private webViewProps: Partial<WebViewProps> = {};
   
   private constructor() {}
-  
+
   public static getInstance(): OktoWebViewManager {
     if (!OktoWebViewManager.instance) {
       OktoWebViewManager.instance = new OktoWebViewManager();
@@ -31,6 +39,14 @@ export class OktoWebViewManager {
   
   public isOpen(): boolean {
     return this.isWebViewOpen;
+  }
+  
+  public getWebViewUrl(): string {
+    return this.webViewUrl;
+  }
+  
+  public getWebViewProps(): Partial<WebViewProps> {
+    return this.webViewProps;
   }
   
   public open(options?: {
@@ -54,19 +70,45 @@ export class OktoWebViewManager {
     }
     
     this.isWebViewOpen = true;
-    this.renderWebView();
+    
+    // Navigate using navigation system
+    if (navigationRef) {
+      navigationRef.navigate('OktoWebViewScreen', {
+        url: this.webViewUrl,
+        webViewProps: this.webViewProps
+      });
+    } 
+    // Or show modal using modal controller
+    else if (modalControlRef) {
+      modalControlRef.showModal({
+        url: this.webViewUrl,
+        webViewProps: this.webViewProps,
+        onClose: () => this.close()
+      });
+    } else {
+      console.warn('No navigation or modal controller reference set. Unable to open WebView.');
+    }
   }
   
   public close(): void {
     this.isWebViewOpen = false;
+    
+    // Close using navigation system
+    if (navigationRef) {
+      navigationRef.goBack();
+    } 
+    // Or hide modal using modal controller
+    else if (modalControlRef) {
+      modalControlRef.hideModal();
+    }
+    
     if (this.onCloseCallback) {
       this.onCloseCallback();
       this.onCloseCallback = null;
     }
-    this.renderWebView();
   }
   
-  // Send a request to the WebView and wait for a response
+  // Rest of the methods remain the same
   public request(method: string, data: any): Promise<HostResIntf> {
     if (!this.isWebViewOpen || !this.webViewRef) {
       return Promise.reject('WebView is not open');
@@ -75,7 +117,6 @@ export class OktoWebViewManager {
     return this.webViewRef.sendRequest(method, data);
   }
   
-  // Send information to the WebView without expecting a response
   public inform(method: string, data: any): void {
     if (!this.isWebViewOpen || !this.webViewRef) {
       console.warn('WebView is not open');
@@ -85,7 +126,6 @@ export class OktoWebViewManager {
     this.webViewRef.sendInfo(method, data);
   }
   
-  // Handle incoming requests from the WebView
   public handleRequestFromWebView(request: HostReqIntf): void {
     if (!request || !request.method) {
       console.error('Invalid request from WebView');
@@ -117,7 +157,6 @@ export class OktoWebViewManager {
       });
   }
   
-  // Handle incoming info messages from the WebView
   public handleInfoFromWebView(info: HostReqIntf): void {
     // Handle info messages based on method
     const { method, data } = info;
@@ -152,7 +191,6 @@ export class OktoWebViewManager {
       switch (method) {
         case 'okto_sdk_login':
           // Call your SDK's login method
-          // For example: this.oktoCoreSDK.login(data.provider, data)
           setTimeout(() => {
             resolve({ user: { id: '123', name: 'Test User' } });
           }, 1000);
@@ -165,23 +203,8 @@ export class OktoWebViewManager {
       }
     });
   }
-  
-  private renderWebView(): void {
-    // This will be handled by React's state system in the actual implementation
-    // Here we're just signaling that the state has changed
-    console.log(`WebView is now ${this.isWebViewOpen ? 'open' : 'closed'}`);
-  }
 }
 
-// The WebView component that will be rendered in the Modal
-// const OktoWebViewComponent = React.forwardRef((props: any) => {
-//   // Implementation of the WebView component
-//   // Similar to the previous implementation but simplified
-  
-//   // ... WebView implementation code here
-// });
-
-// The single function that vendors will call
 export function openOktoWebView(options?: {
   url?: string;
   webViewProps?: Partial<WebViewProps>;
