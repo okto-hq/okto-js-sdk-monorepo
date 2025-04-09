@@ -12,7 +12,7 @@ export const WebViewScreen = ({ route }: Props) => {
     <SafeAreaView style={{ flex: 1 }}>
       <WebView
         source={{ uri: url }}
-        startInLoadingState={true}
+        // startInLoadingState={true}
         javaScriptEnabled={true}
       />
     </SafeAreaView>
