@@ -1,57 +1,39 @@
-// In src/core/webview/WebViewScreen.tsx
-import React, { useRef, useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, BackHandler } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-// import { RouteProp } from '@react-navigation/native';
-// import { StackNavigationProp } from '@react-navigation/stack';
-import { handleWebViewMessage, sendResponseToWebView,type  WebViewRequest, type WebViewResponse } from './communication.js';
-import { v4 as uuidv4 } from 'uuid';
+import { View, ActivityIndicator, StyleSheet, BackHandler } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { v4 as uuidv4 } from 'uuid';
 
-type WebViewParamList = {
+// Import from .ts files instead of .js
+import { 
+  handleWebViewMessage, 
+  sendResponseToWebView, 
+  type WebViewRequest, 
+  type WebViewResponse 
+} from './communication.js';
+
+// Define the navigation param list
+export type WebViewParamList = {
   WebViewScreen: {
     url: string;
     title?: string;
   };
 };
 
-type WebViewScreenProps = {
-  route: NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
-};
+// Fix the props typing - NativeStackScreenProps is already the combined route & navigation props
+type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
-// import { SafeAreaView } from 'react-native';
-// import { WebView } from 'react-native-webview';
-// import { NativeStackScreenProps } from '@react-navigation/native-stack';
-// import type { RootStackParamList } from './core/navigation.js'; // adjust path
-
-// type Props = NativeStackScreenProps<RootStackParamList, 'OktoWebView'>;
-
-// export const WebViewScreen = ({ route }: Props) => {
-//   const { url } = route.params;
-
-//   return (
-//     <SafeAreaView style={{ flex: 1 }}>
-//       <WebView
-//         source={{ uri: url }}
-//         // startInLoadingState={true}
-//         javaScriptEnabled={true}
-//       />
-//     </SafeAreaView>
-//   );
-// };
-
-
-export const WebViewScreen  = ({ route} :WebViewScreenProps ) => {
-  const { url} = route.params;
+export const WebViewScreen: React.FC<Props> = ({ route, navigation }) => {
+  const { url, title } = route.params;
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // // Set navigation title if provided
-  // useEffect(() => {
-  //   if (title) {
-  //     navigation.setOptions({ title });
-  //   }
-  // }, [title, navigation]);
+  // Set navigation title if provided
+  useEffect(() => {
+    if (title) {
+      navigation.setOptions({ title });
+    }
+  }, [title, navigation]);
   
   // Handle Android back button
   useEffect(() => {
