@@ -1,5 +1,5 @@
 import 'react-native-get-random-values';
-import { navigate } from './core/navigation.js';
+// import { navigate } from './core/navigation.js';
 
 export { OktoProvider } from './context/OktoProvider.js';
 export { OktoClient } from './core/index.js';
