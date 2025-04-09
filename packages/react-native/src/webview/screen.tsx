@@ -23,17 +23,39 @@ export type WebViewParamList = {
 // Fix the props typing - NativeStackScreenProps is already the combined route & navigation props
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
-export const WebViewScreen: React.FC<Props> = ({ route, navigation }) => {
+// import { SafeAreaView } from 'react-native';
+// import { WebView } from 'react-native-webview';
+// import { NativeStackScreenProps } from '@react-navigation/native-stack';
+// import type { RootStackParamList } from './core/navigation.js'; // adjust path
+
+// type Props = NativeStackScreenProps<RootStackParamList, 'OktoWebView'>;
+
+// export const WebViewScreen = ({ route }: Props) => {
+//   const { url } = route.params;
+
+//   return (
+//     <SafeAreaView style={{ flex: 1 }}>
+//       <WebView
+//         source={{ uri: url }}
+//         // startInLoadingState={true}
+//         javaScriptEnabled={true}
+//       />
+//     </SafeAreaView>
+//   );
+// };
+
+
+export const WebViewScreen = ({ route }: Props) =>{
   const { url, title } = route.params;
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // Set navigation title if provided
-  useEffect(() => {
-    if (title) {
-      navigation.setOptions({ title });
-    }
-  }, [title, navigation]);
+  // useEffect(() => {
+  //   if (title) {
+  //     navigation.setOptions({ title });
+  //   }
+  // }, [title, navigation]);
   
   // Handle Android back button
   useEffect(() => {
