@@ -3,25 +3,25 @@
 export enum MessageStatus {
   LOADING = 'loading',
   SUCCESS = 'success',
-  ERROR = 'error',
+  ERROR = 'error'
 }
 
 export enum ProviderType {
   GOOGLE = 'google',
   WHATSAPP = 'whatsapp',
   EMAIL = 'email',
-  PHONE = 'phone',
+  PHONE = 'phone'
 }
 
 export enum WebViewMethodType {
   LOGIN = 'okto_sdk_login',
-  UI_STATE_UPDATE = 'okto_ui_state_update',
+  UI_STATE_UPDATE = 'okto_ui_state_update'
 }
 
 export enum UIState {
   OPENED = 'opened',
   CLOSED = 'closed',
-  MINIMIZED = 'minimized',
+  MINIMIZED = 'minimized'
 }
 
 export interface HostRequest {

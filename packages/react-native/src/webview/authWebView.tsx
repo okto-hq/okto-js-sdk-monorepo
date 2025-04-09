@@ -1,14 +1,7 @@
 // src/webview/WebViewScreen.tsx
 
 import React, { useRef, useEffect, useState } from 'react';
-import {
-  View,
-  SafeAreaView,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  Text,
-} from 'react-native';
+import { View, SafeAreaView, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { setupResponseChannel, handleWebViewResponse } from './channels.js';
 import type { WebViewConfig, HostResponse } from '../types/webview.js';
@@ -23,7 +16,6 @@ const WebViewScreen: React.FC<WebViewScreenProps> = ({ config, onClose }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Setup response channel when WebView is ready
     if (webViewRef.current) {
       setupResponseChannel(webViewRef);
     }
@@ -32,7 +24,7 @@ const WebViewScreen: React.FC<WebViewScreenProps> = ({ config, onClose }) => {
   const handleMessage = (event: any) => {
     try {
       const message = JSON.parse(event.nativeEvent.data);
-
+      
       if (message.channel === 'responseChannel') {
         handleWebViewResponse(message.data as HostResponse);
       }
@@ -77,13 +69,13 @@ const WebViewScreen: React.FC<WebViewScreenProps> = ({ config, onClose }) => {
           <Text style={styles.closeButtonText}>Close</Text>
         </TouchableOpacity>
       </View>
-
+      
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
-
+      
       <WebView
         ref={webViewRef}
         source={{ uri: config.url, headers: config.headers || {} }}
@@ -94,7 +86,7 @@ const WebViewScreen: React.FC<WebViewScreenProps> = ({ config, onClose }) => {
         injectedJavaScript={injectedJavaScript}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        originWhitelist={['*']} // Consider restricting this in production
+        originWhitelist={['*']} 
       />
     </SafeAreaView>
   );

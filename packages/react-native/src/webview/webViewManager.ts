@@ -1,21 +1,32 @@
 // src/webview/WebViewManager.ts
 
+import { NativeModules, Platform } from 'react-native';
 import type { WebViewConfig, HostRequest, HostResponse, WebViewResponseCallback } from '../types/webview.js';
-import { sendRequest, sendInform } from './channels.js';
-import { v4 as uuid } from 'uuid';
 
-// Event emitter to handle navigation events
-import { EventEmitter } from 'events';
+export interface OktoWebViewModuleInterface {
+  openWebView(
+    url: string,
+    headers: Record<string, string>,
+    successCallback: (success: boolean) => void,
+    errorCallback?: (error: string) => void
+  ): void;
+  
+  closeWebView(
+    successCallback: () => void,
+    errorCallback?: (error: string) => void
+  ): void;
+}
+
+const OktoWebViewModule = NativeModules.OktoWebViewModule as OktoWebViewModuleInterface;
+
 
 class WebViewManager {
   private static instance: WebViewManager;
   private webViewRef: any = null;
-  private isWebViewOpen: boolean = false;
-  private eventEmitter: EventEmitter;
-  private navigationListeners: Map<string, ((...args: any[]) => void)> = new Map();
+  private activeListeners: Set<string> = new Set();
 
   private constructor() {
-    this.eventEmitter = new EventEmitter();
+    // Private constructor for singleton
   }
 
   public static getInstance(): WebViewManager {
@@ -26,33 +37,62 @@ class WebViewManager {
   }
 
   /**
-   * Opens WebView through React Navigation or similar
+   * Launches the WebView with the provided configuration
    * @param config Configuration for the WebView
-   * @returns Promise that resolves when navigation is triggered
+   * @returns Promise that resolves when the WebView is launched
    */
   public launchWebView(config: WebViewConfig): Promise<void> {
-    return new Promise((resolve) => {
-      // Set flag that WebView is open
-      this.isWebViewOpen = true;
-      
-      // Emit navigation event for the wrapper component to handle
-      this.eventEmitter.emit('navigateToWebView', config);
-      
-      // Resolve immediately as the actual navigation will be handled by the React component
-      resolve();
+    return new Promise((resolve, reject) => {
+      try {
+        if (Platform.OS === 'android') {
+          OktoWebViewModule.openWebView(
+            config.url,
+            config.headers || {},
+            () => {
+              resolve();
+            },
+            (error: string) => {
+              reject(new Error(error));
+            }
+          );
+        } else if (Platform.OS === 'ios') {
+          OktoWebViewModule.openWebView(
+            config.url,
+            config.headers || {},
+            (success: boolean) => {
+              if (success) {
+                resolve();
+              } else {
+                reject(new Error('Failed to open WebView'));
+              }
+            }
+          );
+        } else {
+          reject(new Error('Platform not supported'));
+        }
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
   /**
-   * Closes the WebView by triggering navigation
+   * Closes the active WebView
    */
   public closeWebView(): Promise<void> {
-    return new Promise((resolve) => {
-      if (this.isWebViewOpen) {
-        this.isWebViewOpen = false;
-        this.eventEmitter.emit('closeWebView');
+    return new Promise((resolve, reject) => {
+      try {
+        OktoWebViewModule.closeWebView(
+          () => {
+            resolve();
+          },
+          (error: string) => {
+            reject(new Error(error));
+          }
+        );
+      } catch (error) {
+        reject(error);
       }
-      resolve();
     });
   }
 
@@ -62,32 +102,6 @@ class WebViewManager {
    */
   public setWebViewRef(ref: any): void {
     this.webViewRef = ref;
-  }
-
-  /**
-   * Register a navigation listener
-   * @param event Event name
-   * @param callback Function to call when event occurs
-   * @returns Listener ID for removal
-   */
-  public addNavigationListener(event: string, callback: (...args: any[]) => void): string {
-    const listenerId = uuid();
-    this.eventEmitter.on(event, callback);
-    this.navigationListeners.set(listenerId, callback);
-    return listenerId;
-  }
-
-  /**
-   * Remove a navigation listener
-   * @param listenerId ID returned from addNavigationListener
-   * @param event Event name
-   */
-  public removeNavigationListener(listenerId: string, event: string): void {
-    const listener = this.navigationListeners.get(listenerId);
-    if (listener) {
-      this.eventEmitter.off(event, listener);
-      this.navigationListeners.delete(listenerId);
-    }
   }
 
   /**
@@ -120,6 +134,7 @@ class WebViewManager {
       };
 
       // Use the channels module to send the request
+      const { sendRequest } = require('./channels');
       sendRequest(this.webViewRef, request, finalCallback);
     });
   }
@@ -134,14 +149,8 @@ class WebViewManager {
       return;
     }
 
+    const { sendInform } = require('./channels');
     sendInform(this.webViewRef, request);
-  }
-
-  /**
-   * Check if WebView is currently open
-   */
-  public isOpen(): boolean {
-    return this.isWebViewOpen;
   }
 }
 
