@@ -7,6 +7,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import webViewManager from 'src/webview/webViewManager.js';
 // import { navigate } from '../core/navigation.js';
 
 class OktoClient extends OktoCoreClient {
@@ -35,10 +36,7 @@ class OktoClient extends OktoCoreClient {
   }
 
   openWebViewScreen(navigation: any): void {
-    console.log('KARAN :: navigation', navigation);
-    console.log('KARAN :: navigation.navigate', navigation.navigate);
-    navigation.navigate('OktoWebView', {
-      url: "https://www.google.com/",});
+    webViewManager.openWebView('https://onboarding.oktostage.com/', navigation);
   }
 
   override sessionClear(): void {
