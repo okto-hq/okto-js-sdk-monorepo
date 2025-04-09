@@ -23,6 +23,8 @@ export interface WebViewOptions {
   onSuccess?: (user: any) => void;
   onError?: (error: Error) => void;
   onClose?: () => void;
+  modalStyle?: Partial<CSSStyleDeclaration>;
+  iframeStyle?: Partial<CSSStyleDeclaration>;
 }
 
 export class WebViewManager {
@@ -34,6 +36,10 @@ export class WebViewManager {
   private debug: boolean;
   private requestHandlers = new Map<string, (data: any) => Promise<any>>();
   private connectHandlers = new Map<string, () => void>();
+
+  private webModal: HTMLDivElement | null = null;
+  private webFrame: HTMLIFrameElement | null = null;
+  private currentTargetOrigin: string | null = null;
 
   constructor(
     allowedOrigins: string[] = ['https://onboarding.oktostage.com'],
@@ -179,9 +185,11 @@ export class WebViewManager {
   public openWebView(options: WebViewOptions = {}): boolean {
     const {
       url = 'https://onboarding.oktostage.com',
-      width = 800,
+      width = 300,
       height = 600,
       onClose,
+      modalStyle = {},
+      iframeStyle = {},
     } = options;
 
     this.debug &&
@@ -189,33 +197,94 @@ export class WebViewManager {
         url,
         width,
         height,
+        modalStyle,
+        iframeStyle,
       });
 
-    // this.closeWebView();
+    try {
+      const urlObj = new URL(url);
+      this.currentTargetOrigin = urlObj.origin;
 
-    const left = window.innerWidth / 2 - width / 2;
-    const top = window.innerHeight / 2 - height / 2;
-
-    this.webPopup = window.open(
-      url,
-      'OktoWebView',
-      `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`,
-    );
-
-    if (!this.webPopup) {
-      this.debug &&
-        console.error('[WebViewManager] Popup blocked or failed to open');
+      if (!this.allowedOrigins.includes(this.currentTargetOrigin)) {
+        this.debug && console.error('[WebViewManager] Origin not allowed');
+        return false;
+      }
+    } catch (error) {
+      this.debug && console.error('[WebViewManager] Invalid URL:', error);
       return false;
     }
 
-    if (onClose) {
-      this.popupCheckInterval = window.setInterval(() => {
-        if (this.webPopup && !this.webPopup.closed) return;
-        this.clearPopupCheck();
-        this.webPopup = null;
-        onClose();
-      }, 500);
-    }
+    // Create modal container
+    this.webModal = document.createElement('div');
+    Object.assign(
+      this.webModal.style,
+      {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: '1000',
+      },
+      modalStyle,
+    );
+
+    // Create iframe container
+    const iframeContainer = document.createElement('div');
+    iframeContainer.style.position = 'relative';
+    iframeContainer.style.width = `${width}px`;
+    iframeContainer.style.height = `${height}px`;
+
+    // Create iframe
+    this.webFrame = document.createElement('iframe');
+    Object.assign(this.webFrame.style, {
+      width: '100%',
+      height: '100%',
+      border: 'none',
+      borderRadius: '8px',
+      ...iframeStyle,
+    });
+    this.webFrame.src = url;
+
+    // Create close button
+    // const closeButton = document.createElement('button');
+    // closeButton.innerHTML = '×';
+    // Object.assign(closeButton.style, {
+    //   position: 'absolute',
+    //   right: '-30px',
+    //   top: '0',
+    //   background: 'none',
+    //   border: 'none',
+    //   color: 'white',
+    //   fontSize: '24px',
+    //   cursor: 'pointer',
+    // });
+
+    // Assemble elements
+    iframeContainer.appendChild(this.webFrame);
+    // iframeContainer.appendChild(closeButton);
+    this.webModal.appendChild(iframeContainer);
+    document.body.appendChild(this.webModal);
+
+    // Event listeners
+    const closeHandler = () => {
+      this.closeWebView();
+      onClose?.();
+    };
+
+    // closeButton.addEventListener('click', closeHandler);
+    this.webModal.addEventListener('click', (e) => {
+      if (e.target === this.webModal) closeHandler();
+    });
+
+    // Setup communication when iframe loads
+    // this.webFrame.addEventListener('load', () => {
+    //   this.setupWebViewCommunication();
+    // });
 
     return true;
   }
@@ -240,7 +309,7 @@ export class WebViewManager {
   // Then update the targetOrigin getter:
   private get targetOrigin(): string {
     return this.validateTargetOrigin(
-      this.allowedOrigins[2] || window.location.origin,
+      this.allowedOrigins[3] || window.location.origin,
     );
   }
 
@@ -283,15 +352,14 @@ export class WebViewManager {
           : resolve(responseData);
       });
 
-      // Fixed postMessage call
-      this.webPopup!.postMessage(
+      this.webFrame?.contentWindow?.postMessage(
         {
           id: requestId,
           method,
           data,
           channel: 'requestChannel',
         },
-        this.targetOrigin,
+        this.currentTargetOrigin!,
       );
     });
   }
@@ -302,15 +370,14 @@ export class WebViewManager {
       return;
     }
 
-    // Fixed postMessage call
-    this.webPopup!.postMessage(
+    this.webFrame?.contentWindow?.postMessage(
       {
         id: crypto.randomUUID(),
         method,
         data,
         channel: 'infoChannel',
       },
-      this.targetOrigin,
+      this.currentTargetOrigin!,
     );
   }
 
@@ -342,17 +409,23 @@ export class WebViewManager {
     }
   }
 
-  public sendResponse(id: string, method: string, data: any): void {
-    this.webPopup?.postMessage(
-      {
-        id,
-        method,
-        data,
-        channel: 'responseChannel',
-        status: 'success',
-      },
-      this.targetOrigin,
-    );
+  public sendResponse(
+    id: string,
+    method: string,
+    data: any,
+    error: string | null = null,
+  ): void {
+    const payload = {
+      id,
+      method,
+      data,
+      error,
+    };
+
+    const message = JSON.stringify(payload);
+
+    this.debug && console.log('[WebViewManager] Sending response:', message);
+    this.webFrame?.contentWindow?.postMessage(message, this.targetOrigin);
   }
 
   private sendErrorResponse(id: string, method: string, error: string): void {
@@ -369,15 +442,26 @@ export class WebViewManager {
   }
 
   public closeWebView(): void {
-    if (this.webPopup && !this.webPopup.closed) {
-      this.webPopup.close();
+    if (this.webModal) {
+      document.body.removeChild(this.webModal);
+      this.webModal = null;
     }
-    this.webPopup = null;
+    this.webFrame = null;
+    this.currentTargetOrigin = null;
     this.clearPopupCheck();
   }
 
+  // Modified setupWebViewCommunication
+  // private setupWebViewCommunication(): void {
+  //   this.webFrame?.contentWindow?.postMessage(
+  //     { type: 'sdk_ready', status: 'connected' },
+  //     this.currentTargetOrigin!
+  //   );
+  // }
+
+  // Modified isWebViewOpen
   public isWebViewOpen(): boolean {
-    return !!this.webPopup && !this.webPopup.closed;
+    return !!this.webModal && !!this.webFrame;
   }
 
   public destroy(): void {
