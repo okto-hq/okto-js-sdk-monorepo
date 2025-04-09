@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { View, ActivityIndicator, StyleSheet, BackHandler } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -186,7 +186,7 @@ export const WebViewScreen = ({ route }: Props) =>{
   `;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}>
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
@@ -197,16 +197,20 @@ export const WebViewScreen = ({ route }: Props) =>{
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={['*']}
-        style={styles.webview}
       />
-      {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
-    </View>
+      </SafeAreaView>
   );
 };
+
+//     <SafeAreaView style={{ flex: 1 }}>
+//       <WebView
+//         source={{ uri: url }}
+//         // startInLoadingState={true}
+//         javaScriptEnabled={true}
+//       />
+//     </SafeAreaView>
+//   );
+// };
 
 const styles = StyleSheet.create({
   container: {
