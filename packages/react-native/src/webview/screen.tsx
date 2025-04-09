@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { View, ActivityIndicator, StyleSheet, BackHandler, SafeAreaView } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, BackHandler } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -186,33 +186,25 @@ export const WebViewScreen = ({ route }: Props) =>{
   `;
 
   return (
-
-    
-      // <WebView
-      //   ref={webViewRef}
-      //   source={{ uri: url }}
-      //   onMessage={onMessage}
-      //   onLoadStart={() => setIsLoading(true)}
-      //   onLoadEnd={() => setIsLoading(false)}
-      //   injectedJavaScript={injectedJavaScript}
-      //   javaScriptEnabled={true}
-      //   domStorageEnabled={true}
-      //   originWhitelist={['*']}
-      //   style={styles.webview}
-      // />
-
-      <SafeAreaView style={{ flex: 1 }}>
+    <View style={styles.container}>
       <WebView
+        ref={webViewRef}
         source={{ uri: url }}
-        // startInLoadingState={true}
+        onMessage={onMessage}
+        onLoadStart={() => setIsLoading(true)}
+        onLoadEnd={() => setIsLoading(false)}
+        injectedJavaScript={injectedJavaScript}
         javaScriptEnabled={true}
+        domStorageEnabled={true}
+        originWhitelist={['*']}
+        style={styles.webview}
       />
-    </SafeAreaView>
-      // {isLoading && (
-      //   <View style={styles.loadingContainer}>
-      //     <ActivityIndicator size="large" color="#0000ff" />
-      //   </View>
-      // )}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
+    </View>
   );
 };
 
