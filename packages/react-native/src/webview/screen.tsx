@@ -186,7 +186,6 @@ export const WebViewScreen = ({ route }: Props) =>{
   `;
 
   return (
-    <View style={styles.container}>
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
@@ -199,12 +198,11 @@ export const WebViewScreen = ({ route }: Props) =>{
         originWhitelist={['*']}
         style={styles.webview}
       />
-      {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
-    </View>
+      // {isLoading && (
+      //   <View style={styles.loadingContainer}>
+      //     <ActivityIndicator size="large" color="#0000ff" />
+      //   </View>
+      // )}
   );
 };
 
