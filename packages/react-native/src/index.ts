@@ -12,12 +12,3 @@ export * from './userop/index.js';
 
 export * from './screen.js';
 export * from './core/navigation.js';
-
-export const SDK = {
-    openWebview: () => {
-    console.log("karan is here in openWebview");
-      navigate('WebViewScreen', {
-        url: 'https://www.google.com/'
-      });
-    },
-  };

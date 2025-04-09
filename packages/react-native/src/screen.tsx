@@ -14,6 +14,6 @@ export const WebViewScreen = ({ url }: WebViewScreenProps) => {
         startInLoadingState={true}
         javaScriptEnabled={true}
       />
-    // </SafeAreaView>
+    </SafeAreaView>
   );
 };

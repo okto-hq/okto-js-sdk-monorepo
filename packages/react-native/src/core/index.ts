@@ -34,6 +34,11 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
+  openWebViewScreen(navigation: any): void {
+    navigation.navigate('OktoWebView', {
+      url: "https://www.google.com/",});
+  }
+
   override sessionClear(): void {
     clearStorage('okto_session');
     return super.sessionClear();
