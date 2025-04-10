@@ -61,3 +61,23 @@ export interface WebViewRequest {
  * };
  */
 export type WebViewRequestHandler = (data: any) => Promise<any> | void;
+
+
+/**
+ * @WhatsAppOtpResponse
+ * @description Interface for the WhatsApp OTP response data.
+ * @property {string} provider - The provider of the OTP service.
+ * @property {string} whatsapp_number - The WhatsApp number to which the OTP was sent.
+ * @property {string} otp - The OTP sent to the user.
+ * @property {string} token - A token associated with the OTP process.
+ * @property {string} message - A detailed status message.
+ * @property {string | null} error - An error message if the process fails, or null if successful.
+ */
+export interface WhatsAppOtpResponse {
+  provider: string;
+  whatsapp_number: string;
+  otp?: string;
+  token?: string;
+  message?: string;
+  error?: string | null;
+}

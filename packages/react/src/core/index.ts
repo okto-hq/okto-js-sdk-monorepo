@@ -14,16 +14,17 @@ import {
 
 import { WebViewManager } from '../webview/webViewManager.js';
 import type { WebViewOptions } from 'src/webview/types.js';
-import { createAuthRequestHandler } from 'src/webview/auth/requestHandler.js';
-import { oktoAuthWebView } from 'src/webview/auth/authWebView.js';
+import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
+import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
 
 class OktoClient extends OktoCoreClient {
-  private webViewManager: WebViewManager;
+  private webViewManager: WebViewManager | undefined;
+  private authWebView: OktoAuthWebView | undefined;
 
   constructor(config: OktoClientConfig) {
     super(config);
     this.initializeSession();
-    this.webViewManager = new WebViewManager(); // true: To enable Debug Mode for development
+    this.initializeWebView(); // Boolean: Debug mode optional parameter 
   }
 
   private async initializeSession(): Promise<void> {
@@ -34,9 +35,17 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  private initializeWebView(debugMode?: boolean): void {
+    this.webViewManager = new WebViewManager(debugMode);
+    const authHandler = new AuthRequestHandler(this.webViewManager);
+    this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
+  }
+
   public authenticateWithWebView(options: WebViewOptions = {}): Promise<any> {
-    const requestHandler = createAuthRequestHandler(this.webViewManager);
-    return oktoAuthWebView(this.webViewManager, requestHandler, options);
+    if (!this.authWebView) {
+      throw new Error('AuthWebView is not initialized.');
+    }
+    return this.authWebView.open(options);
   }
 
   override loginUsingOAuth(
@@ -56,11 +65,11 @@ class OktoClient extends OktoCoreClient {
   }
 
   public closeWebView(): void {
-    this.webViewManager.closeWebView();
+    this.webViewManager?.closeWebView();
   }
 
   public destroy(): void {
-    this.webViewManager.destroy();
+    this.webViewManager?.destroy();
   }
 }
 
