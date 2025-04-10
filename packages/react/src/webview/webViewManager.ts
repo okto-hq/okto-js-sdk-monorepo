@@ -1,72 +1,31 @@
+import {
+  CHANNELS,
+  DEFAULT_ALLOWED_ORIGINS,
+  DEFAULT_IFRAME_STYLE,
+  DEFAULT_MODAL_STYLE,
+  DEFAULT_REQUEST_TIMEOUT,
+} from './constants.js';
+import type { WebViewMessage, WebViewOptions } from './types.js';
+
 // WebViewManager.ts
-
-interface WebViewMessage {
-  id: string;
-  method: string;
-  channel: 'requestChannel' | 'responseChannel' | 'infoChannel';
-  data?: any;
-  status?: 'success' | 'error';
-  message?: string;
-}
-// First, let's define an interface for the WebView request structure
-export interface WebViewRequest {
-  eventName?: string;
-  eventData?: string;
-  [key: string]: any;
-}
-
-// Define the interface for the WebView interaction
-export interface WebViewOptions {
-  url?: string;
-  width?: number;
-  height?: number;
-  onSuccess?: (user: any) => void;
-  onError?: (error: Error) => void;
-  onClose?: () => void;
-  modalStyle?: Partial<CSSStyleDeclaration>;
-  iframeStyle?: Partial<CSSStyleDeclaration>;
-}
-
 export class WebViewManager {
   private webPopup: Window | null = null;
   private messageHandlers: Map<string, (data: any) => void> = new Map();
-  private allowedOrigins: string[];
+  private allowedOrigins?: string[];
   private popupCheckInterval?: number;
-  private readonly requestTimeout = 30000;
+  private readonly requestTimeout = DEFAULT_REQUEST_TIMEOUT;
   private debug: boolean;
   private requestHandlers = new Map<string, (data: any) => Promise<any>>();
-  private connectHandlers = new Map<string, () => void>();
 
   private webModal: HTMLDivElement | null = null;
   private webFrame: HTMLIFrameElement | null = null;
   private currentTargetOrigin: string | null = null;
 
-  constructor(
-    allowedOrigins: string[] = ['https://onboarding.oktostage.com'],
-    debug: boolean = false,
-  ) {
-    this.allowedOrigins = allowedOrigins;
+  constructor(debug: boolean = false, allowedOrigins?: string[]) {
     this.debug = debug;
+    this.allowedOrigins = allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
     // this.setupMessageListener();
     // this.setupWebViewCommunication();
-    // this.setupConnectHandler();
-  }
-  private setupConnectHandler(): void {
-    window.addEventListener('message', (event) => {
-      if (this.allowedOrigins.includes(event.origin)) {
-        try {
-          const message = JSON.parse(event.data);
-          if (message.eventName === 'connect') {
-            this.debug &&
-              console.log('[WebViewManager] Connect event received');
-            this.connectHandlers.forEach((handler) => handler());
-          }
-        } catch (error) {
-          this.debug &&
-            console.error('[WebViewManager] Connect event parse error:', error);
-        }
-      }
-    });
   }
 
   // Method to handle incoming requests
@@ -81,7 +40,7 @@ export class WebViewManager {
   }
 
   private handleMessage = (event: MessageEvent): void => {
-    if (!this.allowedOrigins.includes(event.origin)) {
+    if (!this.allowedOrigins?.includes(event.origin)) {
       this.debug &&
         console.warn('[WebViewManager] Unauthorized origin:', event.origin);
       return;
@@ -155,7 +114,7 @@ export class WebViewManager {
     window.addEventListener('message', (event) => {
       if (
         event.data?.type === 'webview_ready' &&
-        this.allowedOrigins.includes(event.origin)
+        this.allowedOrigins?.includes(event.origin)
       ) {
         this.debug &&
           console.log('[WebViewManager] WebView initialized:', event.data);
@@ -205,7 +164,7 @@ export class WebViewManager {
       const urlObj = new URL(url);
       this.currentTargetOrigin = urlObj.origin;
 
-      if (!this.allowedOrigins.includes(this.currentTargetOrigin)) {
+      if (!this.allowedOrigins?.includes(this.currentTargetOrigin)) {
         this.debug && console.error('[WebViewManager] Origin not allowed');
         return false;
       }
@@ -216,22 +175,7 @@ export class WebViewManager {
 
     // Create modal container
     this.webModal = document.createElement('div');
-    Object.assign(
-      this.webModal.style,
-      {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: '1000',
-      },
-      modalStyle,
-    );
+    Object.assign(this.webModal.style, DEFAULT_MODAL_STYLE, modalStyle);
 
     // Create iframe container
     const iframeContainer = document.createElement('div');
@@ -241,28 +185,8 @@ export class WebViewManager {
 
     // Create iframe
     this.webFrame = document.createElement('iframe');
-    Object.assign(this.webFrame.style, {
-      width: '100%',
-      height: '100%',
-      border: 'none',
-      borderRadius: '8px',
-      ...iframeStyle,
-    });
+    Object.assign(this.webFrame.style, DEFAULT_IFRAME_STYLE, iframeStyle);
     this.webFrame.src = url;
-
-    // Create close button
-    // const closeButton = document.createElement('button');
-    // closeButton.innerHTML = '×';
-    // Object.assign(closeButton.style, {
-    //   position: 'absolute',
-    //   right: '-30px',
-    //   top: '0',
-    //   background: 'none',
-    //   border: 'none',
-    //   color: 'white',
-    //   fontSize: '24px',
-    //   cursor: 'pointer',
-    // });
 
     // Assemble elements
     iframeContainer.appendChild(this.webFrame);
@@ -280,11 +204,6 @@ export class WebViewManager {
     this.webModal.addEventListener('click', (e) => {
       if (e.target === this.webModal) closeHandler();
     });
-
-    // Setup communication when iframe loads
-    // this.webFrame.addEventListener('load', () => {
-    //   this.setupWebViewCommunication();
-    // });
 
     return true;
   }
@@ -309,7 +228,7 @@ export class WebViewManager {
   // Then update the targetOrigin getter:
   private get targetOrigin(): string {
     return this.validateTargetOrigin(
-      this.allowedOrigins[3] || window.location.origin,
+      this.allowedOrigins?.[3] ?? window.location.origin,
     );
   }
 
@@ -357,7 +276,7 @@ export class WebViewManager {
           id: requestId,
           method,
           data,
-          channel: 'requestChannel',
+          channel: CHANNELS.REQUEST,
         },
         this.currentTargetOrigin!,
       );
@@ -375,7 +294,7 @@ export class WebViewManager {
         id: crypto.randomUUID(),
         method,
         data,
-        channel: 'infoChannel',
+        channel: CHANNELS.INFO,
       },
       this.currentTargetOrigin!,
     );
@@ -429,12 +348,12 @@ export class WebViewManager {
   }
 
   private sendErrorResponse(id: string, method: string, error: string): void {
-    this.webPopup?.postMessage(
+    this.webFrame?.contentWindow?.postMessage(
       {
         id,
         method,
         error,
-        channel: 'responseChannel',
+        channel: CHANNELS.RESPONSE,
         status: 'error',
       },
       this.targetOrigin,
@@ -451,15 +370,6 @@ export class WebViewManager {
     this.clearPopupCheck();
   }
 
-  // Modified setupWebViewCommunication
-  // private setupWebViewCommunication(): void {
-  //   this.webFrame?.contentWindow?.postMessage(
-  //     { type: 'sdk_ready', status: 'connected' },
-  //     this.currentTargetOrigin!
-  //   );
-  // }
-
-  // Modified isWebViewOpen
   public isWebViewOpen(): boolean {
     return !!this.webModal && !!this.webFrame;
   }
