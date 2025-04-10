@@ -5,7 +5,7 @@ import type { WebViewRequest, WebViewResponse } from './types.js';
 
 export class WebViewBridge {
   private webViewRef: MutableRefObject<WebView | null>;
-  
+
   constructor(webViewRef: MutableRefObject<WebView | null>) {
     this.webViewRef = webViewRef;
   }
@@ -14,26 +14,32 @@ export class WebViewBridge {
     try {
       const rawData = event.nativeEvent.data;
       console.log('Raw message from WebView:', rawData);
-      
+
       const message = JSON.parse(rawData);
-      
+
       if (message.eventName === 'requestChannel') {
-        const request = typeof message.eventData === 'string' 
-          ? JSON.parse(message.eventData) 
-          : message.eventData;
-          
+        const request =
+          typeof message.eventData === 'string'
+            ? JSON.parse(message.eventData)
+            : message.eventData;
+
         console.log('Parsed request:', request);
         this.onRequest?.(request);
       } else if (message.eventName === 'infoChannel') {
-        const info = typeof message.eventData === 'string' 
-          ? JSON.parse(message.eventData) 
-          : message.eventData;
-          
+        const info =
+          typeof message.eventData === 'string'
+            ? JSON.parse(message.eventData)
+            : message.eventData;
+
         console.log('Parsed info:', info);
         this.onInfo?.(info);
       }
     } catch (error) {
-      console.error('Failed to parse WebView message:', error, event.nativeEvent.data);
+      console.error(
+        'Failed to parse WebView message:',
+        error,
+        event.nativeEvent.data,
+      );
     }
   };
 
@@ -52,12 +58,12 @@ export class WebViewBridge {
   // Send response back to WebView
   public sendResponse = (response: WebViewResponse) => {
     console.log('Sending response to WebView:', response);
-    
+
     if (!this.webViewRef.current) {
       console.error('WebView reference is null, cannot send response');
       return;
     }
-    
+
     const script = `
       (function() {
         try {
@@ -76,7 +82,7 @@ export class WebViewBridge {
         true;
       })();
     `;
-    
+
     this.webViewRef.current.injectJavaScript(script);
   };
 
@@ -138,7 +144,7 @@ export class WebViewBridge {
   // Reinitialize bridge after page load
   public reinitializeBridge(): void {
     if (!this.webViewRef.current) return;
-    
+
     const script = `
       (function() {
         console.log('Re-initializing bridge after page load');
@@ -149,7 +155,7 @@ export class WebViewBridge {
         true;
       })();
     `;
-    
+
     this.webViewRef.current.injectJavaScript(script);
   }
 }

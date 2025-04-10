@@ -1,9 +1,9 @@
 // types.ts
-export type MessageMethod = 
-  'okto_sdk_login' | 
-  'okto_ui_state_update' | 
+export type MessageMethod =
+  | 'okto_sdk_login'
+  | 'okto_ui_state_update'
   // Add other methods as needed
-  string;
+  | string;
 
 export interface WebViewRequest {
   id: string;
@@ -14,12 +14,10 @@ export interface WebViewRequest {
 export interface WebViewResponse {
   id: string;
   method: MessageMethod;
-  data: {
-    provider: string;
-    whatsapp_number?: string;
-    token?: string;
-    [key: string]: any;
-  };
+  provider: string;
+  whatsapp_number?: string;
+  token?: string;
+  [key: string]: any;
   error?: string;
 }
 

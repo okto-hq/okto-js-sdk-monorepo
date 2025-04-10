@@ -16,7 +16,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
   const requestHandler = useRef(new WebViewRequestHandler(bridge)).current;
-  
+
   // Set navigation title if provided
   useEffect(() => {
     if (title) {
@@ -26,10 +26,13 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   // Handle back button
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.goBack();
-      return true;
-    });
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
 
     return () => backHandler.remove();
   }, [navigation]);
@@ -57,5 +60,5 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  }
+  },
 });
