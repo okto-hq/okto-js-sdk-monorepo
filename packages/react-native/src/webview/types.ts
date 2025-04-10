@@ -14,12 +14,10 @@ export interface WebViewRequest {
 export interface WebViewResponse {
   id: string;
   method: MessageMethod;
-  data: {
-    provider: string;
-    whatsapp_number?: string;
-    token?: string;
-    [key: string]: any;
-  };
+  provider: string;
+  whatsapp_number?: string;
+  token?: string;
+  [key: string]: any;
   error?: string;
 }
 

@@ -36,10 +36,8 @@ export class WebViewRequestHandler {
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
-        data: {
-          provider: request.data.provider,
-          whatsapp_number: request.data.whatsapp_number,
-        },
+        provider: request.data.provider,
+        whatsapp_number: request.data.whatsapp_number,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -57,11 +55,9 @@ export class WebViewRequestHandler {
     const response: WebViewResponse = {
       id: request.id,
       method: request.method,
-      data: {
-        provider,
-        whatsapp_number,
-        token: `d0c2e95e-1999-5afe-8d56-83a5e79f8aa8`,
-      },
+      provider,
+      whatsapp_number,
+      token: `d0c2e95e-1999-5afe-8d56-83a5e79f8aa8`,
     };
 
     console.log('Sending response:', response);
