@@ -1,7 +1,2 @@
-
-export const openWebView = (
-  url: string, 
-  navigation: any,
-): void => {
-  navigation.navigate('WebViewScreen', { url });
-};
+export * from './authWebViewScreen.js';
+export * from './webViewHandlers.js'; 

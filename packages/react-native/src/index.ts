@@ -10,5 +10,5 @@ export * from './explorer/index.js';
 export type * from './types/index.js';
 export * from './userop/index.js';
 
-export * from './webview/screen.js';
+export * from './webview/authWebViewScreen.js';
 // export * from './webview/index.js';
