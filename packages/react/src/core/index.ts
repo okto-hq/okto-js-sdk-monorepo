@@ -63,14 +63,6 @@ class OktoClient extends OktoCoreClient {
     clearLocalStorage('okto_session');
     return super.sessionClear();
   }
-
-  public closeWebView(): void {
-    this.webViewManager?.closeWebView();
-  }
-
-  public destroy(): void {
-    this.webViewManager?.destroy();
-  }
 }
 
 export { OktoClient };
