@@ -92,6 +92,7 @@ export class WebViewBridge {
       (function() {
         // Define communication channels
         window.requestChannel = {
+        console.log('request channel:');
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               eventName: 'requestChannel',
@@ -101,6 +102,7 @@ export class WebViewBridge {
         };
         
         window.infoChannel = {
+        console.log('info channel:');
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               eventName: 'infoChannel',
@@ -109,12 +111,15 @@ export class WebViewBridge {
           }
         };
         
-        // Store pending requests
-        window.pendingRequests = window.pendingRequests || {};
-        
-        // Define response handler
-        window.responseChannel = function(response) {
-          console.log('Response received in WebView:', response);
+        window.responseChannel = {
+        console.log('responseChannel');
+          postMessage: function(response) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              eventName: 'infoChannel',
+              eventData: response
+            }));
+          }
+        };
         
         // Let the SDK know the bridge is ready
         window.addEventListener('load', function() {
