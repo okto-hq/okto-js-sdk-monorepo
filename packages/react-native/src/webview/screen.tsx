@@ -1,3 +1,4 @@
+// WebViewScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { View, ActivityIndicator, StyleSheet, BackHandler, SafeAreaView } from 'react-native';
@@ -20,42 +21,19 @@ export type WebViewParamList = {
   };
 };
 
-// Fix the props typing - NativeStackScreenProps is already the combined route & navigation props
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
-// import { SafeAreaView } from 'react-native';
-// import { WebView } from 'react-native-webview';
-// import { NativeStackScreenProps } from '@react-navigation/native-stack';
-// import type { RootStackParamList } from './core/navigation.js'; // adjust path
-
-// type Props = NativeStackScreenProps<RootStackParamList, 'OktoWebView'>;
-
-// export const WebViewScreen = ({ route }: Props) => {
-//   const { url } = route.params;
-
-//   return (
-//     <SafeAreaView style={{ flex: 1 }}>
-//       <WebView
-//         source={{ uri: url }}
-//         // startInLoadingState={true}
-//         javaScriptEnabled={true}
-//       />
-//     </SafeAreaView>
-//   );
-// };
-
-
-export const WebViewScreen = ({ route }: Props) =>{
+export const WebViewScreen = ({ route, navigation }: Props) => {
   const { url, title } = route.params;
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // Set navigation title if provided
-  // useEffect(() => {
-  //   if (title) {
-  //     navigation.setOptions({ title });
-  //   }
-  // }, [title, navigation]);
+  useEffect(() => {
+    if (title) {
+      navigation.setOptions({ title });
+    }
+  }, [title, navigation]);
   
   // Handle Android back button
   useEffect(() => {
@@ -82,7 +60,7 @@ export const WebViewScreen = ({ route }: Props) =>{
   const handleRequest = async (request: WebViewRequest) => {
     console.log('Received request from WebView:', request);
     
-    // Send loading state
+    // Send loading state immediately
     sendResponseToWebView(webViewRef, {
       id: request.id,
       method: request.method,
@@ -103,6 +81,7 @@ export const WebViewScreen = ({ route }: Props) =>{
           throw new Error(`Unknown method: ${request.method}`);
       }
     } catch (error) {
+      console.error('Error handling request:', error);
       // Send error response
       sendResponseToWebView(webViewRef, {
         id: request.id,
@@ -117,13 +96,14 @@ export const WebViewScreen = ({ route }: Props) =>{
 
   // Handle login request
   const handleLoginRequest = async (request: WebViewRequest) => {
+    console.log('Handling login request:', request.data);
     const { provider } = request.data;
     
     // Simulate login process
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Send success response
-    sendResponseToWebView(webViewRef, {
+    const response: WebViewResponse = {
       id: request.id,
       method: request.method,
       data: {
@@ -131,7 +111,10 @@ export const WebViewScreen = ({ route }: Props) =>{
         message: `Successfully logged in with ${provider}`,
         token: `sample-token-${uuidv4().substring(0, 8)}`
       }
-    });
+    };
+    
+    console.log('Sending response:', response);
+    sendResponseToWebView(webViewRef, response);
   };
 
   // Handle info messages
@@ -142,92 +125,102 @@ export const WebViewScreen = ({ route }: Props) =>{
 
   // Inject communication functions into WebView
   const injectedJavaScript = `
-    // Define communication channels
-    window.requestChannel = {
-      postMessage: function(message) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          eventName: 'requestChannel',
-          eventData: message
-        }));
-      }
-    };
-    
-    window.infoChannel = {
-      postMessage: function(message) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          eventName: 'infoChannel',
-          eventData: message
-        }));
-      }
-    };
-    
-    // Define response handler
-    window.responseChannel = function(response) {
-      // Find and execute the callback for this response
-      if (window.pendingRequests && window.pendingRequests[response.id]) {
-        window.pendingRequests[response.id](response);
-        if (response.status !== 'loading') {
-          delete window.pendingRequests[response.id];
+    (function() {
+      // Define communication channels
+      window.requestChannel = {
+        postMessage: function(message) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            eventName: 'requestChannel',
+            eventData: message
+          }));
         }
-      }
-    };
-    
-    // Store pending requests
-    window.pendingRequests = window.pendingRequests || {};
-    
-    // Let the SDK know the bridge is ready
-    setTimeout(function() {
-      if (window.onBridgeReady) {
-        window.onBridgeReady();
-      }
-    }, 100);
-    
-    true;
+      };
+      
+      window.infoChannel = {
+        postMessage: function(message) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            eventName: 'infoChannel',
+            eventData: message
+          }));
+        }
+      };
+      
+      // Store pending requests
+      window.pendingRequests = window.pendingRequests || {};
+      
+      // Define response handler
+      window.responseChannel = function(response) {
+        console.log('Response received in WebView:', response);
+        
+        // Find and execute the callback for this response
+        if (window.pendingRequests && window.pendingRequests[response.id]) {
+          window.pendingRequests[response.id](response);
+          if (response.status !== 'loading') {
+            delete window.pendingRequests[response.id];
+          }
+        } else {
+          console.warn('No pending request found for response ID:', response.id);
+        }
+      };
+      
+      // Let the SDK know the bridge is ready
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          console.log('Bridge is ready');
+          if (window.onBridgeReady) {
+            window.onBridgeReady();
+          }
+        }, 300);
+      });
+      
+      console.log('Communication bridge initialized');
+      true;
+    })();
   `;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
         onMessage={onMessage}
         onLoadStart={() => setIsLoading(true)}
-        onLoadEnd={() => setIsLoading(false)}
+        onLoadEnd={() => {
+          setIsLoading(false);
+          if (webViewRef.current) {
+            webViewRef.current.injectJavaScript(`
+              (function() {
+                console.log('Re-initializing bridge after page load');
+                // Check if bridge needs to be initialized
+                if (!window.requestChannel || !window.infoChannel || !window.responseChannel) {
+                  ${injectedJavaScript}
+                }
+                true;
+              })();
+            `);
+          }
+        }}
         injectedJavaScript={injectedJavaScript}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={['*']}
       />
-      </SafeAreaView>
+    </SafeAreaView>
   );
 };
-
-//     <SafeAreaView style={{ flex: 1 }}>
-//       <WebView
-//         source={{ uri: url }}
-//         // startInLoadingState={true}
-//         javaScriptEnabled={true}
-//       />
-//     </SafeAreaView>
-//   );
-// };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
-  },
-  webview: {
-    flex: 1
   },
   loadingContainer: {
     position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
-    top: 0,
     bottom: 0,
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)'
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   }
 });

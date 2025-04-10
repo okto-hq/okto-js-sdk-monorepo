@@ -1,4 +1,4 @@
-// In src/core/webview/communication.ts
+// communication.ts
 import type { WebViewMessageEvent } from 'react-native-webview';
 
 export type MessageMethod = 
@@ -32,18 +32,31 @@ export const handleWebViewMessage = (
   }
 ) => {
   try {
-    const message = JSON.parse(event.nativeEvent.data);
+    const rawData = event.nativeEvent.data;
+    console.log('Raw message from WebView:', rawData);
+    
+    const message = JSON.parse(rawData);
     
     // Determine if it's a request or info message
     if (message.eventName === 'requestChannel') {
-      const request = JSON.parse(message.eventData);
+      // Handle correctly whether the message is already parsed or needs parsing
+      const request = typeof message.eventData === 'string' 
+        ? JSON.parse(message.eventData) 
+        : message.eventData;
+        
+      console.log('Parsed request:', request);
       callbacks.onRequest?.(request);
     } else if (message.eventName === 'infoChannel') {
-      const info = JSON.parse(message.eventData);
+      // Handle correctly whether the message is already parsed or needs parsing
+      const info = typeof message.eventData === 'string' 
+        ? JSON.parse(message.eventData) 
+        : message.eventData;
+        
+      console.log('Parsed info:', info);
       callbacks.onInfo?.(info);
     }
   } catch (error) {
-    console.error('Failed to parse WebView message:', error);
+    console.error('Failed to parse WebView message:', error, event.nativeEvent.data);
   }
 };
 
@@ -52,17 +65,34 @@ export const sendResponseToWebView = (
   webViewRef: any,
   response: WebViewResponse
 ) => {
-  const message = {
-    eventName: 'responseChannel',
-    eventData: JSON.stringify(response)
-  };
+  console.log('Sending response to WebView:', response);
   
-  webViewRef.current?.injectJavaScript(`
+  if (!webViewRef.current) {
+    console.error('WebView reference is null, cannot send response');
+    return;
+  }
+  
+  // Use a more reliable injection method with proper error handling
+  const script = `
     (function() {
-      if (window.responseChannel && typeof window.responseChannel === 'function') {
+      try {
+        console.log('Processing response in WebView:', ${JSON.stringify(JSON.stringify(response))});
+        
+        // Make sure the response channel exists
+        if (typeof window.responseChannel !== 'function') {
+          console.error('responseChannel is not defined or not a function');
+          return;
+        }
+        
+        // Call the response channel with the response object
         window.responseChannel(${JSON.stringify(response)});
+        console.log('Response processed');
+      } catch (e) {
+        console.error('Error in WebView when processing response:', e);
       }
       true;
     })();
-  `);
+  `;
+  
+  webViewRef.current.injectJavaScript(script);
 };
