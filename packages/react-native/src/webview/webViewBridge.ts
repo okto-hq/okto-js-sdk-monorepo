@@ -64,45 +64,32 @@ export class WebViewBridge {
       return;
     }
   
-    // // Use the correct format that the web expects
-    // const script = `
-    //   (function() {
-    //     try {
-    //       const response = ${JSON.stringify(response)};
-    //       console.log('Processing response in WebView:', response);
-          
-    //       if (typeof window.responseChannel === 'function') {
-    //         window.responseChannel(response);
-    //         console.log('Response processed');
-    //       } else {
-    //         console.error('responseChannel is not defined or not a function');
-    //       }
-    //     } catch (e) {
-    //       console.error('Error in WebView when processing response:', e);
-    //     }
-    //   })();
-    // `;
-
-    const jsCode = `
+    // Use the correct format that the web expects
+    const script = `
       (function() {
-        window.postMessage('${JSON.stringify(response)}', '*');
-        true;
+        try {
+          const response = ${JSON.stringify(response)};
+          console.log('Processing response in WebView:', response);
+          
+          if (typeof window.responseChannel === 'function') {
+            window.responseChannel(response);
+            console.log('Response processed');
+          } else {
+            console.error('responseChannel is not defined or not a function');
+          }
+        } catch (e) {
+          console.error('Error in WebView when processing response:', e);
+        }
       })();
     `;
-    console.log("WebView reference check:", {
-        isDefined: this.webViewRef.current !== null,
-        webViewRef: this.webViewRef.current
-      });
-    this.webViewRef.current?.injectJavaScript(jsCode);
   
-    // this.webViewRef.current.injectJavaScript(script);
+    this.webViewRef.current.injectJavaScript(script);
   };
 
   // Get injected JavaScript for WebView initialization
   public getInjectedJavaScript(): string {
     return `
       (function() {
-        // Define communication channels
         window.requestChannel = {
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -111,7 +98,7 @@ export class WebViewBridge {
             }));
           }
         };
-        
+  
         window.infoChannel = {
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -121,23 +108,45 @@ export class WebViewBridge {
           }
         };
   
-        // Store pending requests
         window.pendingRequests = window.pendingRequests || {};
   
-        // Define response handler
         window.responseChannel = function(response) {
+          console.log('[WebView] Response received in WebView:', response);
           if (window.pendingRequests && window.pendingRequests[response.id]) {
             window.pendingRequests[response.id](response);
             delete window.pendingRequests[response.id];
+          } else {
+            console.warn('[WebView] No pending request found for ID:', response.id);
           }
         };
   
+        window.addEventListener('message', function(event) {
+          try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (window.responseChannel) {
+              window.responseChannel(data);
+            }
+          } catch (e) {
+            console.error('[WebView] Failed to process message event:', e);
+          }
+        });
+  
+        // Notify bridge ready
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            console.log('[WebView] Bridge is ready');
+            if (window.onBridgeReady) {
+              window.onBridgeReady();
+            }
+          }, 300);
+        });
+  
+        console.log('[WebView] Communication bridge initialized');
         true;
       })();
     `;
   }
   
-
   // Reinitialize bridge after page load
   public reinitializeBridge(): void {
     if (!this.webViewRef.current) return;
