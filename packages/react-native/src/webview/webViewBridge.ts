@@ -70,11 +70,14 @@ export class WebViewBridge {
           const response = ${JSON.stringify(response)};
           console.log('Processing response in WebView:', response);
 
-          if (typeof window.responseChannel === 'function') {
-            window.responseChannel(response);
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              eventName: 'responseChannel',
+              eventData: response
+            }));
             console.log('Response processed');
           } else {
-            console.error('responseChannel is not defined or not a function');
+            console.error('ReactNativeWebView is not available');
           }
         } catch (e) {
           console.error('Error in WebView when processing response:', e);
