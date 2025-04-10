@@ -64,10 +64,12 @@ export class WebViewBridge {
       return;
     }
 
+    const responseStr = JSON.stringify(response);
+
     const script = `
       (function() {
         try {
-          const response = ${JSON.stringify(response)};
+          
           console.log('Processing response in WebView:', response);
 
           if (window.ReactNativeWebView) {
@@ -84,8 +86,8 @@ export class WebViewBridge {
         }
       })();
     `;
-
-    this.webViewRef.current.injectJavaScript(script);
+    console.log('KARAN :: Injecting script to WebView:', this.webViewRef.current); 
+    this.webViewRef.current.postMessage(responseStr);
   };
 
   // Get injected JavaScript for WebView initialization
