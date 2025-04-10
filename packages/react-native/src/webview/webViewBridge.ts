@@ -90,6 +90,7 @@ export class WebViewBridge {
   public getInjectedJavaScript(): string {
     return `
       (function() {
+        // Define communication channels
         window.requestChannel = {
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -98,7 +99,7 @@ export class WebViewBridge {
             }));
           }
         };
-  
+        
         window.infoChannel = {
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -107,46 +108,39 @@ export class WebViewBridge {
             }));
           }
         };
-  
+        
+        // Store pending requests
         window.pendingRequests = window.pendingRequests || {};
-  
+        
+        // Define response handler
         window.responseChannel = function(response) {
-          console.log('[WebView] Response received in WebView:', response);
+          console.log('Response received in WebView:', response);
+          
+          // Find and execute the callback for this response
           if (window.pendingRequests && window.pendingRequests[response.id]) {
             window.pendingRequests[response.id](response);
             delete window.pendingRequests[response.id];
           } else {
-            console.warn('[WebView] No pending request found for ID:', response.id);
+            console.warn('No pending request found for response ID:', response.id);
           }
         };
-  
-        window.addEventListener('message', function(event) {
-          try {
-            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            if (window.responseChannel) {
-              window.responseChannel(data);
-            }
-          } catch (e) {
-            console.error('[WebView] Failed to process message event:', e);
-          }
-        });
-  
-        // Notify bridge ready
+        
+        // Let the SDK know the bridge is ready
         window.addEventListener('load', function() {
           setTimeout(function() {
-            console.log('[WebView] Bridge is ready');
+            console.log('Bridge is ready');
             if (window.onBridgeReady) {
               window.onBridgeReady();
             }
           }, 300);
         });
-  
-        console.log('[WebView] Communication bridge initialized');
+        
+        console.log('Communication bridge initialized');
         true;
       })();
     `;
   }
-  
+
   // Reinitialize bridge after page load
   public reinitializeBridge(): void {
     if (!this.webViewRef.current) return;
@@ -154,7 +148,6 @@ export class WebViewBridge {
     const script = `
       (function() {
         console.log('Re-initializing bridge after page load');
-        // Check if bridge needs to be initialized
         if (!window.requestChannel || !window.infoChannel || !window.responseChannel) {
           ${this.getInjectedJavaScript()}
         }
