@@ -60,16 +60,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   const handleRequest = async (request: WebViewRequest) => {
     console.log('Received request from WebView:', request);
     
-    // Send loading state immediately
-    sendResponseToWebView(webViewRef, {
-      id: request.id,
-      method: request.method,
-      data: {
-        status: 'loading',
-        message: 'Processing request...'
-      }
-    });
-    
     try {
       // Process the request based on method
       switch (request.method) {
@@ -82,14 +72,15 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       }
     } catch (error) {
       console.error('Error handling request:', error);
-      // Send error response
+      // Send error response according to specified format
       sendResponseToWebView(webViewRef, {
         id: request.id,
         method: request.method,
         data: {
-          status: 'error',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        }
+          provider: request.data.provider,
+          whatsapp_number: request.data.whatsapp_number,
+        },
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
@@ -97,18 +88,18 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   // Handle login request
   const handleLoginRequest = async (request: WebViewRequest) => {
     console.log('Handling login request:', request.data);
-    const { provider } = request.data;
+    const { provider, whatsapp_number, type } = request.data;
     
     // Simulate login process
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Send success response
+    // Send success response according to the specified format
     const response: WebViewResponse = {
       id: request.id,
       method: request.method,
       data: {
-        status: 'success',
-        message: `Successfully logged in with ${provider}`,
+        provider,
+        whatsapp_number,
         token: `sample-token-${uuidv4().substring(0, 8)}`
       }
     };
@@ -155,9 +146,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         // Find and execute the callback for this response
         if (window.pendingRequests && window.pendingRequests[response.id]) {
           window.pendingRequests[response.id](response);
-          if (response.status !== 'loading') {
-            delete window.pendingRequests[response.id];
-          }
+          delete window.pendingRequests[response.id];
         } else {
           console.warn('No pending request found for response ID:', response.id);
         }
@@ -205,6 +194,11 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         domStorageEnabled={true}
         originWhitelist={['*']}
       />
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };

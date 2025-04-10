@@ -13,14 +13,17 @@ export interface WebViewRequest {
   data: Record<string, any>;
 }
 
+// Updated to match the expected format from documentation
 export interface WebViewResponse {
   id: string;
   method: MessageMethod;
   data: {
-    status: 'loading' | 'success' | 'error';
-    message?: string;
+    provider: string;
+    whatsapp_number?: string;
+    token?: string;
     [key: string]: any;
   };
+  error?: string;
 }
 
 // Handler for messages from WebView to React Native
