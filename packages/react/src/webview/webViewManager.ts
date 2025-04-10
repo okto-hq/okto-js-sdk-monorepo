@@ -103,7 +103,10 @@ export class WebViewManager {
     }
 
     this.webModal = document.createElement('div');
-    Object.assign(this.webModal.style, DEFAULT_MODAL_STYLE, modalStyle);
+    Object.assign(this.webModal.style, DEFAULT_MODAL_STYLE, modalStyle, {
+      opacity: '0',
+      transition: 'opacity 0.5s ease',
+    });
 
     const iframeContainer = document.createElement('div');
     iframeContainer.style.position = 'relative';
@@ -118,9 +121,17 @@ export class WebViewManager {
     this.webModal.appendChild(iframeContainer);
     document.body.appendChild(this.webModal);
 
+    // Trigger animation
+    requestAnimationFrame(() => {
+      this.webModal!.style.opacity = '1';
+    });
+
     const closeHandler = () => {
-      this.closeWebView();
-      onClose?.();
+      this.webModal!.style.opacity = '0';
+      setTimeout(() => {
+        this.closeWebView();
+        onClose?.();
+      }, 300); // Match the transition duration
     };
 
     this.webModal.addEventListener('click', (e) => {
@@ -363,13 +374,22 @@ export class WebViewManager {
    */
   public closeWebView(): void {
     if (this.webModal) {
-      document.body.removeChild(this.webModal);
-      this.webModal = null;
+      // fade-out animation
+      this.webModal.style.opacity = '0';
+  
+      // Wait for the animation to complete before removing the modal
+      setTimeout(() => {
+        if (this.webModal) {
+          document.body.removeChild(this.webModal);
+          this.webModal = null;
+        }
+        this.webFrame = null;
+        this.currentTargetOrigin = null;
+        this.clearPopupCheck();
+      }, 300);
     }
-    this.webFrame = null;
-    this.currentTargetOrigin = null;
-    this.clearPopupCheck();
   }
+  
 
   /**
    * @description

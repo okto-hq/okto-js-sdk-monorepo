@@ -10,15 +10,15 @@ import type { WebViewRequestHandler, WhatsAppOtpResponse } from '../types.js';
  */
 export class AuthRequestHandler {
   private webViewManager: WebViewManager;
-  private requestOtp?: () => WhatsAppOtpResponse;
-  private verifyOtp?: () => WhatsAppOtpResponse;
-  private resendOtp?: () => WhatsAppOtpResponse;
+  private requestOtp?: (data: any) => WhatsAppOtpResponse;
+  private verifyOtp?: (data: any) => WhatsAppOtpResponse;
+  private resendOtp?: (data: any) => WhatsAppOtpResponse;
 
   constructor(
     webViewManager: WebViewManager,
-    requestOtp?: () => WhatsAppOtpResponse,
-    verifyOtp?: () => WhatsAppOtpResponse,
-    resendOtp?: () => WhatsAppOtpResponse,
+    requestOtp?: (data: any) => WhatsAppOtpResponse,
+    verifyOtp?: (data: any) => WhatsAppOtpResponse,
+    resendOtp?: (data: any) => WhatsAppOtpResponse,
   ) {
     this.requestOtp = requestOtp;
     this.verifyOtp = verifyOtp;
