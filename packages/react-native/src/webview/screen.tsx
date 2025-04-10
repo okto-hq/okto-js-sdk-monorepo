@@ -1,7 +1,7 @@
 // WebViewScreen.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { View, ActivityIndicator, StyleSheet, BackHandler, SafeAreaView } from 'react-native';
+import {StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -194,11 +194,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         domStorageEnabled={true}
         originWhitelist={['*']}
       />
-      {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
     </SafeAreaView>
   );
 };
