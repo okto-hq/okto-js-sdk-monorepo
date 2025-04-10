@@ -115,18 +115,6 @@ export class WebViewBridge {
         // Define response handler
         window.responseChannel = function(response) {
           console.log('Response received in WebView:', response);
-
-        if (typeof globalThis.responseChannel === 'function') {
-           globalThis.responseChannel(response); }
-          
-          // Find and execute the callback for this response
-          if (window.pendingRequests && window.pendingRequests[response.id]) {
-            window.pendingRequests[response.id](response);
-            delete window.pendingRequests[response.id];
-          } else {
-            console.warn('No pending request found for response ID:', response.id);
-          }
-        };
         
         // Let the SDK know the bridge is ready
         window.addEventListener('load', function() {
