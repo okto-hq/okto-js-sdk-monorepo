@@ -56,8 +56,7 @@ export class WebViewBridge {
   }
 
   // Send response back to WebView
-// In WebViewBridge.ts
-public sendResponse = (response: WebViewResponse) => {
+  public sendResponse = (response: WebViewResponse) => {
     console.log('Sending response to WebView:', response);
   
     if (!this.webViewRef.current) {
@@ -65,41 +64,38 @@ public sendResponse = (response: WebViewResponse) => {
       return;
     }
   
-    // First ensure the bridge is initialized
-    const ensureBridgeScript = `
-      if (!window.responseChannel) {
-        ${this.getInjectedJavaScript()}
-      }
-      true;
-    `;
-  
-    // Then send the response
-    const responseScript = `
+    // // Use the correct format that the web expects
+    // const script = `
+    //   (function() {
+    //     try {
+    //       const response = ${JSON.stringify(response)};
+    //       console.log('Processing response in WebView:', response);
+          
+    //       if (typeof window.responseChannel === 'function') {
+    //         window.responseChannel(response);
+    //         console.log('Response processed');
+    //       } else {
+    //         console.error('responseChannel is not defined or not a function');
+    //       }
+    //     } catch (e) {
+    //       console.error('Error in WebView when processing response:', e);
+    //     }
+    //   })();
+    // `;
+
+    const jsCode = `
       (function() {
-        try {
-          const response = ${JSON.stringify(response)};
-          if (typeof window.responseChannel === 'function') {
-            window.responseChannel(response);
-          } else {
-            console.error('responseChannel not found, retrying...');
-            setTimeout(function() {
-              if (typeof window.responseChannel === 'function') {
-                window.responseChannel(response);
-              }
-            }, 100);
-          }
-        } catch (e) {
-          console.error('Error in WebView when processing response:', e);
-        }
+        window.postMessage('${JSON.stringify(response)}', '*');
+        true;
       })();
-      true;
     `;
+    console.log("WebView reference check:", {
+        isDefined: this.webViewRef.current !== null,
+        webViewRef: this.webViewRef.current
+      });
+    this.webViewRef.current?.injectJavaScript(jsCode);
   
-    // Execute both scripts
-    this.webViewRef.current.injectJavaScript(ensureBridgeScript);
-    setTimeout(() => {
-      this.webViewRef.current?.injectJavaScript(responseScript);
-    }, 50);
+    // this.webViewRef.current.injectJavaScript(script);
   };
 
   // Get injected JavaScript for WebView initialization
@@ -124,39 +120,23 @@ public sendResponse = (response: WebViewResponse) => {
             }));
           }
         };
-        
+  
         // Store pending requests
         window.pendingRequests = window.pendingRequests || {};
-        
+  
         // Define response handler
         window.responseChannel = function(response) {
-          console.log('Response received in WebView:', response, 
-            'responseChannel available:', typeof window.responseChannel);
-          
-          // Find and execute the callback for this response
           if (window.pendingRequests && window.pendingRequests[response.id]) {
             window.pendingRequests[response.id](response);
             delete window.pendingRequests[response.id];
-          } else {
-            console.warn('No pending request found for response ID:', response.id);
           }
         };
-        
-        // Let the SDK know the bridge is ready
-        window.addEventListener('load', function() {
-          setTimeout(function() {
-            console.log('Bridge is ready');
-            if (window.onBridgeReady) {
-              window.onBridgeReady();
-            }
-          }, 300);
-        });
-        
-        console.log('Communication bridge initialized');
+  
         true;
       })();
     `;
   }
+  
 
   // Reinitialize bridge after page load
   public reinitializeBridge(): void {

@@ -24,6 +24,13 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     }
   }, [title, navigation]);
 
+  useEffect(() => {
+    console.log('WebView ref:', {
+      refObject: webViewRef,
+      currentValue: webViewRef.current
+    });
+  }, []);
+
   // Handle back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
