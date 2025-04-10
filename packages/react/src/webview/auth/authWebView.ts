@@ -40,7 +40,6 @@ export const oktoAuthWebView = (
       return reject(error);
     }
 
-    // Listen for postMessage events
     const messageListener = (event: MessageEvent) => {
       if (!webViewManager['allowedOrigins']?.includes(event.origin)) return;
 

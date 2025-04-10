@@ -4,8 +4,10 @@ import {
   DEFAULT_IFRAME_STYLE,
   DEFAULT_MODAL_STYLE,
   DEFAULT_REQUEST_TIMEOUT,
+  DEFAULT_WEBVIEW_URL,
+  TARGET_ORIGIN_RESPONSE,
 } from './constants.js';
-import type { WebViewMessage, WebViewOptions } from './types.js';
+import type { WebViewOptions } from './types.js';
 
 // WebViewManager.ts
 export class WebViewManager {
@@ -24,126 +26,15 @@ export class WebViewManager {
   constructor(debug: boolean = false, allowedOrigins?: string[]) {
     this.debug = debug;
     this.allowedOrigins = allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
-    // this.setupMessageListener();
-    // this.setupWebViewCommunication();
   }
-
-  // Method to handle incoming requests
+  
   public onRequest(method: string, handler: (data: any) => Promise<any>): void {
     this.requestHandlers.set(method, handler);
   }
 
-  private setupMessageListener(): void {
-    setTimeout(() => {
-      window.addEventListener('message', this.handleMessage);
-    }, 0);
-  }
-
-  private handleMessage = (event: MessageEvent): void => {
-    if (!this.allowedOrigins?.includes(event.origin)) {
-      this.debug &&
-        console.warn('[WebViewManager] Unauthorized origin:', event.origin);
-      return;
-    }
-
-    try {
-      // Handle both wrapped and direct message formats
-      let parsedMessage: WebViewMessage | null = null;
-
-      // 1. Check for nested message structure
-      if (event.data.eventName && event.data.eventData) {
-        this.debug &&
-          console.log('[WebViewManager] Received wrapped message:', event.data);
-
-        try {
-          const innerData = JSON.parse(event.data.eventData);
-          if (this.validateMessage(innerData)) {
-            parsedMessage = innerData;
-          }
-        } catch (error) {
-          this.debug &&
-            console.error(
-              '[WebViewManager] Failed to parse inner data:',
-              error,
-            );
-        }
-      }
-      // 2. Check for direct message structure
-      else if (this.validateMessage(event.data)) {
-        parsedMessage = event.data;
-      }
-
-      if (parsedMessage) {
-        this.debug &&
-          console.log('[WebViewManager] Processing message:', parsedMessage);
-
-        if (parsedMessage.channel === 'requestChannel') {
-          this.handleIncomingRequest(parsedMessage);
-        } else if (parsedMessage.channel === 'responseChannel') {
-          const handler = this.messageHandlers.get(parsedMessage.id);
-          if (handler) {
-            handler(parsedMessage.data);
-            this.messageHandlers.delete(parsedMessage.id);
-          }
-        }
-      } else {
-        this.debug &&
-          console.warn(
-            '[WebViewManager] Unrecognized message format:',
-            event.data,
-          );
-      }
-    } catch (error) {
-      this.debug &&
-        console.error('[WebViewManager] Message processing error:', error);
-    }
-  };
-
-  // Add this method to better handle WebView communication
-  public setupWebViewCommunication(): void {
-    // Send a ready signal to the WebView
-    this.webPopup?.postMessage(
-      {
-        type: 'sdk_ready',
-        status: 'connected',
-      },
-      this.targetOrigin,
-    );
-
-    // Handle WebView ready state
-    window.addEventListener('message', (event) => {
-      if (
-        event.data?.type === 'webview_ready' &&
-        this.allowedOrigins?.includes(event.origin)
-      ) {
-        this.debug &&
-          console.log('[WebViewManager] WebView initialized:', event.data);
-        this.webPopup?.postMessage(
-          {
-            type: 'acknowledge',
-            status: 'ready',
-          },
-          this.targetOrigin,
-        );
-      }
-    });
-  }
-
-  // Updated validateMessage
-  private validateMessage(message: any): message is WebViewMessage {
-    return (
-      message &&
-      typeof message.id === 'string' &&
-      typeof message.method === 'string' &&
-      ['requestChannel', 'responseChannel', 'infoChannel'].includes(
-        message.channel,
-      )
-    );
-  }
-
   public openWebView(options: WebViewOptions = {}): boolean {
     const {
-      url = 'https://onboarding.oktostage.com',
+      url = DEFAULT_WEBVIEW_URL as string,
       width = 300,
       height = 600,
       onClose,
@@ -225,10 +116,9 @@ export class WebViewManager {
     }
   }
 
-  // Then update the targetOrigin getter:
   private get targetOrigin(): string {
     return this.validateTargetOrigin(
-      this.allowedOrigins?.[3] ?? window.location.origin,
+      TARGET_ORIGIN_RESPONSE ?? this.allowedOrigins?.[0] ?? window.location.origin,
     );
   }
 
@@ -300,34 +190,6 @@ export class WebViewManager {
     );
   }
 
-  private async handleIncomingRequest(message: WebViewMessage): Promise<void> {
-    try {
-      this.debug &&
-        console.log(
-          '[WebViewManager] Dispatching',
-          message.method,
-          'with ID:',
-          message.id,
-        );
-
-      const handler = this.requestHandlers.get(message.method);
-      if (!handler) {
-        this.debug &&
-          console.warn(`[WebViewManager] No handler for ${message.method}`);
-        return;
-      }
-
-      const response = await handler(message.data);
-      this.sendResponse(message.id, message.method, response);
-    } catch (error) {
-      this.sendErrorResponse(
-        message.id,
-        message.method,
-        error instanceof Error ? error.message : 'Request failed',
-      );
-    }
-  }
-
   public sendResponse(
     id: string,
     method: string,
@@ -375,7 +237,6 @@ export class WebViewManager {
   }
 
   public destroy(): void {
-    window.removeEventListener('message', this.handleMessage);
     this.closeWebView();
     this.messageHandlers.clear();
   }

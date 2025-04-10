@@ -42,7 +42,7 @@ export const createAuthRequestHandler = (
         );
         setTimeout(() => {
           webViewManager.closeWebView();
-        }, 2000);
+        }, 1000);
         break;
 
       case 'resend_otp':

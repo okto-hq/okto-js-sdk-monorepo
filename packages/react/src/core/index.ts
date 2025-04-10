@@ -14,8 +14,8 @@ import {
 
 import { WebViewManager } from '../webview/webViewManager.js';
 import type { WebViewOptions } from 'src/webview/types.js';
-import { createAuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
-import { oktoAuthWebView } from 'src/webview/auth/authenticateWebView.js';
+import { createAuthRequestHandler } from 'src/webview/auth/requestHandler.js';
+import { oktoAuthWebView } from 'src/webview/auth/authWebView.js';
 
 class OktoClient extends OktoCoreClient {
   private webViewManager: WebViewManager;
@@ -23,7 +23,7 @@ class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
     this.initializeSession();
-    this.webViewManager = new WebViewManager(true);
+    this.webViewManager = new WebViewManager(); // true: To enable Debug Mode for development
   }
 
   private async initializeSession(): Promise<void> {

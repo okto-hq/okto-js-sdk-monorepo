@@ -1,3 +1,6 @@
+
+// DEFAULT_ALLOWED_ORIGINS is an array of allowed origins for the webview.
+// It is used to validate the origin of the request and ensure that only trusted origins can access the webview.
 export const DEFAULT_ALLOWED_ORIGINS = [
   'https://onboarding.oktostage.com',
   'http://localhost:3000',
@@ -5,7 +8,8 @@ export const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:3001',
 ];
 
-export const DEFAULT_WEBVIEW_URL = DEFAULT_ALLOWED_ORIGINS[3];
+export const DEFAULT_WEBVIEW_URL = DEFAULT_ALLOWED_ORIGINS[3]; // THIS IS THE DEFAULT URL FOR THE WEBVIEW
+export const TARGET_ORIGIN_RESPONSE = DEFAULT_ALLOWED_ORIGINS[3]; // THIS IS THE TARGET ORIGIN FOR THE RESPONSE TO THE REQUEST IN THE WEBVIEW
 
 export const DEFAULT_REQUEST_TIMEOUT = 30000;
 
