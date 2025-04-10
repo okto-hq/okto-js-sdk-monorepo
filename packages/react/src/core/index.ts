@@ -13,7 +13,7 @@ import {
 import {
   WebViewManager,
   type WebViewOptions,
-} from '../utils/webViewManager.js';
+} from '../webview/webViewManager.js';
 
 class OktoClient extends OktoCoreClient {
   private webViewManager: WebViewManager;
