@@ -1,4 +1,3 @@
-
 // DEFAULT_ALLOWED_ORIGINS is an array of allowed origins for the webview.
 // It is used to validate the origin of the request and ensure that only trusted origins can access the webview.
 export const DEFAULT_ALLOWED_ORIGINS = [

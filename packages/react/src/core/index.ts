@@ -24,7 +24,7 @@ class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
     this.initializeSession();
-    this.initializeWebView(); // Boolean: Debug mode optional parameter 
+    this.initializeWebView(); // Boolean: Debug mode optional parameter
   }
 
   private async initializeSession(): Promise<void> {

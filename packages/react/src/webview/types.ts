@@ -62,7 +62,6 @@ export interface WebViewRequest {
  */
 export type WebViewRequestHandler = (data: any) => Promise<any> | void;
 
-
 /**
  * @WhatsAppOtpResponse
  * @description Interface for the WhatsApp OTP response data.

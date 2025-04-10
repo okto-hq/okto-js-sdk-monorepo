@@ -376,7 +376,7 @@ export class WebViewManager {
     if (this.webModal) {
       // fade-out animation
       this.webModal.style.opacity = '0';
-  
+
       // Wait for the animation to complete before removing the modal
       setTimeout(() => {
         if (this.webModal) {
@@ -389,7 +389,6 @@ export class WebViewManager {
       }, 300);
     }
   }
-  
 
   /**
    * @description
