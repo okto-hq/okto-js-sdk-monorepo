@@ -58,19 +58,18 @@ export class WebViewBridge {
   // Send response back to WebView
   public sendResponse = (response: WebViewResponse) => {
     console.log('Sending response to WebView:', response);
-  
+
     if (!this.webViewRef.current) {
       console.error('WebView reference is null, cannot send response');
       return;
     }
-  
-    // Use the correct format that the web expects
+
     const script = `
       (function() {
         try {
           const response = ${JSON.stringify(response)};
           console.log('Processing response in WebView:', response);
-          
+
           if (typeof window.responseChannel === 'function') {
             window.responseChannel(response);
             console.log('Response processed');
@@ -82,7 +81,7 @@ export class WebViewBridge {
         }
       })();
     `;
-  
+
     this.webViewRef.current.injectJavaScript(script);
   };
 
@@ -92,7 +91,6 @@ export class WebViewBridge {
       (function() {
         // Define communication channels
         window.requestChannel = {
-        console.log('request channel:');
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               eventName: 'requestChannel',
@@ -100,9 +98,8 @@ export class WebViewBridge {
             }));
           }
         };
-        
+
         window.infoChannel = {
-        console.log('info channel:');
           postMessage: function(message) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               eventName: 'infoChannel',
@@ -110,17 +107,15 @@ export class WebViewBridge {
             }));
           }
         };
-        
-        window.responseChannel = {
-        console.log('responseChannel');
-          postMessage: function(response) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              eventName: 'infoChannel',
-              eventData: response
-            }));
-          }
+
+        // Define responseChannel as a function (matches web implementation)
+        window.responseChannel = function(response) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            eventName: 'responseChannel',
+            eventData: response
+          }));
         };
-        
+
         // Let the SDK know the bridge is ready
         window.addEventListener('load', function() {
           setTimeout(function() {
@@ -130,7 +125,7 @@ export class WebViewBridge {
             }
           }, 300);
         });
-        
+
         console.log('Communication bridge initialized');
         true;
       })();
@@ -144,8 +139,7 @@ export class WebViewBridge {
     const script = `
       (function() {
         console.log('Re-initializing bridge after page load');
-        // Check if bridge needs to be initialized
-        if (!window.requestChannel || !window.infoChannel || !window.responseChannel) {
+        if (!window.requestChannel || !window.infoChannel || typeof window.responseChannel !== 'function') {
           ${this.getInjectedJavaScript()}
         }
         true;
