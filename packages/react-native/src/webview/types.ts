@@ -2,7 +2,11 @@ export type MessageMethod = 'okto_sdk_login';
 
 export type AuthProvider = 'whatsapp' | 'gauth' | 'telegram' | 'email';
 
-export type LoginRequestType = 'request_otp' | 'verify_otp' | 'resend_otp' | 'close_webview';
+export type LoginRequestType =
+  | 'request_otp'
+  | 'verify_otp'
+  | 'resend_otp'
+  | 'close_webview';
 
 export interface WebViewRequest {
   id: string;
@@ -18,7 +22,7 @@ export interface LoginRequestData {
   type?: LoginRequestType;
   otp?: string;
   token?: string;
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 export interface WebViewResponse {

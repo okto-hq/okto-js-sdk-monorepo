@@ -15,7 +15,16 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
-  const requestHandler = useRef(new WebViewRequestHandler(bridge)).current;
+
+  // Navigation callback to close the WebView
+  const navigateBack = () => {
+    navigation.goBack();
+  };
+
+  // Initialize request handler with navigation callback
+  const requestHandler = useRef(
+    new WebViewRequestHandler(bridge, navigateBack),
+  ).current;
 
   // Set navigation title if provided
   useEffect(() => {
@@ -27,7 +36,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   useEffect(() => {
     console.log('WebView ref:', {
       refObject: webViewRef,
-      currentValue: webViewRef.current
+      currentValue: webViewRef.current,
     });
   }, []);
 

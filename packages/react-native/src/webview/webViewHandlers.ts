@@ -1,12 +1,15 @@
+// WebViewRequestHandler.ts
 import { v4 as uuidv4 } from 'uuid';
 import { WebViewBridge } from './webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from './types.js';
 
 export class WebViewRequestHandler {
   private bridge: WebViewBridge;
+  private navigationCallback: () => void;
 
-  constructor(bridge: WebViewBridge) {
+  constructor(bridge: WebViewBridge, navigationCallback: () => void) {
     this.bridge = bridge;
+    this.navigationCallback = navigationCallback;
     this.initialize();
   }
 
@@ -66,12 +69,12 @@ export class WebViewRequestHandler {
 
   private handleRequestOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number } = request.data;
-    
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const tempToken = uuidv4();
-      
+
       const response: WebViewResponse = {
         id: request.id,
         method: request.method,
@@ -100,12 +103,12 @@ export class WebViewRequestHandler {
 
   private handleVerifyOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, otp, token } = request.data;
-    
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const authToken = `auth-${uuidv4()}`;
-      
+
       const response: WebViewResponse = {
         id: request.id,
         method: request.method,
@@ -114,12 +117,17 @@ export class WebViewRequestHandler {
           whatsapp_number,
           otp,
           token: authToken,
-          message: "Authentication successful",
+          message: 'Authentication successful',
         },
       };
 
       console.log('Sending OTP verification response:', response);
       this.bridge.sendResponse(response);
+
+      // Close the WebView after successful verification
+      setTimeout(() => {
+        this.navigationCallback();
+      }, 500);
     } catch (error) {
       console.error('Error verifying OTP:', error);
       this.bridge.sendResponse({
@@ -138,12 +146,12 @@ export class WebViewRequestHandler {
 
   private handleResendOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, token } = request.data;
-    
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const newToken = uuidv4();
-      
+
       const response: WebViewResponse = {
         id: request.id,
         method: request.method,
@@ -151,7 +159,7 @@ export class WebViewRequestHandler {
           provider,
           whatsapp_number,
           token: newToken,
-          message: "OTP resent successfully",
+          message: 'OTP resent successfully',
         },
       };
 
@@ -179,13 +187,17 @@ export class WebViewRequestHandler {
         method: request.method,
         data: {
           type: 'close_webview',
-          message: "WebView closed successfully",
+          message: 'WebView closed successfully',
         },
       };
 
       console.log('Processing WebView close request:', response);
       this.bridge.sendResponse(response);
-      
+
+      // Close the WebView after sending response
+      setTimeout(() => {
+        this.navigationCallback();
+      }, 300);
     } catch (error) {
       console.error('Error closing WebView:', error);
       this.bridge.sendResponse({
@@ -194,7 +206,8 @@ export class WebViewRequestHandler {
         data: {
           type: 'close_webview',
         },
-        error: error instanceof Error ? error.message : 'Failed to close WebView',
+        error:
+          error instanceof Error ? error.message : 'Failed to close WebView',
       });
     }
   };
@@ -202,6 +215,5 @@ export class WebViewRequestHandler {
   // Handle info messages
   private handleInfo = (info: WebViewRequest) => {
     console.log('Received info from WebView:', info);
-
   };
 }

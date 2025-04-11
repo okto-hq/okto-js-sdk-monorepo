@@ -58,12 +58,12 @@ export class WebViewBridge {
   // Send response back to WebView
   public sendResponse = (response: WebViewResponse) => {
     console.log('Sending response to WebView:', response);
-  
+
     if (!this.webViewRef.current) {
       console.error('WebView reference is null, cannot send response');
       return;
     }
-  
+
     // Use the correct format that the web expects
     const script = `
       (function() {
@@ -82,7 +82,7 @@ export class WebViewBridge {
         }
       })();
     `;
-  
+
     this.webViewRef.current.injectJavaScript(script);
   };
 
