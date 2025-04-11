@@ -76,5 +76,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 16,
   },
 });
