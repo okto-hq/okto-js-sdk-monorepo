@@ -4,8 +4,8 @@
 // ==============================
 
 import { v4 as uuidv4 } from 'uuid';
-import { WebViewBridge } from '../webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from '../types.js';
+import { WebViewBridge } from './webViewBridge.js';
+import type { WebViewRequest, WebViewResponse } from './types.js';
 
 /**
  * Handles and processes requests from WebView
