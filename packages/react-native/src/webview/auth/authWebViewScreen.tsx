@@ -9,8 +9,8 @@ import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { WebViewBridge } from '../webViewBridge.js';
-import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
 import type { Routes, WebViewParamList } from '../types.js';
+import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
 
 type Props = NativeStackScreenProps<WebViewParamList, Routes.AUTH_WEBVIEW>;
 
