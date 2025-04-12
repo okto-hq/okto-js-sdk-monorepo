@@ -7,6 +7,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import { Routes, type AuthProvider } from 'src/webview/types.js';
 
 class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
@@ -33,8 +34,20 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  public openAuthWebView = (url: string, navigation: any): void => {
-    navigation.navigate('AuthWebViewScreen', { url });
+  public openAuthWebView = (
+    url: string,
+    navigation: any,
+    options?: {
+      title?: string;
+      provider?: AuthProvider;
+      initialData?: Record<string, any>;
+      onAuthComplete?: (data: Record<string, any>) => void;
+    },
+  ): void => {
+    navigation.navigate(Routes.AUTH_WEBVIEW, {
+      url,
+      ...options,
+    });
   };
 
   override sessionClear(): void {

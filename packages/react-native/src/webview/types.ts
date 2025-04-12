@@ -14,6 +14,13 @@ export type MessageMethod = 'okto_sdk_login';
 export type AuthProvider = 'whatsapp' | 'gauth' | 'telegram' | 'email';
 
 /**
+ * Navigation routes enum to avoid hardcoded screen names
+ */
+export enum Routes {
+  AUTH_WEBVIEW = 'AuthWebViewScreen',  
+}
+
+/**
  * Types of login requests that can be processed
  */
 export type LoginRequestType =

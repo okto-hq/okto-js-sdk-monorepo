@@ -10,9 +10,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { WebViewBridge } from '../webViewBridge.js';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
-import type { WebViewParamList } from '../types.js';
+import type { Routes, WebViewParamList } from '../types.js';
 
-type Props = NativeStackScreenProps<WebViewParamList, 'AuthWebViewScreen'>;
+type Props = NativeStackScreenProps<WebViewParamList, Routes.AUTH_WEBVIEW>;
 
 /**
  * WebView screen component for handling authentication flows
