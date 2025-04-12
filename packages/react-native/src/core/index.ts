@@ -33,7 +33,7 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  openAuthWebView = (url: string, navigation: any): void => {
+  public openAuthWebView = (url: string, navigation: any): void => {
     navigation.navigate('AuthWebViewScreen', { url });
   };
 
