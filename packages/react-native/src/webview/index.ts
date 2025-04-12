@@ -1,4 +1,4 @@
 export * from './types.js';
 export * from './webViewBridge.js';
-export * from './authWebViewHandlers.js';
-export * from './authWebViewScreen.js';
+export * from './authentication/authWebViewHandlers.js';
+export * from './authentication/authWebViewScreen.js';
