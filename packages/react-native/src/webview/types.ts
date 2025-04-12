@@ -17,7 +17,7 @@ export type AuthProvider = 'whatsapp' | 'gauth' | 'telegram' | 'email';
  * Navigation routes enum to avoid hardcoded screen names
  */
 export enum Routes {
-  AUTH_WEBVIEW = 'AuthWebViewScreen',  
+  AUTH_WEBVIEW = 'AuthWebViewScreen',
 }
 
 /**
