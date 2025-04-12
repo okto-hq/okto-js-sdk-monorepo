@@ -1,15 +1,32 @@
+// ==============================
 // WebViewBridge.ts
+// Handles communication between React Native and WebView
+// ==============================
+
 import type { MutableRefObject } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewRequest, WebViewResponse } from './types.js';
 
+/**
+ * Bridge class to handle communication between React Native and WebView
+ */
 export class WebViewBridge {
   private webViewRef: MutableRefObject<WebView | null>;
+  private onRequest: ((request: WebViewRequest) => void) | null = null;
+  private onInfo: ((info: WebViewRequest) => void) | null = null;
 
+  /**
+   * Creates a new WebViewBridge instance
+   * @param webViewRef Reference to the WebView component
+   */
   constructor(webViewRef: MutableRefObject<WebView | null>) {
     this.webViewRef = webViewRef;
   }
 
+  /**
+   * Processes messages received from the WebView
+   * @param event WebView message event
+   */
   public handleWebViewMessage = (event: WebViewMessageEvent) => {
     try {
       const rawData = event.nativeEvent.data;
@@ -17,6 +34,7 @@ export class WebViewBridge {
 
       const message = JSON.parse(rawData);
 
+      // Handle different message types
       if (message.eventName === 'requestChannel') {
         const request =
           typeof message.eventData === 'string'
@@ -43,19 +61,26 @@ export class WebViewBridge {
     }
   };
 
-  // Callback setters
-  private onRequest: ((request: WebViewRequest) => void) | null = null;
-  private onInfo: ((info: WebViewRequest) => void) | null = null;
-
+  /**
+   * Sets the handler for request messages
+   * @param handler Function to process request messages
+   */
   public setRequestHandler(handler: (request: WebViewRequest) => void) {
     this.onRequest = handler;
   }
 
+  /**
+   * Sets the handler for info messages
+   * @param handler Function to process info messages
+   */
   public setInfoHandler(handler: (info: WebViewRequest) => void) {
     this.onInfo = handler;
   }
 
-  // Send response back to WebView
+  /**
+   * Sends a response back to the WebView
+   * @param response Response to send to WebView
+   */
   public sendResponse = (response: WebViewResponse) => {
     console.log('Sending response to WebView:', response);
 
@@ -86,7 +111,9 @@ export class WebViewBridge {
     this.webViewRef.current.injectJavaScript(script);
   };
 
-  // Get injected JavaScript for WebView initialization
+  /**
+   * Returns JavaScript to be injected into WebView for communication setup
+   */
   public getInjectedJavaScript(): string {
     return `
       (function() {
@@ -141,7 +168,9 @@ export class WebViewBridge {
     `;
   }
 
-  // Reinitialize bridge after page load
+  /**
+   * Reinitializes the bridge after page load
+   */
   public reinitializeBridge(): void {
     if (!this.webViewRef.current) return;
 

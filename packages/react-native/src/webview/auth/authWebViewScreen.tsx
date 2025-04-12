@@ -1,19 +1,28 @@
-// WebViewScreen.tsx
+// ==============================
+// AuthWebViewScreen.tsx
+// Screen component for displaying WebView with authentication flow
+// ==============================
+
 import { useState, useEffect, useRef } from 'react';
 import { WebView } from 'react-native-webview';
 import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { WebViewBridge } from './webViewBridge.js';
-import { WebViewRequestHandler } from './webViewHandlers.js';
-import type { WebViewParamList } from './types.js';
+import { WebViewBridge } from '../webViewBridge.js';
+import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
+import type { WebViewParamList } from '../types.js';
 
-type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
+type Props = NativeStackScreenProps<WebViewParamList, 'AuthWebViewScreen'>;
 
-export const WebViewScreen = ({ route, navigation }: Props) => {
+/**
+ * WebView screen component for handling authentication flows
+ */
+export const AuthWebViewScreen = ({ route, navigation }: Props) => {
   const { url, title } = route.params;
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize the bridge with WebView reference
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
 
   // Navigation callback to close the WebView
@@ -23,7 +32,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   // Initialize request handler with navigation callback
   const requestHandler = useRef(
-    new WebViewRequestHandler(bridge, navigateBack),
+    new AuthWebViewRequestHandler(bridge, navigateBack),
   ).current;
 
   // Set navigation title if provided
@@ -33,6 +42,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     }
   }, [title, navigation]);
 
+  // Log WebView reference for debugging
   useEffect(() => {
     console.log('WebView ref:', {
       refObject: webViewRef,
@@ -40,7 +50,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     });
   }, []);
 
-  // Handle back button
+  // Handle back button press
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',

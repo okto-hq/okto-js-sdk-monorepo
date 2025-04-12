@@ -1,24 +1,42 @@
+// ==============================
 // WebViewRequestHandler.ts
-import { v4 as uuidv4 } from 'uuid';
-import { WebViewBridge } from './webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from './types.js';
+// Handles requests from WebView and sends appropriate responses
+// ==============================
 
-export class WebViewRequestHandler {
+import { v4 as uuidv4 } from 'uuid';
+import { WebViewBridge } from '../webViewBridge.js';
+import type { WebViewRequest, WebViewResponse } from '../types.js';
+
+/**
+ * Handles and processes requests from WebView
+ */
+export class AuthWebViewRequestHandler {
   private bridge: WebViewBridge;
   private navigationCallback: () => void;
 
+  /**
+   * Creates a new WebViewRequestHandler
+   * @param bridge The WebViewBridge instance to use for communication
+   * @param navigationCallback Function to navigate back/close WebView
+   */
   constructor(bridge: WebViewBridge, navigationCallback: () => void) {
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
     this.initialize();
   }
 
+  /**
+   * Sets up request and info handlers
+   */
   private initialize(): void {
     this.bridge.setRequestHandler(this.handleRequest);
     this.bridge.setInfoHandler(this.handleInfo);
   }
 
-  // Main request handler
+  /**
+   * Processes incoming requests from WebView
+   * @param request The request to process
+   */
   private handleRequest = async (request: WebViewRequest) => {
     console.log('Received request from WebView:', request);
 
@@ -43,10 +61,13 @@ export class WebViewRequestHandler {
     }
   };
 
-  // Handle login request
+  /**
+   * Processes login requests based on their type
+   * @param request The login request to process
+   */
   private handleLoginRequest = async (request: WebViewRequest) => {
     console.log('Handling login request:', request.data);
-    const { provider, whatsapp_number, type, otp, token } = request.data;
+    const { type } = request.data;
 
     // Handle different login request types
     switch (type) {
@@ -67,12 +88,18 @@ export class WebViewRequestHandler {
     }
   };
 
+  /**
+   * Processes OTP request
+   * @param request The OTP request
+   */
   private handleRequestOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number } = request.data;
 
     try {
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Generate a temporary token
       const tempToken = uuidv4();
 
       const response: WebViewResponse = {
@@ -101,12 +128,18 @@ export class WebViewRequestHandler {
     }
   };
 
+  /**
+   * Processes OTP verification
+   * @param request The OTP verification request
+   */
   private handleVerifyOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, otp, token } = request.data;
 
     try {
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Generate an authentication token
       const authToken = `auth-${uuidv4()}`;
 
       const response: WebViewResponse = {
@@ -144,12 +177,18 @@ export class WebViewRequestHandler {
     }
   };
 
+  /**
+   * Processes OTP resend request
+   * @param request The OTP resend request
+   */
   private handleResendOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, token } = request.data;
 
     try {
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Generate a new token
       const newToken = uuidv4();
 
       const response: WebViewResponse = {
@@ -180,6 +219,10 @@ export class WebViewRequestHandler {
     }
   };
 
+  /**
+   * Processes WebView close request
+   * @param request The close WebView request
+   */
   private handleCloseWebView = async (request: WebViewRequest) => {
     try {
       const response: WebViewResponse = {
@@ -212,7 +255,10 @@ export class WebViewRequestHandler {
     }
   };
 
-  // Handle info messages
+  /**
+   * Processes info messages from WebView
+   * @param info The info message
+   */
   private handleInfo = (info: WebViewRequest) => {
     console.log('Received info from WebView:', info);
   };

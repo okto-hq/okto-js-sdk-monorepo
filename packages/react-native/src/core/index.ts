@@ -35,8 +35,8 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  openWebView = (url: string, navigation: any): void => {
-    navigation.navigate('WebViewScreen', { url });
+  openAuthWebView = (url: string, navigation: any): void => {
+    navigation.navigate('AuthWebViewScreen', { url });
   };
 
   override sessionClear(): void {
