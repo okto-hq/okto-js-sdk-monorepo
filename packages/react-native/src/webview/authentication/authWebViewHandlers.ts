@@ -6,6 +6,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
+import { WhatsAppAuthentication } from '@okto_web3/core-js-sdk/authentication';
+import type { OktoClient } from '@okto_web3/core-js-sdk';
 
 /**
  * Handles and processes requests from WebView
@@ -13,15 +15,22 @@ import type { WebViewRequest, WebViewResponse } from '../types.js';
 export class AuthWebViewRequestHandler {
   private bridge: WebViewBridge;
   private navigationCallback: () => void;
+  private oktoClient: OktoClient;
 
   /**
    * Creates a new WebViewRequestHandler
    * @param bridge The WebViewBridge instance to use for communication
    * @param navigationCallback Function to navigate back/close WebView
+   * @param oktoClient The OktoClient instance for authentication
    */
-  constructor(bridge: WebViewBridge, navigationCallback: () => void) {
+  constructor(
+    bridge: WebViewBridge, 
+    navigationCallback: () => void,
+    oktoClient: OktoClient
+  ) {
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
+    this.oktoClient = oktoClient;
     this.initialize();
   }
 
@@ -93,14 +102,22 @@ export class AuthWebViewRequestHandler {
    * @param request The OTP request
    */
   private handleRequestOTP = async (request: WebViewRequest) => {
-    const { provider, whatsapp_number } = request.data;
+    const { provider, whatsapp_number, country_short_name } = request.data;
 
     try {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (provider !== 'whatsapp') {
+        throw new Error(`Unsupported provider: ${provider}`);
+      }
 
-      // Generate a temporary token
-      const tempToken = uuidv4();
+      if (!whatsapp_number) {
+        throw new Error('WhatsApp number is required');
+      }
+      // Use the WhatsAppAuthentication class to send OTP
+      const otpResponse = await WhatsAppAuthentication.sendOTP(
+        this.oktoClient,
+        whatsapp_number,
+        country_short_name || 'IN' // Default to IN if not provided
+      );
 
       const response: WebViewResponse = {
         id: request.id,
@@ -108,7 +125,8 @@ export class AuthWebViewRequestHandler {
         data: {
           provider,
           whatsapp_number,
-          token: tempToken,
+          token: otpResponse.token,
+          message: 'OTP sent successfully',
         },
       };
 
@@ -133,14 +151,25 @@ export class AuthWebViewRequestHandler {
    * @param request The OTP verification request
    */
   private handleVerifyOTP = async (request: WebViewRequest) => {
-    const { provider, whatsapp_number, otp, token } = request.data;
+    const { provider, whatsapp_number, otp, token, country_short_name } = request.data;
 
     try {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (provider !== 'whatsapp') {
+        throw new Error(`Unsupported provider: ${provider}`);
+      }
 
-      // Generate an authentication token
-      const authToken = `auth-${uuidv4()}`;
+      if (!whatsapp_number || !token || !otp) {
+        throw new Error('WhatsApp number is required');
+      }
+
+      // Use the WhatsAppAuthentication class to verify OTP
+      const verifyResponse = await WhatsAppAuthentication.verifyOTP(
+        this.oktoClient,
+        whatsapp_number,
+        country_short_name || 'IN', // Default to IN if not provided
+        token,
+        otp
+      );
 
       const response: WebViewResponse = {
         id: request.id,
@@ -149,8 +178,9 @@ export class AuthWebViewRequestHandler {
           provider,
           whatsapp_number,
           otp,
-          token: authToken,
+          token: verifyResponse.auth_token || token,
           message: 'Authentication successful',
+          // user_info: verifyResponse.user_info,
         },
       };
 
@@ -182,14 +212,23 @@ export class AuthWebViewRequestHandler {
    * @param request The OTP resend request
    */
   private handleResendOTP = async (request: WebViewRequest) => {
-    const { provider, whatsapp_number, token } = request.data;
+    const { provider, whatsapp_number, token, country_short_name } = request.data;
 
     try {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (provider !== 'whatsapp') {
+        throw new Error(`Unsupported provider: ${provider}`);
+      }
+      if (!whatsapp_number || !token) {
+        throw new Error('WhatsApp number is required');
+      }
 
-      // Generate a new token
-      const newToken = uuidv4();
+      // Use the WhatsAppAuthentication class to resend OTP
+      const resendResponse = await WhatsAppAuthentication.resendOTP(
+        this.oktoClient,
+        whatsapp_number,
+        country_short_name || 'IN', // Default to IN if not provided
+        token
+      );
 
       const response: WebViewResponse = {
         id: request.id,
@@ -197,7 +236,7 @@ export class AuthWebViewRequestHandler {
         data: {
           provider,
           whatsapp_number,
-          token: newToken,
+          token: resendResponse.token || token,
           message: 'OTP resent successfully',
         },
       };
