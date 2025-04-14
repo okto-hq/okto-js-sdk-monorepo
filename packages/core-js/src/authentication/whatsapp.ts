@@ -54,12 +54,7 @@ class WhatsAppAuthentication {
     }
 
     const message = JSON.stringify(data);
-
-    // const clientPrivateKey = oc.clientSWA;
-    const clientSignature = await viemSignMessage({
-      message: message, // Convert message to bytes if needed
-      privateKey: '0x', // check on how to fetch client private key
-    });
+    const clientSignature = await oc.signWithClientKey(message);
 
     // Return the complete payload
     return {
