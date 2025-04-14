@@ -60,8 +60,6 @@ class OktoClient extends OktoCoreClient {
     navigation: any,
     options?: {
       title?: string;
-      provider?: AuthProvider;
-      initialData?: Record<string, any>;
       onAuthComplete?: (data: Record<string, any>) => void;
     },
   ): void => {
