@@ -32,7 +32,7 @@ class AuthClientRepository {
   ): Promise<WhatsAppSendOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<WhatsAppSendOtpResponse>
-    >(this.routes.sendWhatsAppOTP, { data: payload });
+    >(this.routes.sendWhatsAppOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to send WhatsApp OTP');
@@ -51,7 +51,7 @@ class AuthClientRepository {
   ): Promise<WhatsAppVerifyOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<WhatsAppVerifyOtpResponse>
-    >(this.routes.verifyWhatsAppOTP, { data: payload });
+    >(this.routes.verifyWhatsAppOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to verify WhatsApp OTP');
@@ -70,7 +70,7 @@ class AuthClientRepository {
   ): Promise<WhatsAppResendOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<WhatsAppResendOtpResponse>
-    >(this.routes.sendWhatsAppOTP, { data: payload });
+    >(this.routes.sendWhatsAppOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to resend WhatsApp OTP');
@@ -88,7 +88,7 @@ class AuthClientRepository {
   ): Promise<EmailSendOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<EmailSendOtpResponse>
-    >(this.routes.sendEmailOTP, { data: payload });
+    >(this.routes.sendEmailOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to send Email OTP');
@@ -107,7 +107,7 @@ class AuthClientRepository {
   ): Promise<EmailVerifyOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<EmailVerifyOtpResponse>
-    >(this.routes.verifyEmailOTP, { data: payload });
+    >(this.routes.verifyEmailOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to verify Email OTP');
@@ -126,7 +126,7 @@ class AuthClientRepository {
   ): Promise<EmailResendOtpResponse> {
     const response = await getAuthClient(oc).post<
       ApiResponse<EmailResendOtpResponse>
-    >(this.routes.sendEmailOTP, { data: payload });
+    >(this.routes.sendEmailOTP, payload);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to resend Email OTP');
