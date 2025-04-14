@@ -31,9 +31,9 @@ export const AuthWebViewScreen = ({ route, navigation }: Props) => {
   };
 
   // Initialize request handler with navigation callback
-  const requestHandler = useRef(
-    new AuthWebViewRequestHandler(bridge, navigateBack),
-  ).current;
+  // const requestHandler = useRef(
+  //   new AuthWebViewRequestHandler(bridge, navigateBack),
+  // ).current;
 
   // Set navigation title if provided
   useEffect(() => {
