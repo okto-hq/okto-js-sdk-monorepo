@@ -19,9 +19,9 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   
   // Initialize OktoClient with provided configuration
   const oktoClient = useRef(new OktoClient({
-    environment: clientConfig.environment || 'sandbox',
-    clientPrivateKey: clientConfig.clientPrivateKey,
-    clientSWA: clientConfig.clientSWA,
+    environment: 'staging',
+    clientPrivateKey: "0x6429139c72d61f3fa8f9197e812031b575ec09852670cfaaafa9db52205f9bb5",
+    clientSWA: "0x15256FEB5fAea1662Ce9A3fB8A46237B81b6Dfb1",
   })).current;
 
   // Navigation callback to close the WebView
