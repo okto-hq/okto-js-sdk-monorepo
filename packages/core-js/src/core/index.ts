@@ -268,14 +268,14 @@ class OktoClient {
         otp,
       );
 
-      if (!verifyResponse.auth_token) {
+      if (!verifyResponse.data.auth_token) {
         throw new Error(
           'Authentication token not received from OTP verification',
         );
       }
 
       const authData: AuthData = {
-        authToken: verifyResponse.auth_token,
+        authToken: verifyResponse.data.auth_token,
         provider: 'okto',
       };
 
