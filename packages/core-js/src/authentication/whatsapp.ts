@@ -39,22 +39,22 @@ class WhatsAppAuthentication {
   > {
     // Create an empty object and build it with properties in the exact order needed
     const data: any = {};
-    
+
     // These two fields always come first
     data.whatsapp_number = whatsappNumber;
     data.country_short_name = countryShortName;
-    
+
     // For verifyOTP: add token then otp
     // For resendOTP: add only token
     // For sendOTP: don't add token or otp
     if (token) {
       data.token = token;
     }
-    
+
     if (otp) {
       data.otp = otp;
     }
-    
+
     // These fields always come last, in this order
     data.client_swa = oc.clientSWA;
     data.timestamp = Date.now();

@@ -273,7 +273,7 @@ class OktoClient {
           'Authentication token not received from OTP verification',
         );
       }
-     
+
       const authData: AuthData = {
         authToken: verifyResponse.authToken,
         provider: 'okto',
