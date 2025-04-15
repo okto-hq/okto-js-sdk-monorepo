@@ -7,7 +7,6 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
-import { Routes, type AuthProvider } from 'src/webview/types.js';
 
 class OktoClient extends OktoCoreClient {
   /**
@@ -63,7 +62,7 @@ class OktoClient extends OktoCoreClient {
       onAuthComplete?: (data: Record<string, any>) => void;
     },
   ): void => {
-    navigation.navigate(Routes.AUTH_WEBVIEW, {
+    navigation.navigate("AuthWebViewScreen", {
       url,
       ...options,
     });

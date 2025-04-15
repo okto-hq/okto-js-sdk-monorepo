@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import { WhatsAppAuthentication } from '@okto_web3/core-js-sdk/authentication';
-import type { OktoClient } from '@okto_web3/core-js-sdk';
+import { useOkto } from 'src/hooks/useOkto.js';
 
 /**
  * Handles and processes requests from WebView
@@ -15,7 +15,7 @@ import type { OktoClient } from '@okto_web3/core-js-sdk';
 export class AuthWebViewRequestHandler {
   private bridge: WebViewBridge;
   private navigationCallback: () => void;
-  private oktoClient: OktoClient;
+  // private oktoClient: OktoClient;
 
   /**
    * Creates a new WebViewRequestHandler
@@ -23,14 +23,16 @@ export class AuthWebViewRequestHandler {
    * @param navigationCallback Function to navigate back/close WebView
    * @param oktoClient The OktoClient instance for authentication
    */
+
+   private oktoClient= useOkto();
   constructor(
     bridge: WebViewBridge, 
     navigationCallback: () => void,
-    oktoClient: OktoClient
+    // oktoClient: OktoClient
   ) {
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
-    this.oktoClient = oktoClient;
+    // this.oktoClient = oktoClient;
     this.initialize();
   }
 
@@ -166,7 +168,7 @@ export class AuthWebViewRequestHandler {
       const verifyResponse = await WhatsAppAuthentication.verifyOTP(
         this.oktoClient,
         whatsapp_number,
-        country_short_name || 'IN', // Default to IN if not provided
+        country_short_name || 'IN',
         token,
         otp
       );
