@@ -21,9 +21,9 @@ import { getBffClient } from './client.js';
 class AuthClientRepository {
   private static routes = {
     sendWhatsAppOTP: '/api/oc/v1/authenticate/whatsapp',
-    verifyWhatsAppOTP: '/api/oc/v1/authenticate/whatsapp/verify_otp',
+    verifyWhatsAppOTP: '/api/oc/v1/authenticate/whatsapp/verify',
     sendEmailOTP: '/api/oc/v1/authenticate/email',
-    verifyEmailOTP: '/api/oc/v1/authenticate/email/verify_otp',
+    verifyEmailOTP: '/api/oc/v1/authenticate/email/verify',
   };
 
   private static getHeaders() {
