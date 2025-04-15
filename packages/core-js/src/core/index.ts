@@ -41,6 +41,8 @@ class OktoClient {
   private _sessionConfig: SessionConfig | undefined;
   private _userKeys: GetUserKeysResult | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
+  private _whatsAppAuthentication: WhatsAppAuthentication;
+  private _emailAuthentication: EmailAuthentication;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -51,6 +53,12 @@ class OktoClient {
       clientSWA: config.clientSWA,
     };
     this._environment = config.environment;
+    this._whatsAppAuthentication = new WhatsAppAuthentication(
+      config.clientPrivateKey,
+    );
+    this._emailAuthentication = new EmailAuthentication(
+      config.clientPrivateKey,
+    );
   }
 
   get env(): EnvConfig {
@@ -83,9 +91,9 @@ class OktoClient {
   ): Promise<EmailSendOtpResponse | WhatsAppSendOtpResponse> {
     try {
       if (method === 'email') {
-        return EmailAuthentication.sendOTP(this, contact);
+        return this._emailAuthentication.sendOTP(this, contact);
       } else if (method === 'whatsapp') {
-        return WhatsAppAuthentication.sendOTP(this, contact, 'IN');
+        return this._whatsAppAuthentication.sendOTP(this, contact, 'IN');
       } else {
         throw new Error('Invalid OTP method specified');
       }
@@ -110,9 +118,14 @@ class OktoClient {
   ): Promise<EmailResendOtpResponse | WhatsAppResendOtpResponse> {
     try {
       if (method === 'email') {
-        return EmailAuthentication.resendOTP(this, contact, token);
+        return this._emailAuthentication.resendOTP(this, contact, token);
       } else if (method === 'whatsapp') {
-        return WhatsAppAuthentication.resendOTP(this, contact, 'IN', token);
+        return this._whatsAppAuthentication.resendOTP(
+          this,
+          contact,
+          'IN',
+          token,
+        );
       } else {
         throw new Error('Invalid OTP method specified');
       }
@@ -200,7 +213,7 @@ class OktoClient {
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
     try {
-      const verifyResponse = await EmailAuthentication.verifyOTP(
+      const verifyResponse = await this._emailAuthentication.verifyOTP(
         this,
         email,
         token,
@@ -212,7 +225,7 @@ class OktoClient {
           'Authentication token not received from OTP verification',
         );
       }
-      
+
       const authData: AuthData = {
         authToken: verifyResponse.auth_token,
         provider: 'okto',
@@ -247,7 +260,7 @@ class OktoClient {
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
     try {
-      const verifyResponse = await WhatsAppAuthentication.verifyOTP(
+      const verifyResponse = await this._whatsAppAuthentication.verifyOTP(
         this,
         phoneNumber,
         'IN',
@@ -294,13 +307,6 @@ class OktoClient {
       this._sessionConfig = undefined;
       return false;
     }
-  }
-
-  public async signWithClientKey(message: string): Promise<string> {
-    return viemSignMessage({
-      message,
-      privateKey: this._clientConfig.clientPrivKey,
-    });
   }
 
   public async syncUserKeys(): Promise<void> {

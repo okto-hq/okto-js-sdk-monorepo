@@ -8,11 +8,16 @@ import type {
   WhatsAppResendOtpRequest,
   WhatsAppResendOtpResponse,
 } from '@/types/auth/whatsapp.js';
-import { v4 as uuidv4 } from 'uuid';
 import { signMessage as viemSignMessage } from 'viem/accounts';
-import { fromHex } from 'viem';
+import type { Hash } from '@/types/core.js';
 
 class WhatsAppAuthentication {
+  private readonly clientPrivateKey: Hash;
+
+  constructor(clientPrivateKey: Hash) {
+    this.clientPrivateKey = clientPrivateKey;
+  }
+
   /**
    * Private method to generate the base request payload for WhatsApp authentication.
    *
@@ -23,7 +28,7 @@ class WhatsAppAuthentication {
    * @param {string} [otp] - The OTP received by the user (optional)
    * @returns {Promise<WhatsAppSendOtpRequest | WhatsAppResendOtpRequest | WhatsAppVerifyOtpRequest>} The generated request payload
    */
-  private static async _generateBasePayload(
+  private async _generateBasePayload(
     oc: OktoClient,
     whatsappNumber: string,
     countryShortName: string,
@@ -54,9 +59,12 @@ class WhatsAppAuthentication {
     }
 
     const message = JSON.stringify(data);
-    const clientSignature = await oc.signWithClientKey(message);
+    const clientSignature = await viemSignMessage({
+      message,
+      privateKey: this.clientPrivateKey,
+    });
 
-    // Return the complete payload
+    // Return the payload with the signed message
     return {
       data,
       client_signature: clientSignature,
@@ -72,7 +80,7 @@ class WhatsAppAuthentication {
    * @param {string} countryShortName - The short name of the country (e.g., 'IN')
    * @returns {Promise<WhatsAppSendOtpResponse>} The response from the server
    */
-  public static async sendOTP(
+  public async sendOTP(
     oc: OktoClient,
     whatsappNumber: string,
     countryShortName: string,
@@ -101,7 +109,7 @@ class WhatsAppAuthentication {
    * @param {string} otp - The OTP received by the user
    * @returns {Promise<WhatsAppVerifyOtpResponse>} The response from the server
    */
-  public static async verifyOTP(
+  public async verifyOTP(
     oc: OktoClient,
     whatsappNumber: string,
     countryShortName: string,
@@ -133,7 +141,7 @@ class WhatsAppAuthentication {
    * @param {string} token - The token received from the previous send OTP request
    * @returns {Promise<WhatsAppResendOtpResponse>} The response from the server
    */
-  public static async resendOTP(
+  public async resendOTP(
     oc: OktoClient,
     whatsappNumber: string,
     countryShortName: string,

@@ -9,8 +9,15 @@ import type {
   EmailResendOtpResponse,
 } from '@/types/auth/email.js';
 import { signMessage as viemSignMessage } from 'viem/accounts';
+import type { Hash } from '@/types/core.js';
 
 class EmailAuthentication {
+  private readonly clientPrivateKey: Hash;
+
+  constructor(clientPrivateKey: Hash) {
+    this.clientPrivateKey = clientPrivateKey;
+  }
+
   /**
    * Private method to generate the base request payload for Email authentication.
    *
@@ -20,7 +27,7 @@ class EmailAuthentication {
    * @param {string} [otp] - The OTP received by the user (optional)
    * @returns {Promise<EmailSendOtpRequest | EmailResendOtpRequest | EmailVerifyOtpRequest>} The generated request payload
    */
-  private static async _generateBasePayload(
+  private async _generateBasePayload(
     oc: OktoClient,
     email: string,
     token?: string,
@@ -47,7 +54,10 @@ class EmailAuthentication {
     }
 
     const message = JSON.stringify(data);
-    const clientSignature = await oc.signWithClientKey(message);
+    const clientSignature = await viemSignMessage({
+      message,
+      privateKey: this.clientPrivateKey,
+    });
 
     return {
       data,
@@ -63,7 +73,7 @@ class EmailAuthentication {
    * @param {string} email - The email address to send the OTP to
    * @returns {Promise<EmailSendOtpResponse>} The response from the server
    */
-  public static async sendOTP(
+  public async sendOTP(
     oc: OktoClient,
     email: string,
   ): Promise<EmailSendOtpResponse> {
@@ -89,7 +99,7 @@ class EmailAuthentication {
    * @param {string} otp - The OTP received by the user
    * @returns {Promise<EmailVerifyOtpResponse>} The response from the server
    */
-  public static async verifyOTP(
+  public async verifyOTP(
     oc: OktoClient,
     email: string,
     token: string,
@@ -118,7 +128,7 @@ class EmailAuthentication {
    * @param {string} token - The token received from the previous send OTP request
    * @returns {Promise<EmailResendOtpResponse>} The response from the server
    */
-  public static async resendOTP(
+  public async resendOTP(
     oc: OktoClient,
     email: string,
     token: string,
