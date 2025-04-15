@@ -139,6 +139,13 @@ class OktoClient {
     }
   }
 
+  public async signWithClientKey(message: string): Promise<string> {
+    return viemSignMessage({
+      message,
+      privateKey: this._clientConfig.clientPrivKey,
+    });
+  }
+
   public async syncUserKeys(): Promise<void> {
     try {
       if (!this.isLoggedIn()) {

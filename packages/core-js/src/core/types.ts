@@ -4,6 +4,7 @@ export type Env = 'staging' | 'sandbox';
 
 export interface EnvConfig {
   gatewayBaseUrl: string;
+  authBaseUrl: string;
   bffBaseUrl: string;
   paymasterAddress: Address;
   jobManagerAddress: Address;
