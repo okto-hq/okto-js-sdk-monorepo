@@ -2,14 +2,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import { WebViewBridge } from './webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from './types.js';
+import type { OktoClient } from '@okto_web3/core-js-sdk';
 
 export class WebViewRequestHandler {
   private bridge: WebViewBridge;
   private navigationCallback: () => void;
+  private oktoClient: OktoClient;
 
-  constructor(bridge: WebViewBridge, navigationCallback: () => void) {
+  constructor(bridge: WebViewBridge, navigationCallback: () => void, oktoClient: OktoClient) {
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
+    this.oktoClient = oktoClient;
     this.initialize();
   }
 
@@ -70,18 +73,21 @@ export class WebViewRequestHandler {
   private handleRequestOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number } = request.data;
 
+    if (!whatsapp_number) {
+      throw new Error('WhatsApp number is required');
+    }
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const tempToken = uuidv4();
-
+      // Use OktoClient's WhatsApp sendOTP method
+      const otpResponse = await this.oktoClient.sendOTP(whatsapp_number, 'whatsapp');
+      
       const response: WebViewResponse = {
         id: request.id,
         method: request.method,
         data: {
           provider,
           whatsapp_number,
-          token: tempToken,
+          token: otpResponse.token,
         },
       };
 
@@ -104,10 +110,27 @@ export class WebViewRequestHandler {
   private handleVerifyOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, otp, token } = request.data;
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!whatsapp_number) {
+      throw new Error('WhatsApp number is required');
+    }
 
-      const authToken = `auth-${uuidv4()}`;
+    if (!otp) {
+      throw new Error('OTP is required');
+    }
+
+    try {
+      if (!token) {
+        throw new Error('Token is required');
+      }
+      // Use OktoClient's WhatsApp loginUsingWhatsApp method
+      const result = await this.oktoClient.loginUsingWhatsApp(
+        whatsapp_number,
+        otp,
+        token,
+        (sessionConfig: any) => {
+          console.log('Login successful, session established:', sessionConfig);
+        }
+      );
 
       const response: WebViewResponse = {
         id: request.id,
@@ -116,8 +139,8 @@ export class WebViewRequestHandler {
           provider,
           whatsapp_number,
           otp,
-          token: authToken,
-          message: 'Authentication successful',
+          token: result ? 'auth-success' : 'auth-failed',
+          message: result ? 'Authentication successful' : 'Authentication failed',
         },
       };
 
@@ -125,9 +148,11 @@ export class WebViewRequestHandler {
       this.bridge.sendResponse(response);
 
       // Close the WebView after successful verification
-      setTimeout(() => {
-        this.navigationCallback();
-      }, 500);
+      if (result) {
+        setTimeout(() => {
+          this.navigationCallback();
+        }, 500);
+      }
     } catch (error) {
       console.error('Error verifying OTP:', error);
       this.bridge.sendResponse({
@@ -147,10 +172,21 @@ export class WebViewRequestHandler {
   private handleResendOTP = async (request: WebViewRequest) => {
     const { provider, whatsapp_number, token } = request.data;
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!whatsapp_number) {
+      throw new Error('WhatsApp number is required');
+    }
 
-      const newToken = uuidv4();
+    if (!token) {
+      throw new Error('Token is required');
+    }
+
+    try {
+      // Use OktoClient's WhatsApp resendOTP method
+      const resendResponse = await this.oktoClient.resendOTP(
+        whatsapp_number,
+        token,
+        'whatsapp'
+      );
 
       const response: WebViewResponse = {
         id: request.id,
@@ -158,7 +194,7 @@ export class WebViewRequestHandler {
         data: {
           provider,
           whatsapp_number,
-          token: newToken,
+          token: resendResponse.token,
           message: 'OTP resent successfully',
         },
       };

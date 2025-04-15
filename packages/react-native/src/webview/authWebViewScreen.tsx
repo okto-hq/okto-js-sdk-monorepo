@@ -5,25 +5,33 @@ import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { WebViewBridge } from './webViewBridge.js';
-import { WebViewRequestHandler } from './webViewHandlers.js';
 import type { WebViewParamList } from './types.js';
+import { OktoClient } from '@okto_web3/core-js-sdk';
+import { WebViewRequestHandler } from './webViewHandlers.js';
 
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
 export const WebViewScreen = ({ route, navigation }: Props) => {
-  const { url, title } = route.params;
+  const { url, title, clientConfig } = route.params;
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
+  
+  // Initialize OktoClient with provided configuration
+  const oktoClient = useRef(new OktoClient({
+    environment: clientConfig.environment || 'sandbox',
+    clientPrivateKey: clientConfig.clientPrivateKey,
+    clientSWA: clientConfig.clientSWA,
+  })).current;
 
   // Navigation callback to close the WebView
   const navigateBack = () => {
     navigation.goBack();
   };
 
-  // Initialize request handler with navigation callback
+  // Initialize request handler with navigation callback and oktoClient
   const requestHandler = useRef(
-    new WebViewRequestHandler(bridge, navigateBack),
+    new WebViewRequestHandler(bridge, navigateBack, oktoClient),
   ).current;
 
   // Set navigation title if provided
