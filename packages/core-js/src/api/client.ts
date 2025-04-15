@@ -68,6 +68,10 @@ function getBffClient(oc: OktoClient) {
 
   client.interceptors.request.use(
     async (config) => {
+      if (config.headers['Skip-Authorization'] == 'true') {
+        config.headers.delete('Skip-Authorization');
+        return config;
+      }
       config.headers.setAuthorization(
         `Bearer ${await oc.getAuthorizationToken()}`,
       );
@@ -102,39 +106,4 @@ function getBffClient(oc: OktoClient) {
   return client;
 }
 
-function getAuthClient(oc: OktoClient) {
-  const client = axios.create({
-    baseURL: oc.env.authBaseUrl,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  client.interceptors.request.use(
-    async (config) => {
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    },
-  );
-
-  client.interceptors.response.use(
-    (response) => {
-      if (response.data) {
-        response.data = convertKeysToCamelCase(response.data);
-      }
-      return response;
-    },
-    (error) => {
-      return Promise.reject(error);
-    },
-  );
-
-  if (oc.isDev) {
-    client.interceptors.response.use(...createLoggingInterceptor());
-  }
-  return client;
-}
-
-export { getBffClient, getGatewayClient, getAuthClient };
+export { getBffClient, getGatewayClient };

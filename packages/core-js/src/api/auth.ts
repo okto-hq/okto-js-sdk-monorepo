@@ -1,5 +1,4 @@
 import type OktoClient from '@/core/index.js';
-import { getAuthClient } from './client.js';
 import type { ApiResponse } from '@/types/api.js';
 import type {
   WhatsAppResendOtpRequest,
@@ -17,6 +16,7 @@ import type {
   EmailVerifyOtpRequest,
   EmailVerifyOtpResponse,
 } from '@/types/auth/email.js';
+import { getBffClient } from './client.js';
 
 class AuthClientRepository {
   private static routes = {
@@ -26,13 +26,21 @@ class AuthClientRepository {
     verifyEmailOTP: '/api/oc/v1/authenticate/email/verify_otp',
   };
 
+  private static getHeaders() {
+    return {
+      headers: {
+        'Skip-Authorization': true,
+      },
+    };
+  }
+
   public static async sendWhatsAppOTP(
     oc: OktoClient,
     payload: WhatsAppSendOtpRequest,
   ): Promise<WhatsAppSendOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<WhatsAppSendOtpResponse>
-    >(this.routes.sendWhatsAppOTP, payload);
+    >(this.routes.sendWhatsAppOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to send WhatsApp OTP');
@@ -49,9 +57,9 @@ class AuthClientRepository {
     oc: OktoClient,
     payload: WhatsAppVerifyOtpRequest,
   ): Promise<WhatsAppVerifyOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<WhatsAppVerifyOtpResponse>
-    >(this.routes.verifyWhatsAppOTP, payload);
+    >(this.routes.verifyWhatsAppOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to verify WhatsApp OTP');
@@ -68,9 +76,9 @@ class AuthClientRepository {
     oc: OktoClient,
     payload: WhatsAppResendOtpRequest,
   ): Promise<WhatsAppResendOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<WhatsAppResendOtpResponse>
-    >(this.routes.sendWhatsAppOTP, payload);
+    >(this.routes.sendWhatsAppOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to resend WhatsApp OTP');
@@ -86,9 +94,9 @@ class AuthClientRepository {
     oc: OktoClient,
     payload: EmailSendOtpRequest,
   ): Promise<EmailSendOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<EmailSendOtpResponse>
-    >(this.routes.sendEmailOTP, payload);
+    >(this.routes.sendEmailOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to send Email OTP');
@@ -105,9 +113,9 @@ class AuthClientRepository {
     oc: OktoClient,
     payload: EmailVerifyOtpRequest,
   ): Promise<EmailVerifyOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<EmailVerifyOtpResponse>
-    >(this.routes.verifyEmailOTP, payload);
+    >(this.routes.verifyEmailOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to verify Email OTP');
@@ -124,9 +132,9 @@ class AuthClientRepository {
     oc: OktoClient,
     payload: EmailResendOtpRequest,
   ): Promise<EmailResendOtpResponse> {
-    const response = await getAuthClient(oc).post<
+    const response = await getBffClient(oc).post<
       ApiResponse<EmailResendOtpResponse>
-    >(this.routes.sendEmailOTP, payload);
+    >(this.routes.sendEmailOTP, payload, this.getHeaders());
 
     if (response.data.status === 'error') {
       throw new Error('Failed to resend Email OTP');
