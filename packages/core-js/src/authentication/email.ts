@@ -35,23 +35,26 @@ class EmailAuthentication {
   ): Promise<
     EmailSendOtpRequest | EmailResendOtpRequest | EmailVerifyOtpRequest
   > {
-    const baseData = {
-      email: email,
-      client_swa: oc.clientSWA,
-      timestamp: Date.now(),
-    };
-
-    let data;
-    if (token && otp) {
-      // For verify OTP
-      data = { ...baseData, token, otp };
-    } else if (token) {
-      // For resend OTP
-      data = { ...baseData, token };
-    } else {
-      // For send OTP
-      data = baseData;
+    // Create an empty object and build it with properties in the exact order needed
+    const data: any = {};
+    
+    // These two fields always come first
+    data.email = email;
+    
+    // For verifyOTP: add token then otp
+    // For resendOTP: add only token
+    // For sendOTP: don't add token or otp
+    if (token) {
+      data.token = token;
     }
+    
+    if (otp) {
+      data.otp = otp;
+    }
+    
+    // These fields always come last, in this order
+    data.client_swa = oc.clientSWA;
+    data.timestamp = Date.now();
 
     const message = JSON.stringify(data);
     const clientSignature = await viemSignMessage({
@@ -59,6 +62,7 @@ class EmailAuthentication {
       privateKey: this.clientPrivateKey,
     });
 
+    // Return the payload with the signed message
     return {
       data,
       client_signature: clientSignature,
@@ -119,6 +123,7 @@ class EmailAuthentication {
       throw error;
     }
   }
+
 
   /**
    * Resends an Email OTP using the token from a previous request.

@@ -35,7 +35,6 @@ export interface WhatsAppSendOtpResponse {
   message: string;
   code: number;
   token: string;
-  trace_id: string;
 }
 
 export interface WhatsAppResendOtpResponse {
@@ -43,17 +42,11 @@ export interface WhatsAppResendOtpResponse {
   message: string;
   code: number;
   token: string;
-  trace_id: string;
-}
-
-export interface WhatsAppVerifyOtpResponseData {
-  auth_token: string;
-  message: string;
-  refresh_auth_token: string;
-  device_token: string;
 }
 
 export interface WhatsAppVerifyOtpResponse {
-  status: string;
-  data: WhatsAppVerifyOtpResponseData;
+  authToken: string;
+  message: string;
+  refreshAuthToken: string;
+  deviceToken: string;
 }

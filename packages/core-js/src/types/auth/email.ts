@@ -31,7 +31,6 @@ export interface EmailSendOtpResponse {
   message: string;
   code: number;
   token: string;
-  trace_id: string;
 }
 
 export interface EmailResendOtpResponse {
@@ -39,13 +38,11 @@ export interface EmailResendOtpResponse {
   message: string;
   code: number;
   token: string;
-  trace_id: string;
 }
 
 export interface EmailVerifyOtpResponse {
-  auth_token: string;
+  authToken: string;
   message: string;
-  refresh_auth_token: string;
-  device_token: string;
-  trace_id: string;
+  refreshAuthToken: string;
+  deviceToken: string;
 }
