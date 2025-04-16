@@ -16,12 +16,18 @@ class OktoClient extends OktoCoreClient {
     super(config);
     this.config = config;
     this.initializeSession();
+    console.log('karan is her ein oktoclient ');
   }
 
   private initializeSession(): void {
     const session = getStorage('okto_session');
+    const sessionWhatsapp = getStorage('okto_session_whatsapp');
     if (session) {
       this.setSessionConfig(JSON.parse(session));
+      this.syncUserKeys();
+    } else if (sessionWhatsapp) {
+      console.log('karan is her ein oktoclient in session whatsapp');
+      this.setSessionConfig(JSON.parse(sessionWhatsapp));
       this.syncUserKeys();
     }
   }
