@@ -3,7 +3,7 @@ import type { EnvConfig } from './types.js';
 
 export const stagingEnvConfig: EnvConfig = {
   gatewayBaseUrl: 'https://okto-gateway.oktostage.com',
-  bffBaseUrl: 'https://apigw.oktostage.com',
+  bffBaseUrl: 'https://3p-bff.oktostage.com',
   paymasterAddress: Constants.ENV_CONFIG.STAGING.PAYMASTER_ADDRESS,
   jobManagerAddress: Constants.ENV_CONFIG.STAGING.JOB_MANAGER_ADDRESS,
   entryPointAddress: Constants.ENV_CONFIG.STAGING.ENTRYPOINT_CONTRACT_ADDRESS,
