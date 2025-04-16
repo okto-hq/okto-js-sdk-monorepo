@@ -199,11 +199,18 @@ export class AuthWebViewRequestHandler {
       if (result) {
         setTimeout(() => {
           this.navigationCallback();
+          const storedSession = getStorage('okto_session_whatsapp');
+          if (storedSession) {
+            try {
+              const sessionConfig = JSON.parse(storedSession);
+              this.oktoClient.setSessionConfig(sessionConfig);
+              console.log('Okto session Karan:', sessionConfig);
+            } catch (error) {
+              console.error('Failed to parse stored session:', error);
+            }
+          }
         }, 500); // Short delay to allow WebView to process response
       }
-      const stored = getStorage('okto_session_whatsapp');
-      console.log('Stored session:', stored);
-      
     } catch (error) {
       // Handle and report verification errors
       console.error('Error verifying OTP:', error);
