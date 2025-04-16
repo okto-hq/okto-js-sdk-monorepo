@@ -38,8 +38,8 @@ export class OktoAuthWebView {
     return new Promise((resolve, reject) => {
       const {
         url = `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,
-        width = 300,
-        height = 600,
+        width = 400,
+        height = 700,
         onSuccess,
         onError,
         onClose,

@@ -2,13 +2,10 @@
 // It is used to validate the origin of the request and ensure that only trusted origins can access the webview.
 export const DEFAULT_ALLOWED_ORIGINS = [
   'https://onboarding.oktostage.com',
-  'http://localhost:3000',
-  'http://127.0.0.1:5500',
-  'http://localhost:3001',
 ];
 
-export const DEFAULT_WEBVIEW_URL = DEFAULT_ALLOWED_ORIGINS[3]; // THIS IS THE DEFAULT URL FOR THE WEBVIEW
-export const TARGET_ORIGIN_RESPONSE = DEFAULT_ALLOWED_ORIGINS[3]; // THIS IS THE TARGET ORIGIN FOR THE RESPONSE TO THE REQUEST IN THE WEBVIEW
+export const DEFAULT_WEBVIEW_URL = DEFAULT_ALLOWED_ORIGINS[0]; // THIS IS THE DEFAULT URL FOR THE WEBVIEW
+export const TARGET_ORIGIN_RESPONSE = DEFAULT_ALLOWED_ORIGINS[0]; // THIS IS THE TARGET ORIGIN FOR THE RESPONSE TO THE REQUEST IN THE WEBVIEW
 
 export const DEFAULT_REQUEST_TIMEOUT = 30000;
 
@@ -34,7 +31,7 @@ export const DEFAULT_MODAL_STYLE = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  zIndex: '1000',
+  zIndex: '2147483647',
 };
 
 export const DEFAULT_IFRAME_STYLE = {
