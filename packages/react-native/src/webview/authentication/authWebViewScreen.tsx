@@ -8,6 +8,7 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
+import { getStorage } from '../../utils/storageUtils.js';
 
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
@@ -26,24 +27,46 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
-
-  console.log('Initializing OktoClient with config:', clientConfig);
-  const oktoClient = useRef(
-    new OktoClient({
+  
+  // Create a function to initialize or reinitialize the OktoClient
+  const createOktoClient = () => {
+    console.log('Initializing OktoClient with config:', clientConfig);
+    const client = new OktoClient({
       environment: clientConfig.environment as 'staging' | 'sandbox',
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
-    }),
-  ).current;
-
+    });
+    
+    // Try to load any existing session
+    const storedSession = getStorage('okto_session_whatsapp');
+    if (storedSession) {
+      try {
+        const sessionConfig = JSON.parse(storedSession);
+        client.setSessionConfig(sessionConfig);
+        console.log('Loaded session from storage:', sessionConfig);
+      } catch (error) {
+        console.error('Failed to parse stored session:', error);
+      }
+    }
+    
+    return client;
+  };
+  
+  // Create initial OktoClient instance
+  const oktoClientRef = useRef(createOktoClient());
+  
+  // Create a navigation callback that reinitializes the OktoClient
   const navigateBack = () => {
+    oktoClientRef.current = createOktoClient();
+    console.log('Reinitialized OktoClient before navigation');
     navigation.goBack();
   };
 
   // Initialize the authentication request handler with necessary dependencies
-  const requestHandler = useRef(
-    new AuthWebViewRequestHandler(bridge, navigateBack, oktoClient),
-  ).current;
+  // Use a state or ref to update the request handler when oktoClient changes
+  const requestHandlerRef = useRef(
+    new AuthWebViewRequestHandler(bridge, navigateBack, oktoClientRef.current)
+  );
 
   useEffect(() => {
     if (title) {
@@ -56,7 +79,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       refObject: webViewRef,
       currentValue: webViewRef.current,
     });
-    console.log('Request handler:', requestHandler);
+    console.log('Request handler:', requestHandlerRef.current);
   }, []);
 
   // Handle hardware back button presses
@@ -64,6 +87,10 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // Reinitialize OktoClient before navigating back
+        oktoClientRef.current = createOktoClient();
+        console.log('Reinitialized OktoClient on back button press');
+        
         navigation.goBack();
         return true;
       },

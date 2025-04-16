@@ -172,8 +172,6 @@ export class AuthWebViewRequestHandler {
         (sessionConfig: any) => {
           console.log('Login successful, session established:', sessionConfig);
           setStorage('okto_session_whatsapp', JSON.stringify(sessionConfig));
-
-          this.oktoClient.setSessionConfig(sessionConfig);
         },
       );
 
@@ -199,16 +197,6 @@ export class AuthWebViewRequestHandler {
       if (result) {
         setTimeout(() => {
           this.navigationCallback();
-          const storedSession = getStorage('okto_session_whatsapp');
-          if (storedSession) {
-            try {
-              const sessionConfig = JSON.parse(storedSession);
-              this.oktoClient.setSessionConfig(sessionConfig);
-              console.log('Okto session Karan:', sessionConfig);
-            } catch (error) {
-              console.error('Failed to parse stored session:', error);
-            }
-          }
         }, 500); // Short delay to allow WebView to process response
       }
     } catch (error) {
