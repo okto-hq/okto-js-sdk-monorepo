@@ -63,12 +63,15 @@ class OktoClient extends OktoCoreClient {
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
       scope: 'openid email profile',
-      redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
+      redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler', // 'http://localhost:5000/__/auth/handler'
       response_type: 'id_token',
       client_id:
         '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
       nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
-      state: JSON.stringify({ client_url: window.location.origin }),
+      state: JSON.stringify({
+        client_url: window.location.origin,
+        platform: 'web',
+      }),
     });
 
     const url = `${baseUrl}?${params.toString()}`;
@@ -98,28 +101,28 @@ class OktoClient extends OktoCoreClient {
           const popupUrl = authWindow.location.href;
           if (popupUrl.startsWith(window.location.origin)) {
             const url = new URL(popupUrl);
+            console.log('Popup URL:', url.href);
+            const idToken = url.searchParams.get('id_token');
             const stateParam = url.searchParams.get('state');
-            if (stateParam) {
-              const stateParams = new URLSearchParams(stateParam);
-              const idToken = stateParams.get('id_token');
-              const state = stateParams.get('state');
-
-              console.log('Parsed State:', state);
-              console.log('Parsed ID Token:', idToken);
-
-              if (idToken) {
-                console.log('ID Token received:', idToken);
-                setLocalStorage('auth_token', idToken);
-                this.loginUsingOAuth(
-                  { idToken: idToken, provider: 'google' },
-                  (session) => {
-                    console.log('Login successful:', session);
-                    this.setSessionConfig(session);
-                  },
-                );
-              } else {
-                console.warn('No id_token found in the state parameter');
+            if (idToken) {
+              console.log('ID Token received:', idToken);
+              setLocalStorage('auth_token', idToken);
+              this.loginUsingOAuth(
+                { idToken: idToken, provider: 'google' },
+                (session) => {
+                  console.log('Login successful:', session);
+                  this.setSessionConfig(session);
+                },
+              );
+            } else if (stateParam) {
+              try {
+                const stateParams = JSON.parse(stateParam);
+                console.log('Parsed State:', stateParams);
+              } catch (error) {
+                console.error('Failed to parse state parameter:', error);
               }
+            } else {
+              console.warn('No id_token or state parameter found in the URL');
             }
 
             authWindow.close();
