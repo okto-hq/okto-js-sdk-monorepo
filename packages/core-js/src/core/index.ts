@@ -79,6 +79,9 @@ class OktoClient {
     console.log("karan is here in set",sessionConfig.sessionPubKey);
     console.log("karan is here in set",sessionConfig.userSWA);
     this._sessionConfig = sessionConfig;
+    console.log("karan is here in set session",this._sessionConfig.sessionPrivKey);
+    console.log("karan is here in set session",this._sessionConfig.sessionPubKey);
+    console.log("karan is here in set session",this._sessionConfig.userSWA);
   }
 
   /**
@@ -354,6 +357,7 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
+    console.log("karan is here in userSWA",this._sessionConfig?.userSWA);
     return this._sessionConfig?.userSWA;
   }
 
