@@ -171,7 +171,9 @@ export class AuthWebViewRequestHandler {
         token,
         (sessionConfig: any) => {
           console.log('Login successful, session established:', sessionConfig);
-          setStorage('okto_session_whatsapp', JSON.stringify(sessionConfig));
+          setStorage('okto_session', JSON.stringify(sessionConfig));
+
+          this.oktoClient.setSessionConfig(sessionConfig);
         },
       );
 

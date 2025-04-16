@@ -74,7 +74,7 @@ class OktoClient {
     }
   }
 
-  protected setSessionConfig(sessionConfig: SessionConfig): void {
+  public setSessionConfig(sessionConfig: SessionConfig): void {
     this._sessionConfig = sessionConfig;
   }
 
