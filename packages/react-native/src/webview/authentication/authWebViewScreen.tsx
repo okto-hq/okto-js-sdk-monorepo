@@ -8,7 +8,7 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
-import { getStorage } from 'src/utils/storageUtils.js';
+import { getStorage } from '../../utils/storageUtils.js';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
