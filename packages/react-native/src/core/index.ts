@@ -40,6 +40,7 @@ class OktoClient extends OktoCoreClient {
       url,
       clientConfig
     });
+    console.log('Navigating to WebViewScreen with:', { url, clientConfig });
   };
 
   override sessionClear(): void {
