@@ -63,7 +63,6 @@ class OktoClient extends OktoCoreClient {
 
   override sessionClear(): void {
     clearStorage('okto_session');
-    clearStorage('okto_session_whatsapp');
     return super.sessionClear();
   }
 }
