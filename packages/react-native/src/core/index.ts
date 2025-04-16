@@ -11,8 +11,10 @@ import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 // import { navigate } from '../core/navigation.js';
 
 class OktoClient extends OktoCoreClient {
+  private readonly config: OktoClientConfig;
   constructor(config: OktoClientConfig) {
     super(config);
+    this.config = config;
     this.initializeSession();
   }
 
@@ -35,12 +37,16 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  openWebView = (url: string, navigation: any, clientConfig: OktoClientConfig): void => {
+  openWebView = (url: string, navigation: any): void => {
     navigation.navigate('WebViewScreen', { 
       url,
-      clientConfig
+      clientConfig: this.config,
     });
-    console.log('Navigating to WebViewScreen with:', { url, clientConfig });
+
+    console.log('Navigating to WebViewScreen with:', {
+      url,
+      clientConfig: this.config,
+    });
   };
 
   override sessionClear(): void {
