@@ -1,4 +1,3 @@
-// src/core/OktoClient.ts
 import {
   OktoClient as OktoCoreClient,
   type OktoClientConfig,
@@ -7,6 +6,8 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+// import webViewManager from 'src/webview/webViewManager.js';
+// import { navigate } from '../core/navigation.js';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
@@ -14,13 +15,20 @@ class OktoClient extends OktoCoreClient {
     super(config);
     this.config = config;
     this.initializeSession();
+    console.log("karan is uhere in oktoclient");
   }
 
   private initializeSession(): void {
     const session = getStorage('okto_session');
+    const sessionWhatsapp = getStorage('okto_session_whatsapp');
     if (session) {
       this.setSessionConfig(JSON.parse(session));
+      console.log("karan is here in session");
       this.syncUserKeys();
+    } else if (sessionWhatsapp) {
+      this.setSessionConfig(JSON.parse(sessionWhatsapp));
+      this.syncUserKeys();
+      console.log("karan is here in session whatsapp");
     }
   }
 
@@ -61,6 +69,7 @@ class OktoClient extends OktoCoreClient {
 
   override sessionClear(): void {
     clearStorage('okto_session');
+    clearStorage('okto_session_whatsapp');
     return super.sessionClear();
   }
 }

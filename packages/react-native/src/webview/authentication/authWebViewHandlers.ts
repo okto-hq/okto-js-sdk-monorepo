@@ -171,7 +171,7 @@ export class AuthWebViewRequestHandler {
         token,
         (sessionConfig: any) => {
           console.log('Login successful, session established:', sessionConfig);
-          setStorage('okto_session', JSON.stringify(sessionConfig));
+          setStorage('okto_session_whatsapp', JSON.stringify(sessionConfig));
 
           this.oktoClient.setSessionConfig(sessionConfig);
         },
@@ -201,6 +201,9 @@ export class AuthWebViewRequestHandler {
           this.navigationCallback();
         }, 500); // Short delay to allow WebView to process response
       }
+      const stored = getStorage('okto_session_whatsapp');
+      console.log('Stored session:', stored);
+      
     } catch (error) {
       // Handle and report verification errors
       console.error('Error verifying OTP:', error);
