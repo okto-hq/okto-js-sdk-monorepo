@@ -13,16 +13,17 @@ class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
     this.config = config;
-    // this.initializeSession();
+    this.initializeSession();
   }
 
-  // private initializeSession(): void {
-  //   const session = getStorage('okto_session');
-  //   if (session) {
-  //     this.setSessionConfig(JSON.parse(session));
-  //     this.syncUserKeys();
-  //   }
-  // }
+  private initializeSession(): void {
+    const session = getStorage('okto_session_whatsapp');
+    if (session) {
+      console.log("karan is here in inilialize session", session);
+      this.setSessionConfig(JSON.parse(session));
+      this.syncUserKeys();
+    }
+  }
 
   /**
    * Override of OAuth login to persist session in storage
