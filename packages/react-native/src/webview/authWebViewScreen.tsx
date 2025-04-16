@@ -16,14 +16,16 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
-  
+
   // Initialize OktoClient with provided configuration
   console.log('Initializing OktoClient with config:', clientConfig);
-  const oktoClient = useRef(new OktoClient({
-    environment: clientConfig.environment as 'staging' | 'sandbox',
-    clientPrivateKey: clientConfig.clientPrivateKey,
-    clientSWA: clientConfig.clientSWA,
-  })).current;
+  const oktoClient = useRef(
+    new OktoClient({
+      environment: clientConfig.environment as 'staging' | 'sandbox',
+      clientPrivateKey: clientConfig.clientPrivateKey,
+      clientSWA: clientConfig.clientSWA,
+    }),
+  ).current;
 
   // Navigation callback to close the WebView
   const navigateBack = () => {

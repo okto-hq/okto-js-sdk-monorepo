@@ -9,7 +9,11 @@ export class WebViewRequestHandler {
   private navigationCallback: () => void;
   private oktoClient: OktoClient;
 
-  constructor(bridge: WebViewBridge, navigationCallback: () => void, oktoClient: OktoClient) {
+  constructor(
+    bridge: WebViewBridge,
+    navigationCallback: () => void,
+    oktoClient: OktoClient,
+  ) {
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
     this.oktoClient = oktoClient;
@@ -79,8 +83,11 @@ export class WebViewRequestHandler {
 
     try {
       // Use OktoClient's WhatsApp sendOTP method
-      const otpResponse = await this.oktoClient.sendOTP(whatsapp_number, 'whatsapp');
-      
+      const otpResponse = await this.oktoClient.sendOTP(
+        whatsapp_number,
+        'whatsapp',
+      );
+
       const response: WebViewResponse = {
         id: request.id,
         method: request.method,
@@ -129,7 +136,7 @@ export class WebViewRequestHandler {
         token,
         (sessionConfig: any) => {
           console.log('Login successful, session established:', sessionConfig);
-        }
+        },
       );
 
       const response: WebViewResponse = {
@@ -140,7 +147,9 @@ export class WebViewRequestHandler {
           whatsapp_number,
           otp,
           token: result ? 'auth-success' : 'auth-failed',
-          message: result ? 'Authentication successful' : 'Authentication failed',
+          message: result
+            ? 'Authentication successful'
+            : 'Authentication failed',
         },
       };
 
@@ -185,7 +194,7 @@ export class WebViewRequestHandler {
       const resendResponse = await this.oktoClient.resendOTP(
         whatsapp_number,
         token,
-        'whatsapp'
+        'whatsapp',
       );
 
       const response: WebViewResponse = {

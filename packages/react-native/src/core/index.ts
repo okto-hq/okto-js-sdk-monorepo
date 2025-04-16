@@ -38,7 +38,7 @@ class OktoClient extends OktoCoreClient {
   }
 
   openWebView = (url: string, navigation: any): void => {
-    navigation.navigate('WebViewScreen', { 
+    navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
     });
