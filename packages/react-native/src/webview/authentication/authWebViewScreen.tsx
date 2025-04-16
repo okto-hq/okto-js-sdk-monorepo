@@ -8,8 +8,11 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
-import { getStorage } from '../../utils/storageUtils.js';
+import { getStorage } from 'src/utils/storageUtils.js';
 
+/**
+ * Props type for WebViewScreen component using React Navigation's typing system
+ */
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
 
 /**
@@ -20,66 +23,59 @@ type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
  * the React Native app and web content.
  */
 export const WebViewScreen = ({ route, navigation }: Props) => {
+  // Extract parameters passed through navigation
   const { url, title, clientConfig } = route.params;
 
+  // Create refs and state
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
-  
-  // Create a function to initialize or reinitialize the OktoClient
-  const createOktoClient = () => {
-    console.log('Initializing OktoClient with config:', clientConfig);
-    const client = new OktoClient({
+
+  // Initialize OktoClient with the configuration provided through navigation
+  console.log('Initializing OktoClient with config:', clientConfig);
+  const oktoClient = useRef(
+    new OktoClient({
       environment: clientConfig.environment as 'staging' | 'sandbox',
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
-    });
-    
-    // Try to load any existing session
-    const storedSession = getStorage('okto_session_whatsapp');
-    if (storedSession) {
-      try {
-        const sessionConfig = JSON.parse(storedSession);
-        client.setSessionConfig(sessionConfig);
-        console.log('Loaded session from storage:', sessionConfig);
-      } catch (error) {
-        console.error('Failed to parse stored session:', error);
-      }
-    }
-    
-    return client;
-  };
-  
-  // Create initial OktoClient instance
-  const oktoClientRef = useRef(createOktoClient());
-  
-  // Create a navigation callback that reinitializes the OktoClient
+    }),
+  ).current;
+
+  /**
+   * Navigation callback to return to previous screen
+   * Used by request handlers to close WebView when appropriate
+   */
   const navigateBack = () => {
-    oktoClientRef.current = createOktoClient();
-    console.log('Reinitialized OktoClient before navigation');
     navigation.goBack();
+    const session = getStorage('okto_session_whatsapp');
+    if (session) {
+      oktoClient.setSessionConfig(JSON.parse(session));
+      console.log('Session config set:', session);
+      oktoClient.syncUserKeys();
+    }
   };
 
   // Initialize the authentication request handler with necessary dependencies
-  // Use a state or ref to update the request handler when oktoClient changes
-  const requestHandlerRef = useRef(
-    new AuthWebViewRequestHandler(bridge, navigateBack, oktoClientRef.current)
-  );
+  const requestHandler = useRef(
+    new AuthWebViewRequestHandler(bridge, navigateBack, oktoClient),
+  ).current;
 
+  // Update navigation title if provided in route params
   useEffect(() => {
     if (title) {
       navigation.setOptions({ title });
     }
   }, [title, navigation]);
 
+  // Debug logging for component initialization
   useEffect(() => {
     console.log('WebView ref:', {
       refObject: webViewRef,
       currentValue: webViewRef.current,
     });
-    console.log('Request handler:', requestHandlerRef.current);
+    console.log('Request handler:', requestHandler);
   }, []);
 
   // Handle hardware back button presses
@@ -87,15 +83,12 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        // Reinitialize OktoClient before navigating back
-        oktoClientRef.current = createOktoClient();
-        console.log('Reinitialized OktoClient on back button press');
-        
         navigation.goBack();
-        return true;
+        return true; // Prevent default behavior
       },
     );
 
+    // Clean up the event listener on component unmount
     return () => backHandler.remove();
   }, [navigation]);
 
@@ -114,7 +107,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         injectedJavaScript={bridge.getInjectedJavaScript()}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        originWhitelist={['*']}
+        originWhitelist={['*']} // Consider restricting this in production
       />
     </SafeAreaView>
   );

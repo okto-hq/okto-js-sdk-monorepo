@@ -75,6 +75,9 @@ class OktoClient {
   }
 
   public setSessionConfig(sessionConfig: SessionConfig): void {
+    console.log("karan is here in set",sessionConfig.sessionPrivKey);
+    console.log("karan is here in set",sessionConfig.sessionPubKey);
+    console.log("karan is here in set",sessionConfig.userSWA);
     this._sessionConfig = sessionConfig;
   }
 
