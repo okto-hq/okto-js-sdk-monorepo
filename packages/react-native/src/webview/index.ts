@@ -1,2 +1,2 @@
-export * from './authWebViewScreen.js';
-export * from './webViewHandlers.js';
+export * from './authentication/authWebViewScreen.js';
+export * from './authentication/authWebViewHandlers.js';

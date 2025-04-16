@@ -26,6 +26,13 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  /**
+   * Override of OAuth login to persist session in storage
+   * @param data Authentication data
+   * @param onSuccess Optional callback on successful authentication
+   * @returns Promise resolving to user address or error
+   */
+
   override loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -37,6 +44,11 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
+  /**
+   * Opens a WebView for authentication flows
+   * @param url URL to open in WebView
+   * @param navigation Navigation object to navigate to WebView screen
+   */
   openWebView = (url: string, navigation: any): void => {
     navigation.navigate('WebViewScreen', {
       url,

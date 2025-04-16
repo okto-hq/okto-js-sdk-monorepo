@@ -49,6 +49,11 @@ export type WebViewParamList = {
     provider?: AuthProvider;
     initialData?: Record<string, any>;
     onAuthComplete?: (data: Record<string, any>) => void;
+    clientConfig: {
+      environment: string;
+      clientPrivateKey: string;
+      clientSWA: string;
+    };
   };
 };
 
