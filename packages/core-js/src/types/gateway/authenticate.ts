@@ -6,6 +6,10 @@ export type AuthData =
   | {
       authToken: string;
       provider: 'okto';
+    }
+  | {
+      idToken: string;
+      provider: 'okto';
     };
 
 export type AuthSessionData = {

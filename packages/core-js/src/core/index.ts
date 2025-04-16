@@ -227,7 +227,7 @@ class OktoClient {
       }
 
       const authData: AuthData = {
-        authToken: verifyResponse.authToken,
+        idToken: verifyResponse.authToken,
         provider: 'okto',
       };
 
@@ -275,7 +275,7 @@ class OktoClient {
       }
 
       const authData: AuthData = {
-        authToken: verifyResponse.authToken,
+        idToken: verifyResponse.authToken,
         provider: 'okto',
       };
 
