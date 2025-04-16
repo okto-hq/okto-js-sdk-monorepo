@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
+import { setStorage } from 'src/utils/storageUtils.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -170,6 +171,7 @@ export class AuthWebViewRequestHandler {
         otp,
         token,
         (sessionConfig: any) => {
+          setStorage('okto_session_whatsapp', JSON.stringify(sessionConfig));
           console.log('Login successful, session established:', sessionConfig);
         },
       );
