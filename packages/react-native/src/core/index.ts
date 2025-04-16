@@ -18,6 +18,7 @@ class OktoClient extends OktoCoreClient {
 
   private initializeSession(): void {
     const session = getStorage('okto_session_whatsapp');
+    console.log('KARAN:: Session from storage:', session);
     if (session) {
       console.log("karan is here in inilialize session", session);
       this.setSessionConfig(JSON.parse(session));
