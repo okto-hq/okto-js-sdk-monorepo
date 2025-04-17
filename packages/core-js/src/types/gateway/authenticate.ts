@@ -4,10 +4,6 @@ export type AuthData =
       provider: 'google';
     }
   | {
-      idToken: string;
-      provider: 'okto';
-    }
-  | {
       authToken: string;
       provider: 'okto';
     }

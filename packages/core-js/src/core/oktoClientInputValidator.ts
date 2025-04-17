@@ -26,10 +26,6 @@ export const AuthDataSchema = z.union([
     provider: z.literal('google'),
   }),
   z.object({
-    idToken: z.string(),
-    provider: z.literal('okto'),
-  }),
-  z.object({
     authToken: z.string(),
     provider: z.literal('okto'),
   }),
