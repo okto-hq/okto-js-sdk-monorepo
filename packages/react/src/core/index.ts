@@ -63,7 +63,7 @@ class OktoClient extends OktoCoreClient {
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
       scope: 'openid email profile',
-      redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler', // 'http://localhost:5000/__/auth/handler'
+      redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
       response_type: 'id_token',
       client_id:
         '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
