@@ -68,6 +68,10 @@ function getBffClient(oc: OktoClient) {
 
   client.interceptors.request.use(
     async (config) => {
+      if (config.headers['Skip-Authorization'] == 'true') {
+        config.headers.delete('Skip-Authorization');
+        return config;
+      }
       config.headers.setAuthorization(
         `Bearer ${await oc.getAuthorizationToken()}`,
       );
