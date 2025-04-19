@@ -8,10 +8,12 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform, Linking } from 'react-native';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
+import type { EmitterSubscription } from 'react-native';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
+  private deepLinkSubscription: EmitterSubscription | null = null;
+
   constructor(config: OktoClientConfig) {
     super(config);
     this.config = config;
@@ -19,21 +21,16 @@ class OktoClient extends OktoCoreClient {
   }
 
   private initializeSession(): void {
-    const session = getStorage('okto_session_whatsapp');
-    console.log('KARAN:: Session from storage:', session);
+    const session = getStorage('okto_session');
     if (session) {
-      console.log('karan is here in inilialize session', session);
-      this.setSessionConfig(JSON.parse(session));
-      this.syncUserKeys();
+      try {
+        this.setSessionConfig(JSON.parse(session));
+        this.syncUserKeys();
+      } catch (error) {
+        console.error('Error initializing session:', error);
+      }
     }
   }
-
-  /**
-   * Override of OAuth login to persist session in storage
-   * @param data Authentication data
-   * @param onSuccess Optional callback on successful authentication
-   * @returns Promise resolving to user address or error
-   */
 
   override loginUsingOAuth(
     data: AuthData,
@@ -46,116 +43,95 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-
-  override loginUsingSocial(
+  override async loginUsingSocial(
     provider: 'google',
   ): Promise<Address | RpcError | undefined> {
-    // Use the redirect URL that matches your Android manifest
     const redirectUrl = 'oktosdk://auth';
-    
-    // Add platform-specific properties to state
     const state = {
-      redirect_uri: 'oktosdk://auth', // Match your deep link scheme
-      platform: Platform.OS, // 'ios' or 'android'
-      // Add any additional state parameters you need
+      redirect_uri: redirectUrl,
+      platform: Platform.OS,
     };
-    
-    // Create a React Native specific implementation of overrideOpenWindow
-    const reactNativeOpenWindow = async (url: string): Promise<string> => {
+
+    try {
+      return await super.loginUsingSocial(
+        provider,
+        state,
+        this.createAuthWindowHandler(redirectUrl)
+      );
+    } catch (error) {
+      console.error('Social login error:', error);
+    } finally {
+      this.cleanupDeepLinkListener();
+    }
+  }
+
+  private createAuthWindowHandler(redirectUrl: string): (url: string) => Promise<string> {
+    return (authUrl: string) => {
       return new Promise<string>(async (resolve, reject) => {
-        // Set up URL event listener with the modern subscription API
-        const subscription = Linking.addListener('url', (event: { url: string }) => {
-          if (event.url.startsWith('oktosdk://auth')) {
-            try {
-              const urlObj = new URL(event.url);
-              const idToken = urlObj.searchParams.get('id_token');
-              
-              if (idToken) {
-                // Clean up listener
-                subscription.remove();
-                // Close browser if still open
-                InAppBrowser.close();
-                resolve(idToken);
-              }
-            } catch (error) {
-              console.error('Error parsing callback URL:', error);
-              subscription.remove();
-              reject(error);
+        // Set up deep link listener
+        this.deepLinkSubscription = Linking.addListener('url', (event) => {
+          if (!event.url.startsWith(redirectUrl)) return;
+
+          try {
+            const urlObj = new URL(event.url);
+            const idToken = urlObj.searchParams.get('id_token');
+            const error = urlObj.searchParams.get('error');
+            
+            if (error) {
+              reject(new Error(`Authentication failed: ${error}`));
+              return;
             }
+
+            if (idToken) {
+              resolve(idToken);
+            }
+          } catch (error) {
+            reject(new Error('Failed to process authentication response'));
+          } finally {
+            this.cleanupDeepLinkListener();
           }
         });
-        
+
+        // Open the authentication URL in the device browser
         try {
-          // Check if InAppBrowser is available
-          const isAvailable = await InAppBrowser.isAvailable();
-          
-          if (isAvailable) {
-            // Open URL in InAppBrowser
-            const result = await InAppBrowser.openAuth(url, redirectUrl, {
-              showTitle: true,
-              enableUrlBarHiding: true,
-              enableDefaultShare: false,
-              ephemeralWebSession: false,
-              toolbarColor: '#2196F3',
-              secondaryToolbarColor: 'black',
-              preferredBarTintColor: 'white',
-              preferredControlTintColor: 'white',
-            });
-            
-            if (result.type === 'cancel' || result.type === 'dismiss') {
-              subscription.remove();
-              reject(new Error('Authentication was cancelled'));
-            } else if (result.type === 'success' && result.url) {
-              // For some implementations, the token might be directly in the success URL
-              const urlObj = new URL(result.url);
-              const idToken = urlObj.searchParams.get('id_token');
-              if (idToken) {
-                subscription.remove();
-                resolve(idToken);
-              }
-            }
-          } else {
-            // Fall back to external browser if InAppBrowser is not available
-            const supported = await Linking.canOpenURL(url);
-            
-            if (supported) {
-              await Linking.openURL(url);
-            } else {
-              subscription.remove();
-              reject(new Error('Cannot open authentication URL'));
-            }
+          const supported = await Linking.canOpenURL(authUrl);
+          if (!supported) {
+            throw new Error(`Cannot open URL: ${authUrl}`);
           }
+          await Linking.openURL(authUrl);
         } catch (error) {
-          subscription.remove();
+          this.cleanupDeepLinkListener();
           reject(error);
         }
       });
     };
-    
-    // Call the parent class's method with our React Native specific implementation
-    return super.loginUsingSocial(provider, state, reactNativeOpenWindow);
   }
 
-  /**
-   * Opens a WebView for authentication flows
-   * @param url URL to open in WebView
-   * @param navigation Navigation object to navigate to WebView screen
-   */
-  public openWebView = (url: string, navigation: any): void => {
+  private cleanupDeepLinkListener(): void {
+    if (this.deepLinkSubscription) {
+      this.deepLinkSubscription.remove();
+      this.deepLinkSubscription = null;
+    }
+  }
+
+  public openWebView(url: string, navigation: any): void {
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
+      onAuthSuccess: (session: SessionConfig) => {
+        setStorage('okto_session', JSON.stringify(session));
+        this.setSessionConfig(session);
+      },
+      onAuthFailure: (error: Error) => {
+        console.error('WebView authentication failed:', error);
+      }
     });
-
-    console.log('Navigating to WebViewScreen with:', {
-      url,
-      clientConfig: this.config,
-    });
-  };
+  }
 
   override sessionClear(): void {
+    this.cleanupDeepLinkListener();
     clearStorage('okto_session');
-    return super.sessionClear();
+    super.sessionClear();
   }
 }
 
