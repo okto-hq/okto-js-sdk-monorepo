@@ -8,7 +8,6 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
-import { getStorage } from '../../utils/storageUtils.js';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
@@ -49,12 +48,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
    */
   const navigateBack = () => {
     navigation.goBack();
-    const session = getStorage('okto_session_whatsapp');
-    if (session) {
-      oktoClient.setSessionConfig(JSON.parse(session));
-      console.log('Session config set:', session);
-      oktoClient.syncUserKeys();
-    }
   };
 
   // Initialize the authentication request handler with necessary dependencies

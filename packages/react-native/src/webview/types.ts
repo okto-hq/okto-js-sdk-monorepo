@@ -1,6 +1,6 @@
 export type MessageMethod = 'okto_sdk_login';
 
-export type AuthProvider = 'whatsapp' | 'gauth' | 'telegram' | 'email';
+export type AuthProvider = 'whatsapp' | 'google' | 'telegram' | 'email';
 
 export type LoginRequestType =
   | 'request_otp'

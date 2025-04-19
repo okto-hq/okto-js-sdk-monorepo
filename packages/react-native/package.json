@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.110",
+  "version": "0.4.1-dev.111",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -43,6 +43,7 @@
     "@types/uuid": "^10.0.0",
     "react-native": "^0.79.0",
     "react-native-get-random-values": "^1.11.0",
+    "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-mmkv": "^3.2.0",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-webview": "^13.6.4",

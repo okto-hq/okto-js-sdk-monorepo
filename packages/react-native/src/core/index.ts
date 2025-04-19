@@ -7,6 +7,8 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import { Platform, Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
@@ -20,7 +22,7 @@ class OktoClient extends OktoCoreClient {
     const session = getStorage('okto_session_whatsapp');
     console.log('KARAN:: Session from storage:', session);
     if (session) {
-      console.log("karan is here in inilialize session", session);
+      console.log('karan is here in inilialize session', session);
       this.setSessionConfig(JSON.parse(session));
       this.syncUserKeys();
     }
@@ -44,12 +46,103 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
+
+  override loginUsingSocial(
+    provider: 'google',
+    state: Record<string, string> = {},
+    overrideOpenWindow: (url: string) => Promise<string>
+  ): Promise<Address | RpcError | undefined> {
+    // Use the redirect URL that matches your Android manifest
+    const redirectUrl = 'oktosdk://auth';
+    
+    // Add platform-specific properties to state
+    const enhancedState = {
+      ...state,
+      platform: Platform.OS, // 'ios' or 'android'
+    };
+    
+    // Create a React Native specific implementation of overrideOpenWindow
+    const reactNativeOpenWindow = async (url: string): Promise<string> => {
+      return new Promise<string>(async (resolve, reject) => {
+        // Set up URL event listener with the modern subscription API
+        const subscription = Linking.addListener('url', (event: { url: string }) => {
+          if (event.url.startsWith('oktosdk://auth')) {
+            try {
+              const urlObj = new URL(event.url);
+              const idToken = urlObj.searchParams.get('id_token');
+              
+              if (idToken) {
+                // Clean up listener
+                subscription.remove();
+                // Close browser if still open
+                InAppBrowser.close();
+                resolve(idToken);
+              }
+            } catch (error) {
+              console.error('Error parsing callback URL:', error);
+              subscription.remove();
+              reject(error);
+            }
+          }
+        });
+        
+        try {
+          // Check if InAppBrowser is available
+          const isAvailable = await InAppBrowser.isAvailable();
+          
+          if (isAvailable) {
+            // Open URL in InAppBrowser
+            const result = await InAppBrowser.openAuth(url, redirectUrl, {
+              showTitle: true,
+              enableUrlBarHiding: true,
+              enableDefaultShare: false,
+              ephemeralWebSession: false,
+              toolbarColor: '#2196F3',
+              secondaryToolbarColor: 'black',
+              preferredBarTintColor: 'white',
+              preferredControlTintColor: 'white',
+            });
+            
+            if (result.type === 'cancel' || result.type === 'dismiss') {
+              subscription.remove();
+              reject(new Error('Authentication was cancelled'));
+            } else if (result.type === 'success' && result.url) {
+              // For some implementations, the token might be directly in the success URL
+              const urlObj = new URL(result.url);
+              const idToken = urlObj.searchParams.get('id_token');
+              if (idToken) {
+                subscription.remove();
+                resolve(idToken);
+              }
+            }
+          } else {
+            // Fall back to external browser if InAppBrowser is not available
+            const supported = await Linking.canOpenURL(url);
+            
+            if (supported) {
+              await Linking.openURL(url);
+            } else {
+              subscription.remove();
+              reject(new Error('Cannot open authentication URL'));
+            }
+          }
+        } catch (error) {
+          subscription.remove();
+          reject(error);
+        }
+      });
+    };
+    
+    // Call the parent class's method with our React Native specific implementation
+    return super.loginUsingSocial(provider, enhancedState, reactNativeOpenWindow);
+  }
+
   /**
    * Opens a WebView for authentication flows
    * @param url URL to open in WebView
    * @param navigation Navigation object to navigate to WebView screen
    */
-  openWebView = (url: string, navigation: any): void => {
+  public openWebView = (url: string, navigation: any): void => {
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,

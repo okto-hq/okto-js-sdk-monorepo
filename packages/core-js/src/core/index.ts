@@ -28,6 +28,7 @@ import type {
   WhatsAppResendOtpResponse,
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
+import  SocialAuthUrlGenerator from '@/authentication/social.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -43,6 +44,7 @@ class OktoClient {
   readonly isDev: boolean = true; //* Mark it as true for development environment
   private _whatsAppAuthentication: WhatsAppAuthentication;
   private _emailAuthentication: EmailAuthentication;
+  private _socialAuthUrlGenerator: SocialAuthUrlGenerator;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -59,6 +61,7 @@ class OktoClient {
     this._emailAuthentication = new EmailAuthentication(
       config.clientPrivateKey,
     );
+    this._socialAuthUrlGenerator = new SocialAuthUrlGenerator();
   }
 
   get env(): EnvConfig {
@@ -75,13 +78,19 @@ class OktoClient {
   }
 
   public setSessionConfig(sessionConfig: SessionConfig): void {
-    console.log("karan is here in set",sessionConfig.sessionPrivKey);
-    console.log("karan is here in set",sessionConfig.sessionPubKey);
-    console.log("karan is here in set",sessionConfig.userSWA);
+    console.log('karan is here in set', sessionConfig.sessionPrivKey);
+    console.log('karan is here in set', sessionConfig.sessionPubKey);
+    console.log('karan is here in set', sessionConfig.userSWA);
     this._sessionConfig = sessionConfig;
-    console.log("karan is here in set session",this._sessionConfig.sessionPrivKey);
-    console.log("karan is here in set session",this._sessionConfig.sessionPubKey);
-    console.log("karan is here in set session",this._sessionConfig.userSWA);
+    console.log(
+      'karan is here in set session',
+      this._sessionConfig.sessionPrivKey,
+    );
+    console.log(
+      'karan is here in set session',
+      this._sessionConfig.sessionPubKey,
+    );
+    console.log('karan is here in set session', this._sessionConfig.userSWA);
   }
 
   /**
@@ -295,6 +304,40 @@ class OktoClient {
     }
   }
 
+
+  public async loginUsingSocial(
+    provider: 'google',
+    state: Record<string, string>,
+    overrideOpenWindow: (url: string) => Promise<string>,
+  ): Promise<Address | RpcError | undefined> {
+    try {
+      // Generate the authentication URL
+      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+
+      // Get the ID token using the provided window override function
+      const idToken = await overrideOpenWindow(url);
+      console.log('ID Token:', idToken);
+      if (!idToken) {
+        throw new Error('No ID token received from authentication');
+      }
+
+      // Create auth data for OAuth login
+      const authData: AuthData = {
+        idToken,
+        provider: provider,
+      };
+
+      // Perform OAuth login with the received token
+      return await this.loginUsingOAuth(authData);
+    } catch (error) {
+      console.error('Error during social authentication:', error);
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
   /**
    * Verifies if the user is logged in.
    * If user is not logged in, it clears the auth options.
@@ -357,7 +400,7 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    console.log("karan is here in userSWA",this._sessionConfig?.userSWA);
+    console.log('karan is here in userSWA', this._sessionConfig?.userSWA);
     return this._sessionConfig?.userSWA;
   }
 
