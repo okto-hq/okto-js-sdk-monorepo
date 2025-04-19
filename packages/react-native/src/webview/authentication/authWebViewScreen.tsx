@@ -90,6 +90,9 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
+        userAgent={
+          'Mozilla/5.0 (Linux; Android 12; Pixel a5 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.130 Mobile Safari/537.36'
+       }  // Custom user agent for WebView
         onMessage={bridge.handleWebViewMessage}
         onLoadStart={() => setIsLoading(true)}
         onLoadEnd={() => {
