@@ -49,16 +49,15 @@ class OktoClient extends OktoCoreClient {
 
   override loginUsingSocial(
     provider: 'google',
-    state: Record<string, string> = {},
-    overrideOpenWindow: (url: string) => Promise<string>
   ): Promise<Address | RpcError | undefined> {
     // Use the redirect URL that matches your Android manifest
     const redirectUrl = 'oktosdk://auth';
     
     // Add platform-specific properties to state
-    const enhancedState = {
-      ...state,
+    const state = {
+      redirect_uri: 'oktosdk://auth', // Match your deep link scheme
       platform: Platform.OS, // 'ios' or 'android'
+      // Add any additional state parameters you need
     };
     
     // Create a React Native specific implementation of overrideOpenWindow
@@ -134,7 +133,7 @@ class OktoClient extends OktoCoreClient {
     };
     
     // Call the parent class's method with our React Native specific implementation
-    return super.loginUsingSocial(provider, enhancedState, reactNativeOpenWindow);
+    return super.loginUsingSocial(provider, state, reactNativeOpenWindow);
   }
 
   /**
