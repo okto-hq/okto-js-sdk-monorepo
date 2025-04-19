@@ -7,13 +7,11 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
-import { Platform, Linking } from 'react-native';
-import type { EmitterSubscription } from 'react-native';
+import { Platform} from 'react-native';
 import { SocialAuthUrlGenerator } from '@okto_web3/core-js-sdk/authentication';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
-  private deepLinkSubscription: EmitterSubscription | null = null;
 
   constructor(config: OktoClientConfig) {
     super(config);

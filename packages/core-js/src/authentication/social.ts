@@ -1,12 +1,12 @@
 // import type { SocialAuthType } from "@/types/auth/social.js";
 
 class SocialAuthUrlGenerator {
-  private providers: Record<'google', string> = {
+  private static providers: Record<'google', string> = {
     google: 'https://accounts.google.com/o/oauth2/v2/auth'
   };
 
-  private buildAuthUrl(
-    provider: keyof typeof this.providers,
+  private static buildAuthUrl(
+    provider: keyof typeof SocialAuthUrlGenerator.providers,
     params: Record<string, string | object>,
   ): string {
     const baseUrl = this.providers[provider];
@@ -26,7 +26,7 @@ class SocialAuthUrlGenerator {
     return `${baseUrl}?${urlParams.toString()}`;
   }
 
-  public generateAuthUrl(
+  public static generateAuthUrl(
     provider: keyof typeof this.providers,
     state: Record<string, string>,
   ): string {
@@ -37,8 +37,8 @@ class SocialAuthUrlGenerator {
         throw new Error(`Unsupported provider: ${provider}`);
     }
   }
-  private buildGoogleAuthUrl(state: Record<string, string>): string {
-    return this.buildAuthUrl('google', {
+  private static buildGoogleAuthUrl(state: Record<string, string>): string {
+    return SocialAuthUrlGenerator.buildAuthUrl('google', {
       scope: 'openid email profile',
       redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
       response_type: 'id_token',
