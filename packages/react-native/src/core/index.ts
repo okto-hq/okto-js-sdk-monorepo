@@ -9,6 +9,7 @@ import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform, Linking } from 'react-native';
 import type { EmitterSubscription } from 'react-native';
+import { SocialAuthUrlGenerator } from '@okto_web3/core-js-sdk/authentication';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
@@ -45,74 +46,60 @@ class OktoClient extends OktoCoreClient {
 
   override async loginUsingSocial(
     provider: 'google',
+    navigation: any,
   ): Promise<Address | RpcError | undefined> {
+    if (!navigation) {
+      throw new Error('Navigation reference not set');
+    }
+
     const redirectUrl = 'oktosdk://auth';
     const state = {
       redirect_uri: redirectUrl,
       platform: Platform.OS,
     };
 
-    try {
-      return await super.loginUsingSocial(
-        provider,
-        state,
-        this.createAuthWindowHandler(redirectUrl)
-      );
-    } catch (error) {
-      console.error('Social login error:', error);
-    } finally {
-      this.cleanupDeepLinkListener();
-    }
-  }
+    return new Promise((resolve, reject) => {
+      // Create a handler for the WebView to communicate back
+      const handleWebViewResponse = (event: { url: string }) => {
+        if (!event.url.startsWith(redirectUrl)) return;
 
-  private createAuthWindowHandler(redirectUrl: string): (url: string) => Promise<string> {
-    return (authUrl: string) => {
-      return new Promise<string>(async (resolve, reject) => {
-        // Set up deep link listener
-        this.deepLinkSubscription = Linking.addListener('url', (event) => {
-          if (!event.url.startsWith(redirectUrl)) return;
-
-          try {
-            const urlObj = new URL(event.url);
-            const idToken = urlObj.searchParams.get('id_token');
-            const error = urlObj.searchParams.get('error');
-            
-            if (error) {
-              reject(new Error(`Authentication failed: ${error}`));
-              return;
-            }
-
-            if (idToken) {
-              resolve(idToken);
-            }
-          } catch (error) {
-            reject(new Error('Failed to process authentication response'));
-          } finally {
-            this.cleanupDeepLinkListener();
-          }
-        });
-
-        // Open the authentication URL in the device browser
         try {
-          const supported = await Linking.canOpenURL(authUrl);
-          if (!supported) {
-            throw new Error(`Cannot open URL: ${authUrl}`);
+          const urlObj = new URL(event.url);
+          const idToken = urlObj.searchParams.get('id_token');
+          const error = urlObj.searchParams.get('error');
+
+          if (error) {
+            reject(new Error(`Authentication failed: ${error}`));
+            return;
           }
-          await Linking.openURL(authUrl);
+
+          if (idToken) {
+            // Complete the auth flow with the parent class
+            super.loginUsingSocial(provider, state, async () => idToken)
+              .then(resolve)
+              .catch(reject);
+          }
         } catch (error) {
-          this.cleanupDeepLinkListener();
-          reject(error);
+          reject(new Error('Failed to process authentication response'));
+        } finally {
+          // Navigate back after auth completes
+          navigation?.current?.goBack();
         }
+      };
+
+      // Generate the auth URL (you'll need to implement this)
+      const authUrl =   SocialAuthUrlGenerator.generateAuthUrl(provider, state);
+      // ;
+
+      // Navigate to WebView screen
+      navigation.current?.navigate('AuthWebView', {
+        url: authUrl,
+        onUrlChange: handleWebViewResponse,
+        onClose: () => reject(new Error('Authentication cancelled by user')),
       });
-    };
+    });
   }
 
-  private cleanupDeepLinkListener(): void {
-    if (this.deepLinkSubscription) {
-      this.deepLinkSubscription.remove();
-      this.deepLinkSubscription = null;
-    }
-  }
 
   public openWebView(url: string, navigation: any): void {
     navigation.navigate('WebViewScreen', {
@@ -129,7 +116,7 @@ class OktoClient extends OktoCoreClient {
   }
 
   override sessionClear(): void {
-    this.cleanupDeepLinkListener();
+    // this.cleanupDeepLinkListener();
     clearStorage('okto_session');
     super.sessionClear();
   }

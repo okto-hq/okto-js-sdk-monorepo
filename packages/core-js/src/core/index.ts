@@ -312,7 +312,7 @@ class OktoClient {
   ): Promise<Address | RpcError | undefined> {
     try {
       // Generate the authentication URL
-      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+      const url = SocialAuthUrlGenerator.generateAuthUrl(provider, state);
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);
