@@ -9,6 +9,7 @@ import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform, Linking } from 'react-native';
 import type { EmitterSubscription } from 'react-native';
+import { SocialAuthUrlGenerator } from '@okto_web3/core-js-sdk/authentication';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
@@ -43,8 +44,9 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  override async loginUsingSocial(
-    provider: 'google',
+  public async loginWithGoogleInApp(
+    navigation: any,
+    onSuccess?: (session: SessionConfig) => void,
   ): Promise<Address | RpcError | undefined> {
     const redirectUrl = 'oktosdk://auth';
     const state = {
@@ -53,64 +55,43 @@ class OktoClient extends OktoCoreClient {
     };
 
     try {
-      return await super.loginUsingSocial(
-        provider,
-        state,
-        this.createAuthWindowHandler(redirectUrl)
-      );
-    } catch (error) {
-      console.error('Social login error:', error);
-    } finally {
-      this.cleanupDeepLinkListener();
-    }
-  }
+      const authUrl = SocialAuthUrlGenerator.generateAuthUrl("google",state);
+      return new Promise((resolve, reject) => {
+        const handleNavigation = (navState: any) => {
+          if (navState.url && navState.url.startsWith(redirectUrl)) {
+            try {
+              const urlObj = new URL(navState.url);
+              const idToken = urlObj.searchParams.get('id_token');
+              const provider = "google";
+              const error = urlObj.searchParams.get('error');
+              
+              if (error) {
+                reject(new Error(`Authentication failed: ${error}`));
+                return;
+              }
 
-  private createAuthWindowHandler(redirectUrl: string): (url: string) => Promise<string> {
-    return (authUrl: string) => {
-      return new Promise<string>(async (resolve, reject) => {
-        // Set up deep link listener
-        this.deepLinkSubscription = Linking.addListener('url', (event) => {
-          if (!event.url.startsWith(redirectUrl)) return;
-
-          try {
-            const urlObj = new URL(event.url);
-            const idToken = urlObj.searchParams.get('id_token');
-            const error = urlObj.searchParams.get('error');
-            
-            if (error) {
-              reject(new Error(`Authentication failed: ${error}`));
-              return;
+              if (idToken) {
+                this.loginUsingOAuth({ idToken, provider}, (session) => {
+                  setStorage('okto_session', JSON.stringify(session));
+                  this.setSessionConfig(session);
+                  onSuccess?.(session);
+                });
+              }
+            } catch (error) {
+              reject(error);
             }
-
-            if (idToken) {
-              resolve(idToken);
-            }
-          } catch (error) {
-            reject(new Error('Failed to process authentication response'));
-          } finally {
-            this.cleanupDeepLinkListener();
           }
+        };
+
+        navigation.navigate('WebViewScreen', {
+          url: authUrl,
+          clientConfig: this.config,
+          handleNavigation: handleNavigation,
         });
-
-        // Open the authentication URL in the device browser
-        try {
-          const supported = await Linking.canOpenURL(authUrl);
-          if (!supported) {
-            throw new Error(`Cannot open URL: ${authUrl}`);
-          }
-          await Linking.openURL(authUrl);
-        } catch (error) {
-          this.cleanupDeepLinkListener();
-          reject(error);
-        }
       });
-    };
-  }
-
-  private cleanupDeepLinkListener(): void {
-    if (this.deepLinkSubscription) {
-      this.deepLinkSubscription.remove();
-      this.deepLinkSubscription = null;
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
     }
   }
 
@@ -129,7 +110,6 @@ class OktoClient extends OktoCoreClient {
   }
 
   override sessionClear(): void {
-    this.cleanupDeepLinkListener();
     clearStorage('okto_session');
     super.sessionClear();
   }

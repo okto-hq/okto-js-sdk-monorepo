@@ -1,4 +1,4 @@
-// WebViewScreen.tsx
+// WebViewScreen.tsx (with minimal modifications)
 import { useState, useEffect, useRef } from 'react';
 import { WebView } from 'react-native-webview';
 import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
@@ -23,7 +23,7 @@ type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'>;
  */
 export const WebViewScreen = ({ route, navigation }: Props) => {
   // Extract parameters passed through navigation
-  const { url, title, clientConfig } = route.params;
+  const { url, title, clientConfig, handleNavigation } = route.params;
 
   // Create refs and state
   const webViewRef = useRef<WebView>(null);
@@ -96,6 +96,18 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
           setIsLoading(false);
           // Re-initialize bridge connections after page load completes
           bridge.reinitializeBridge();
+        }}
+        // Add navigation state change handler for Google auth flow
+        onNavigationStateChange={(navState) => {
+          // If we have a custom navigation handler, call it
+          if (handleNavigation) {
+            handleNavigation(navState);
+            
+            // If this is a redirect URL, navigate back
+            if (navState.url && navState.url.startsWith('oktosdk://')) {
+              navigation.goBack();
+            }
+          }
         }}
         injectedJavaScript={bridge.getInjectedJavaScript()}
         javaScriptEnabled={true}
