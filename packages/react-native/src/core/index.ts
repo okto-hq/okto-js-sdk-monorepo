@@ -7,7 +7,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
-import { Platform} from 'react-native';
+import { Platform } from 'react-native';
 import { SocialAuthUrlGenerator } from '@okto_web3/core-js-sdk/authentication';
 
 class OktoClient extends OktoCoreClient {
@@ -53,26 +53,36 @@ class OktoClient extends OktoCoreClient {
     };
 
     try {
-      const authUrl = SocialAuthUrlGenerator.generateAuthUrl("google",state);
+      const authUrl = SocialAuthUrlGenerator.generateAuthUrl('google', state);
       return new Promise((resolve, reject) => {
         const handleNavigation = (navState: any) => {
           if (navState.url && navState.url.startsWith(redirectUrl)) {
             try {
               const urlObj = new URL(navState.url);
               const idToken = urlObj.searchParams.get('id_token');
-              const provider = "google";
+              const provider = 'google';
               const error = urlObj.searchParams.get('error');
-              
+              console.log('KARAN :: Google login URL:', navState.url);
+              console.log('KARAN :: Google login redirect URL:', redirectUrl);
+              console.log('KARAN :: Google login state:', state);
+              console.log('KARAN :: Google login URL object:', urlObj);
+              console.log('KARAN :: Google login idToken:', idToken);
+              console.log('KARAN :: Google login provider:', provider);
+              console.log('KARAN :: Google login error:', error);
+              console.log('KARAN :: Google login response:', { idToken, provider, error });
+
               if (error) {
                 reject(new Error(`Authentication failed: ${error}`));
                 return;
               }
 
               if (idToken) {
-                this.loginUsingOAuth({ idToken, provider}, (session) => {
+                console.log('KARAN :: Google login 2  idToken:', idToken);
+                this.loginUsingOAuth({ idToken, provider }, (session) => {
                   setStorage('okto_session', JSON.stringify(session));
                   this.setSessionConfig(session);
                   onSuccess?.(session);
+                  console.log("KARAN loginusingOath ",session);
                 });
               }
             } catch (error) {
@@ -103,7 +113,7 @@ class OktoClient extends OktoCoreClient {
       },
       onAuthFailure: (error: Error) => {
         console.error('WebView authentication failed:', error);
-      }
+      },
     });
   }
 

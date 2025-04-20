@@ -49,7 +49,7 @@ export type WebViewParamList = {
     provider?: AuthProvider;
     initialData?: Record<string, any>;
     onAuthComplete?: (data: Record<string, any>) => void;
-    handleNavigation?: (navState: any) => void; 
+    handleNavigation?: (navState: any) => void;
     clientConfig: {
       environment: string;
       clientPrivateKey: string;
