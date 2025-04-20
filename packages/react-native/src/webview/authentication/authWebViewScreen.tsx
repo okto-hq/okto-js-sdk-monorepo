@@ -90,11 +90,11 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
-        userAgent={
-          Platform.OS === 'android'
-            ? 'Chrome/18.0.1025.133 Mobile Safari/535.19'
-            : 'AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75'
-        }
+        // userAgent={
+        //   Platform.OS === 'android'
+        //     ? 'Chrome/18.0.1025.133 Mobile Safari/535.19'
+        //     : 'AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75'
+        // }
         onMessage={bridge.handleWebViewMessage}
         onLoadStart={() => setIsLoading(true)}
         onLoadEnd={() => {
