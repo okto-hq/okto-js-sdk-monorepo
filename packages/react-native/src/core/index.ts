@@ -51,14 +51,48 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
+  // Improved URL handling to extract parameters from both query and fragment parts
+  private parseUrlParams(url: string): Record<string, string> {
+    const params: Record<string, string> = {};
+    try {
+      // Create URL object from the input URL
+      const urlObj = new URL(url);
+      
+      // Extract search params (after '?')
+      const searchParams = new URLSearchParams(urlObj.search);
+      searchParams.forEach((value, key) => {
+        params[key] = value;
+      });
+      
+      // Extract hash params (after '#') if any
+      if (urlObj.hash && urlObj.hash.length > 1) {
+        // Remove the '#' character and parse as search params
+        const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+        hashParams.forEach((value, key) => {
+          params[key] = value;
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error);
+    }
+    return params;
+  }
+
   private handleDeepLink(url: string | null): void {
-    if (!url || !url.startsWith('oktosdk://auth') || !this.authPromiseResolver)
+    if (!url || !url.startsWith('oktosdk://auth') || !this.authPromiseResolver) {
+      console.log('Invalid deep link or no auth resolver:', url);
       return;
+    }
 
     try {
-      const urlObj = new URL(url);
-      const idToken = urlObj.searchParams.get('id_token');
-      const error = urlObj.searchParams.get('error');
+      console.log('Processing deep link:', url);
+      
+      // Parse parameters from both query and fragment parts of the URL
+      const params = this.parseUrlParams(url);
+      
+      console.log('Extracted params:', params);
+      const idToken = params['id_token'];
+      const error = params['error'];
 
       if (error) {
         this.authPromiseResolver.reject(
@@ -68,13 +102,16 @@ class OktoClient extends OktoCoreClient {
       }
 
       if (idToken) {
+        console.log('Successfully extracted id_token');
         this.authPromiseResolver.resolve(idToken);
       } else {
+        console.error('No id_token found in redirect URL');
         this.authPromiseResolver.reject(
           new Error('No id_token found in redirect URL'),
         );
       }
     } catch (error) {
+      console.error('Failed to process authentication response:', error);
       this.authPromiseResolver.reject(
         new Error('Failed to process authentication response'),
       );
@@ -104,11 +141,12 @@ class OktoClient extends OktoCoreClient {
     };
 
     try {
-      // try {
-      //   WebBrowser.dismissAuthSession();
-      // } catch (error) {
-      //   console.error('Error dismissing previous auth session:', error);
-      // }
+      // Try to dismiss any existing auth sessions
+      try {
+        await WebBrowser.dismissAuthSession();
+      } catch (error) {
+        console.log('No existing auth session to dismiss');
+      }
 
       return await super.loginUsingSocial(
         provider,
@@ -121,21 +159,16 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  // Modified to handle redirection from Okto to the custom URL scheme
   private createExpoBrowserHandler(
     redirectUrl: string,
   ): (url: string) => Promise<string> {
     return async (authUrl: string) => {
-      console.log('KARAN :: Opening auth URL:', authUrl);
-      console.log('KARAN :: Redirect URL:', redirectUrl);
-      console.log('KARAN :: Platform:', Platform.OS);
-      console.log('KARAN :: Expo WebBrowser:', WebBrowser);
-      console.log('KARAN :: Linking:', Linking);
-      console.log('KARAN :: Linking URL:', Linking.getInitialURL);
-      console.log('KARAN :: Linking addListener:', Linking.addListener);
+      console.log('Opening auth URL:', authUrl);
+      console.log('Redirect URL:', redirectUrl);
+      
       if (this.authPromiseResolver) {
-        console.warn(
-          'Existing auth session detected, clearing previous session',
-        );
+        console.warn('Existing auth session detected, clearing previous session');
         this.authPromiseResolver.reject(
           new Error('Auth session replaced by new request'),
         );
@@ -149,37 +182,91 @@ class OktoClient extends OktoCoreClient {
         // Set a timeout for auth flow
         const authTimeout = setTimeout(() => {
           if (this.authPromiseResolver) {
+            console.error('Authentication timed out');
             this.authPromiseResolver.reject(
               new Error('Authentication timed out'),
             );
             this.authPromiseResolver = null;
-            // try {
-            //   WebBrowser.dismissAuthSession();
-            // } catch (error) {
-            //   console.error('Error dismissing auth session on timeout:', error);
-            // }
+            
+            try {
+              WebBrowser.dismissAuthSession();
+            } catch (error) {
+              console.error('Error dismissing auth session on timeout:', error);
+            }
           }
         }, 300000); // 5 minute timeout
+
+        // Create a listener specifically for the redirect with token
+        const tokenListener = (event: { url: string }) => {
+          if (event.url.startsWith(redirectUrl)) {
+            // Extract the URL from the handler URL
+            const handlerUrl = new URL(event.url);
+            
+            if (handlerUrl.searchParams.has('id_token')) {
+              const idToken = handlerUrl.searchParams.get('id_token');
+              if (idToken && this.authPromiseResolver) {
+                clearTimeout(authTimeout);
+                this.authPromiseResolver.resolve(idToken);
+                this.authPromiseResolver = null;
+                subscription.remove();
+                
+                try {
+                  WebBrowser.dismissAuthSession();
+                } catch (error) {
+                  console.error('Error dismissing auth session after success:', error);
+                }
+              }
+            }
+          }
+        };
+
+        // Add the temp listener and store the subscription
+        const subscription = Linking.addEventListener('url', tokenListener as any);
 
         // Open auth URL in the Expo WebBrowser
         WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
           showInRecents: true,
           createTask: false,
-          preferEphemeralSession: true, 
+          preferEphemeralSession: true,
         })
           .then((result) => {
             clearTimeout(authTimeout);
+            subscription.remove();
 
             // Only handle dismissal if we still have an active promise resolver
-            if (this.authPromiseResolver && result.type === 'dismiss') {
-              this.authPromiseResolver.reject(
-                new Error('User canceled authentication'),
-              );
-              this.authPromiseResolver = null;
+            if (this.authPromiseResolver) {
+              if (result.type === 'success') {
+                // For URLs with fragment identifiers, WebBrowser might not correctly redirect
+                // so we need to extract the token from the success URL if possible
+                try {
+                  const resultUrl = result.url;
+                  if (resultUrl) {
+                    // This url might contain the tokens in the fragment
+                    const params = this.parseUrlParams(resultUrl);
+                    const idToken = params['id_token'];
+                    
+                    if (idToken) {
+                      this.authPromiseResolver.resolve(idToken);
+                      this.authPromiseResolver = null;
+                      return;
+                    }
+                  }
+                } catch (e) {
+                  console.error('Error extracting token from success URL:', e);
+                }
+              }
+
+              if (result.type === 'dismiss') {
+                // this.authPromiseResolver.reject(
+                //   new Error('User canceled authentication'),
+                // );
+                this.authPromiseResolver = null;
+              }
             }
           })
           .catch((error) => {
             clearTimeout(authTimeout);
+            subscription.remove();
 
             if (this.authPromiseResolver) {
               this.authPromiseResolver.reject(error);
@@ -199,12 +286,12 @@ class OktoClient extends OktoCoreClient {
       this.authPromiseResolver = null;
     }
 
-    // // Close any open browser sessions
-    // try {
-    //   WebBrowser.dismissAuthSession();
-    // } catch (error) {
-    //   console.error('Error dismissing auth session during clear:', error);
-    // }
+    // Close any open browser sessions
+    try {
+      WebBrowser.dismissAuthSession();
+    } catch (error) {
+      console.error('Error dismissing auth session during clear:', error);
+    }
   }
 
   public destroy(): void {
