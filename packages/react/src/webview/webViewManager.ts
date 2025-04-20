@@ -73,8 +73,8 @@ export class WebViewManager {
   public openWebView(options: WebViewOptions = {}): boolean {
     const {
       url = DEFAULT_WEBVIEW_URL as string,
-      width = 300,
-      height = 600,
+      width = undefined,
+      height = undefined,
       onClose,
       modalStyle = {},
       iframeStyle = {},

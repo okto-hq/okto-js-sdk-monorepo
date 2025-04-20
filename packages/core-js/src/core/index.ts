@@ -28,6 +28,8 @@ import type {
   WhatsAppResendOtpResponse,
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
+import SocialAuthUrlGenerator from '@/authentication/social.js';
+import type { SocialAuthType } from '@/types/auth/social.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -43,6 +45,7 @@ class OktoClient {
   readonly isDev: boolean = true; //* Mark it as true for development environment
   private _whatsAppAuthentication: WhatsAppAuthentication;
   private _emailAuthentication: EmailAuthentication;
+  private _socialAuthUrlGenerator: SocialAuthUrlGenerator;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -59,6 +62,7 @@ class OktoClient {
     this._emailAuthentication = new EmailAuthentication(
       config.clientPrivateKey,
     );
+    this._socialAuthUrlGenerator = new SocialAuthUrlGenerator();
   }
 
   get env(): EnvConfig {
@@ -282,6 +286,46 @@ class OktoClient {
       return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
     } catch (error) {
       console.error('Error logging in using WhatsApp:', error);
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Login using social authentication providers.
+   * @param provider - The social authentication provider (e.g., 'google', 'facebook')
+   * @param state - Additional state parameters for the auth URL
+   * @param overrideOpenWindow - Function to override the default window opening behavior
+   * @returns {Promise<Address | RpcError | undefined>} - Returns the user's address after successful login
+   */
+  public async loginUsingSocial(
+    provider: SocialAuthType,
+    state: Record<string, string>,
+    overrideOpenWindow: (url: string) => Promise<string>,
+  ): Promise<Address | RpcError | undefined> {
+    try {
+      // Generate the authentication URL
+      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+
+      // Get the ID token using the provided window override function
+      const idToken = await overrideOpenWindow(url);
+      console.log('ID Token:', idToken);
+      if (!idToken) {
+        throw new Error('No ID token received from authentication');
+      }
+
+      // Create auth data for OAuth login
+      const authData: AuthData = {
+        idToken,
+        provider: provider,
+      };
+
+      // Perform OAuth login with the received token
+      return await this.loginUsingOAuth(authData);
+    } catch (error) {
+      console.error('Error during social authentication:', error);
       if (error instanceof RpcError) {
         return error;
       }

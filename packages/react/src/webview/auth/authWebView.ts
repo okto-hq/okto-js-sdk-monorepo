@@ -38,8 +38,8 @@ export class OktoAuthWebView {
     return new Promise((resolve, reject) => {
       const {
         url = `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,
-        width = 400,
-        height = 700,
+        width = 500,
+        height = 800,
         onSuccess,
         onError,
         onClose,
@@ -57,8 +57,12 @@ export class OktoAuthWebView {
           backgroundColor: 'rgba(0,0,0,0.7)',
         },
         iframeStyle: {
-          background: 'white',
-          boxShadow: '0 0 20px rgba(0,0,0,0.3)',
+          background: window.matchMedia('(min-width: 500px)').matches
+            ? 'transparent'
+            : 'white',
+          boxShadow: window.matchMedia('(min-width: 500px)').matches
+            ? 'none'
+            : '0 0 20px rgba(0,0,0,0.3)',
         },
       });
 
@@ -69,8 +73,10 @@ export class OktoAuthWebView {
       }
 
       const messageListener = (event: MessageEvent) => {
-        if (!this.webViewManager['allowedOrigins']?.includes(event.origin))
+        if (!this.webViewManager['allowedOrigins']?.includes(event.origin)) {
+          console.warn('Received message from untrusted origin:', event.origin);
           return;
+        }
 
         try {
           let rawData = event.data;
