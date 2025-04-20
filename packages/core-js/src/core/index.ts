@@ -28,7 +28,7 @@ import type {
   WhatsAppResendOtpResponse,
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
-import  SocialAuthUrlGenerator from '@/authentication/social.js';
+import SocialAuthUrlGenerator from '@/authentication/social.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -303,7 +303,6 @@ class OktoClient {
       throw error;
     }
   }
-
 
   public async loginUsingSocial(
     provider: 'google',

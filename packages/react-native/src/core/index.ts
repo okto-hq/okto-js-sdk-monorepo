@@ -1,4 +1,3 @@
-// src/core/OktoClient.ts
 import {
   OktoClient as OktoCoreClient,
   type OktoClientConfig,
@@ -9,26 +8,78 @@ import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform, Linking } from 'react-native';
 import type { EmitterSubscription } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
   private deepLinkSubscription: EmitterSubscription | null = null;
+  private authPromiseResolver: {
+    resolve: (value: string) => void;
+    reject: (reason: Error) => void;
+  } | null = null;
 
   constructor(config: OktoClientConfig) {
     super(config);
     this.config = config;
     this.initializeSession();
+    this.initializeDeepLinkHandlers();
   }
 
   private initializeSession(): void {
     const session = getStorage('okto_session');
     if (session) {
       try {
-        this.setSessionConfig(JSON.parse(session));
+        const parsedSession = JSON.parse(session);
+        this.setSessionConfig(parsedSession);
         this.syncUserKeys();
       } catch (error) {
         console.error('Error initializing session:', error);
+        clearStorage('okto_session');
       }
+    }
+  }
+
+  private initializeDeepLinkHandlers(): void {
+    Linking.getInitialURL()
+      .then((url) => {
+        if (url) this.handleDeepLink(url);
+      })
+      .catch((error) => console.error('Error getting initial URL', error));
+
+    this.deepLinkSubscription = Linking.addListener('url', (event) => {
+      this.handleDeepLink(event.url);
+    });
+  }
+
+  private handleDeepLink(url: string | null): void {
+    if (!url || !url.startsWith('oktosdk://auth') || !this.authPromiseResolver)
+      return;
+
+    try {
+      const urlObj = new URL(url);
+      const idToken = urlObj.searchParams.get('id_token');
+      const error = urlObj.searchParams.get('error');
+
+      if (error) {
+        this.authPromiseResolver.reject(
+          new Error(`Authentication failed: ${error}`),
+        );
+        return;
+      }
+
+      if (idToken) {
+        this.authPromiseResolver.resolve(idToken);
+      } else {
+        this.authPromiseResolver.reject(
+          new Error('No id_token found in redirect URL'),
+        );
+      }
+    } catch (error) {
+      this.authPromiseResolver.reject(
+        new Error('Failed to process authentication response'),
+      );
+    } finally {
+      this.authPromiseResolver = null;
     }
   }
 
@@ -53,65 +104,109 @@ class OktoClient extends OktoCoreClient {
     };
 
     try {
+      try {
+        WebBrowser.dismissAuthSession();
+      } catch (error) {
+        console.error('Error dismissing previous auth session:', error);
+      }
+
       return await super.loginUsingSocial(
         provider,
         state,
-        this.createAuthWindowHandler(redirectUrl)
+        this.createExpoBrowserHandler(redirectUrl),
       );
     } catch (error) {
       console.error('Social login error:', error);
-    } finally {
-      this.cleanupDeepLinkListener();
+      throw error;
     }
   }
 
-  private createAuthWindowHandler(redirectUrl: string): (url: string) => Promise<string> {
-    return (authUrl: string) => {
-      return new Promise<string>(async (resolve, reject) => {
-        // Set up deep link listener
-        this.deepLinkSubscription = Linking.addListener('url', (event) => {
-          if (!event.url.startsWith(redirectUrl)) return;
+  private createExpoBrowserHandler(
+    redirectUrl: string,
+  ): (url: string) => Promise<string> {
+    return async (authUrl: string) => {
+      if (this.authPromiseResolver) {
+        console.warn(
+          'Existing auth session detected, clearing previous session',
+        );
+        this.authPromiseResolver.reject(
+          new Error('Auth session replaced by new request'),
+        );
+        this.authPromiseResolver = null;
+      }
 
-          try {
-            const urlObj = new URL(event.url);
-            const idToken = urlObj.searchParams.get('id_token');
-            const error = urlObj.searchParams.get('error');
-            
-            if (error) {
-              reject(new Error(`Authentication failed: ${error}`));
-              return;
+      return new Promise<string>((resolve, reject) => {
+        // Store the promise resolver for use in the deep link handler
+        this.authPromiseResolver = { resolve, reject };
+
+        // Set a timeout for auth flow
+        const authTimeout = setTimeout(() => {
+          if (this.authPromiseResolver) {
+            this.authPromiseResolver.reject(
+              new Error('Authentication timed out'),
+            );
+            this.authPromiseResolver = null;
+            try {
+              WebBrowser.dismissAuthSession();
+            } catch (error) {
+              console.error('Error dismissing auth session on timeout:', error);
             }
+          }
+        }, 300000); // 5 minute timeout
 
-            if (idToken) {
-              resolve(idToken);
+        // Open auth URL in the Expo WebBrowser
+        WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
+          showInRecents: true,
+          createTask: false,
+          preferEphemeralSession: true, // Corrected property name
+        })
+          .then((result) => {
+            clearTimeout(authTimeout);
+
+            // Only handle dismissal if we still have an active promise resolver
+            if (this.authPromiseResolver && result.type === 'dismiss') {
+              this.authPromiseResolver.reject(
+                new Error('User canceled authentication'),
+              );
+              this.authPromiseResolver = null;
             }
-          } catch (error) {
-            reject(new Error('Failed to process authentication response'));
-          } finally {
-            this.cleanupDeepLinkListener();
-          }
-        });
+          })
+          .catch((error) => {
+            clearTimeout(authTimeout);
 
-        // Open the authentication URL in the device browser
-        try {
-          const supported = await Linking.canOpenURL(authUrl);
-          if (!supported) {
-            throw new Error(`Cannot open URL: ${authUrl}`);
-          }
-          await Linking.openURL(authUrl);
-        } catch (error) {
-          this.cleanupDeepLinkListener();
-          reject(error);
-        }
+            if (this.authPromiseResolver) {
+              this.authPromiseResolver.reject(error);
+              this.authPromiseResolver = null;
+            }
+          });
       });
     };
   }
 
-  private cleanupDeepLinkListener(): void {
+  override sessionClear(): void {
+    clearStorage('okto_session');
+    super.sessionClear();
+
+    // Clear any active authentication
+    if (this.authPromiseResolver) {
+      this.authPromiseResolver = null;
+    }
+
+    // Close any open browser sessions
+    try {
+      WebBrowser.dismissAuthSession();
+    } catch (error) {
+      console.error('Error dismissing auth session during clear:', error);
+    }
+  }
+
+  public destroy(): void {
     if (this.deepLinkSubscription) {
       this.deepLinkSubscription.remove();
       this.deepLinkSubscription = null;
     }
+
+    this.sessionClear();
   }
 
   public openWebView(url: string, navigation: any): void {
@@ -124,14 +219,8 @@ class OktoClient extends OktoCoreClient {
       },
       onAuthFailure: (error: Error) => {
         console.error('WebView authentication failed:', error);
-      }
+      },
     });
-  }
-
-  override sessionClear(): void {
-    this.cleanupDeepLinkListener();
-    clearStorage('okto_session');
-    super.sessionClear();
   }
 }
 

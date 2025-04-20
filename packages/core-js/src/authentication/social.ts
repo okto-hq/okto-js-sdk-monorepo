@@ -2,7 +2,7 @@
 
 class SocialAuthUrlGenerator {
   private providers: Record<'google', string> = {
-    google: 'https://accounts.google.com/o/oauth2/v2/auth'
+    google: 'https://accounts.google.com/o/oauth2/v2/auth',
   };
 
   private buildAuthUrl(

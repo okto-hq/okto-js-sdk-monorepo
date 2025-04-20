@@ -73,11 +73,10 @@ export class AuthWebViewRequestHandler {
     console.log('Handling login request:', request.data);
     const { type, provider } = request.data;
 
-     
-    ///TODO: check for google login here 
+    ///TODO: check for google login here
     // Handle Google provider directly with no OTP flow
     // if (provider === 'google') {
-    //   await this.handleGoogleLogin(request);  
+    //   await this.handleGoogleLogin(request);
     //   return;
     // }
 
