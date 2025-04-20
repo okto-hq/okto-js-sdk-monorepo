@@ -62,8 +62,14 @@ class OktoClient extends OktoCoreClient {
           showInRecents: true,
           preferEphemeralSession: true,
         });
+        
+        console.log('KARAN Auth session result type :', result.type);
+        if ('url' in result) {
+          console.log('KARAN Auth session result URL:', result.url);
+        }
 
-        if (result.type === 'success' && result.url) {
+        if (result.type === 'success'
+        ) {
           console.log('Auth session success:', result.url);
           return this.extractIdTokenFromUrl(result.url);
         } else if (result.type === 'dismiss') {
