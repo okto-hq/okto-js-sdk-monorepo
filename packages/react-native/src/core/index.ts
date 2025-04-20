@@ -107,17 +107,62 @@ class OktoClient extends OktoCoreClient {
 
     try {
       console.log('[OktoClient] Parsing deep link URL');
-      const urlObj = new URL(url);
       
-      // Log all parameters for debugging
-      const params: { [key: string]: string } = {};
-      urlObj.searchParams.forEach((value, key) => {
-        params[key] = value;
-      });
-      console.log('[OktoClient] Deep link params:', JSON.stringify(params));
+      // Extract token from URL - handle both query params and URL fragments
+      let idToken = null;
+      let error = null;
       
-      const idToken = urlObj.searchParams.get('id_token');
-      const error = urlObj.searchParams.get('error');
+      // First try to extract from query params
+      if (url.includes('?')) {
+        try {
+          const urlObj = new URL(url);
+          // Log all parameters for debugging
+          const params: { [key: string]: string } = {};
+          urlObj.searchParams.forEach((value, key) => {
+            params[key] = value;
+          });
+          console.log('[OktoClient] Deep link params:', JSON.stringify(params));
+          
+          idToken = urlObj.searchParams.get('id_token');
+          error = urlObj.searchParams.get('error');
+        } catch (e) {
+          console.error('[OktoClient] Error parsing URL as query params:', e);
+        }
+      }
+      
+      // If not found in query params, try to extract from URL fragment
+      if (!idToken && url.includes('#')) {
+        const fragmentPart = url.split('#')[1];
+        if (fragmentPart) {
+          // Create URLSearchParams from the fragment
+          const fragmentParams = new URLSearchParams(fragmentPart);
+          idToken = fragmentParams.get('id_token');
+          error = fragmentParams.get('error');
+          
+          // Log fragment params for debugging
+          const params: { [key: string]: string } = {};
+          fragmentParams.forEach((value, key) => {
+            params[key] = value;
+          });
+          console.log('[OktoClient] Fragment params:', JSON.stringify(params));
+        }
+      }
+      
+      // If still not found, try regex as last resort
+      if (!idToken && url.includes('id_token=')) {
+        const tokenMatch = url.match(/[?&#]id_token=([^&]+)/);
+        if (tokenMatch && tokenMatch[1]) {
+          idToken = tokenMatch[1];
+          console.log('[OktoClient] Extracted id_token using regex');
+        }
+      }
+      
+      if (!error && url.includes('error=')) {
+        const errorMatch = url.match(/[?&#]error=([^&]+)/);
+        if (errorMatch && errorMatch[1]) {
+          error = errorMatch[1];
+        }
+      }
 
       if (error) {
         console.error('[OktoClient] Auth error from deep link:', error);
@@ -193,6 +238,14 @@ class OktoClient extends OktoCoreClient {
     } catch (error) {
       console.error('[OktoClient] Social login error:', error);
       throw error;
+    } finally {
+      // Make sure the browser is cooled down even if there's an error
+      try {
+        console.log('[OktoClient] Cooling down browser after login attempt');
+        await WebBrowser.coolDownAsync();
+      } catch (e) {
+        console.error('[OktoClient] Error cooling down browser:', e);
+      }
     }
   }
 
@@ -224,10 +277,12 @@ class OktoClient extends OktoCoreClient {
       // Check if we already have an auth session in progress
       if (this.authPromiseResolver) {
         console.warn('[OktoClient] Existing auth session detected, clearing previous session');
-        this.authPromiseResolver.reject(
-          new Error('Auth session replaced by new request'),
-        );
-        this.authPromiseResolver = null;
+        if (this.authPromiseResolver) {
+          this.authPromiseResolver.reject(
+            new Error('Auth session replaced by new request'),
+          );
+          this.authPromiseResolver = null;
+        }
       }
 
       // Create a new promise to handle the auth flow
@@ -270,14 +325,48 @@ class OktoClient extends OktoCoreClient {
                 console.log('[OktoClient] Browser reports success, but no deep link handling occurred');
                 // If the URL contains an id_token, extract it (fallback mechanism)
                 try {
-                  if (result.url && result.url.includes('id_token=')) {
-                    const urlObj = new URL(result.url);
-                    const idToken = urlObj.searchParams.get('id_token');
-                    if (idToken) {
+                  if (result.url) {
+                    console.log('[OktoClient] Attempting to extract token from success URL:', result.url);
+                    
+                    // Try to extract from query params first
+                    let idToken = null;
+                    
+                    // Try URLSearchParams if we have query parameters
+                    if (result.url.includes('?')) {
+                      try {
+                        const urlObj = new URL(result.url);
+                        idToken = urlObj.searchParams.get('id_token');
+                      } catch (e) {
+                        console.error('[OktoClient] Error parsing URL:', e);
+                      }
+                    }
+                    
+                    // Try to extract from URL fragment
+                    if (!idToken && result.url.includes('#')) {
+                      const fragmentPart = result.url.split('#')[1];
+                      if (fragmentPart) {
+                        // Create URLSearchParams from the fragment
+                        const fragmentParams = new URLSearchParams(fragmentPart);
+                        idToken = fragmentParams.get('id_token');
+                      }
+                    }
+                    
+                    // Last resort: regex
+                    if (!idToken && result.url.includes('id_token=')) {
+                      const tokenMatch = result.url.match(/[?&#]id_token=([^&]+)/);
+                      if (tokenMatch && tokenMatch[1]) {
+                        idToken = tokenMatch[1];
+                        console.log('[OktoClient] Extracted id_token using regex from success URL');
+                      }
+                    }
+                    
+                    if (idToken && this.authPromiseResolver) {
                       console.log('[OktoClient] Extracted id_token from success URL');
                       this.authPromiseResolver.resolve(idToken);
                       this.authPromiseResolver = null;
                       return;
+                    } else {
+                      console.log('[OktoClient] No id_token found in success URL');
                     }
                   }
                 } catch (error) {
@@ -285,11 +374,11 @@ class OktoClient extends OktoCoreClient {
                 }
               }
               
-              if (result.type === 'dismiss') {
+              if (result.type === 'dismiss' && this.authPromiseResolver) {
                 console.log('[OktoClient] User dismissed the browser without completing auth');
-                // this.authPromiseResolver.reject(
-                //   new Error('User canceled authentication'),
-                // );
+                this.authPromiseResolver.reject(
+                  new Error('User canceled authentication'),
+                );
                 this.authPromiseResolver = null;
               }
             } else {
@@ -317,6 +406,7 @@ class OktoClient extends OktoCoreClient {
     // Clear any active authentication
     if (this.authPromiseResolver) {
       console.log('[OktoClient] Clearing active auth promise resolver');
+      this.authPromiseResolver.reject(new Error('Session cleared'));
       this.authPromiseResolver = null;
     }
 
@@ -380,6 +470,44 @@ class OktoClient extends OktoCoreClient {
       .catch(error => {
         console.error('[OktoClient] Failed to open test URL:', error);
       });
+  }
+
+  /**
+   * Test deep linking with a real token
+   * Useful for debugging when the automatic flow isn't working
+   */
+  public testWithRealToken(token: string): void {
+    const testUrl = `oktosdk://auth?id_token=${token}`;
+    console.log('[OktoClient] Testing with real token:', testUrl);
+    
+    Linking.openURL(testUrl)
+      .then(() => console.log('[OktoClient] Test with real token opened successfully'))
+      .catch(error => console.error('[OktoClient] Failed to open with real token:', error));
+  }
+
+  /**
+   * Manual OAuth login with a provided token
+   * This can be used as a fallback when deep linking isn't working
+   */
+  public async manualLoginWithToken(idToken: string, provider: 'google' = 'google'): Promise<Address | RpcError | undefined> {
+    console.log('[OktoClient] Performing manual login with provided token');
+    
+    try {
+      // Create auth data for OAuth login
+      const authData: AuthData = {
+        idToken,
+        provider,
+      };
+
+      // Perform OAuth login with the received token
+      return await this.loginUsingOAuth(authData);
+    } catch (error) {
+      console.error('[OktoClient] Error during manual authentication:', error);
+      // if (error instanceof RpcError) {
+      //   return error;
+      // }
+      throw error;
+    }
   }
 
   /**
