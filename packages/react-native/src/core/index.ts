@@ -104,11 +104,11 @@ class OktoClient extends OktoCoreClient {
     };
 
     try {
-      try {
-        WebBrowser.dismissAuthSession();
-      } catch (error) {
-        console.error('Error dismissing previous auth session:', error);
-      }
+      // try {
+      //   WebBrowser.dismissAuthSession();
+      // } catch (error) {
+      //   console.error('Error dismissing previous auth session:', error);
+      // }
 
       return await super.loginUsingSocial(
         provider,
@@ -125,6 +125,13 @@ class OktoClient extends OktoCoreClient {
     redirectUrl: string,
   ): (url: string) => Promise<string> {
     return async (authUrl: string) => {
+      console.log('KARAN :: Opening auth URL:', authUrl);
+      console.log('KARAN :: Redirect URL:', redirectUrl);
+      console.log('KARAN :: Platform:', Platform.OS);
+      console.log('KARAN :: Expo WebBrowser:', WebBrowser);
+      console.log('KARAN :: Linking:', Linking);
+      console.log('KARAN :: Linking URL:', Linking.getInitialURL);
+      console.log('KARAN :: Linking addListener:', Linking.addListener);
       if (this.authPromiseResolver) {
         console.warn(
           'Existing auth session detected, clearing previous session',
@@ -146,11 +153,11 @@ class OktoClient extends OktoCoreClient {
               new Error('Authentication timed out'),
             );
             this.authPromiseResolver = null;
-            try {
-              WebBrowser.dismissAuthSession();
-            } catch (error) {
-              console.error('Error dismissing auth session on timeout:', error);
-            }
+            // try {
+            //   WebBrowser.dismissAuthSession();
+            // } catch (error) {
+            //   console.error('Error dismissing auth session on timeout:', error);
+            // }
           }
         }, 300000); // 5 minute timeout
 
@@ -158,7 +165,7 @@ class OktoClient extends OktoCoreClient {
         WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
           showInRecents: true,
           createTask: false,
-          preferEphemeralSession: true, // Corrected property name
+          preferEphemeralSession: true, 
         })
           .then((result) => {
             clearTimeout(authTimeout);
@@ -192,12 +199,12 @@ class OktoClient extends OktoCoreClient {
       this.authPromiseResolver = null;
     }
 
-    // Close any open browser sessions
-    try {
-      WebBrowser.dismissAuthSession();
-    } catch (error) {
-      console.error('Error dismissing auth session during clear:', error);
-    }
+    // // Close any open browser sessions
+    // try {
+    //   WebBrowser.dismissAuthSession();
+    // } catch (error) {
+    //   console.error('Error dismissing auth session during clear:', error);
+    // }
   }
 
   public destroy(): void {
