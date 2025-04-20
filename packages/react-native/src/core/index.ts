@@ -40,13 +40,15 @@ class OktoClient extends OktoCoreClient {
   }
 
   private initializeDeepLinkHandlers(): void {
+    // Handle app startup with deep link
     Linking.getInitialURL()
       .then((url) => {
-        console.log('KARAN :: Initial URL:', url);
+        console.log('Initial URL:', url);
         if (url) this.handleDeepLink(url);
       })
       .catch((error) => console.error('Error getting initial URL', error));
 
+    // Handle deep links while app is running
     this.deepLinkSubscription = Linking.addListener('url', (event) => {
       console.log('Deep link event received:', event.url);
       this.handleDeepLink(event.url);
@@ -56,8 +58,15 @@ class OktoClient extends OktoCoreClient {
   private handleDeepLink(url: string | null): void {
     console.log('Handling deep link:', url);
     
-    if (!url || !url.startsWith('oktosdk://auth')) {
-      console.log('Not an auth deep link or no URL');
+    if (!url) {
+      console.log('No URL provided');
+      return;
+    }
+
+    console.log('Deep link URL format check:', url.includes('oktosdk://auth'));
+    
+    if (!url.includes('oktosdk://auth')) {
+      console.log('Not an auth deep link');
       return;
     }
     
@@ -67,31 +76,84 @@ class OktoClient extends OktoCoreClient {
     }
 
     try {
-      // First check URL parameters (after ?)
-      const urlParts = url.split('?');
-      const params = new URLSearchParams(urlParts[1] || '');
-      let idToken = params.get('id_token');
-      console.log('KARAN :: ID token found in URL params:', idToken);
-      let error = params.get('error');
+      // Log the full URL structure
+      console.log('URL structure:', {
+        full: url,
+        hasQueryParams: url.includes('?'),
+        hasFragment: url.includes('#'),
+      });
+
+      let idToken = null;
+      let error = null;
+
+      // Try extracting from URL parameters (after ?)
+      try {
+        const urlParams = url.split('?')[1];
+        if (urlParams) {
+          const params = new URLSearchParams(urlParams);
+          idToken = params.get('id_token');
+          error = params.get('error');
+          console.log('ID token in URL params:', idToken ? 'Found' : 'Not found');
+        }
+      } catch (e) {
+        console.error('Error extracting from URL params:', e);
+      }
 
       // If not found, check for URL fragment (after #)
       if (!idToken && url.includes('#')) {
-        const fragmentParts = url.split('#')[1] || '';
-        const fragmentParams = new URLSearchParams(fragmentParts);
-        idToken = fragmentParams.get('id_token');
-        console.log(' KARAN :: ID token found in fragment:', idToken);
-        error = fragmentParams.get('error');
+        console.log('Checking URL fragment for token');
+        try {
+          const fragmentStr = url.split('#')[1];
+          console.log('Fragment part:', fragmentStr);
+          
+          // If fragment contains id_token parameter directly
+          if (fragmentStr && fragmentStr.includes('id_token=')) {
+            const fragmentParams = new URLSearchParams(fragmentStr);
+            idToken = fragmentParams.get('id_token');
+            error = fragmentParams.get('error');
+            console.log('ID token in fragment params:', idToken ? 'Found' : 'Not found');
+          }
+          
+          // Try to parse the fragment as a structured object
+          if (!idToken && fragmentStr) {
+            // Some implementations might encode the entire object in the fragment
+            try {
+              const fragmentObj = JSON.parse(decodeURIComponent(fragmentStr));
+              if (fragmentObj && fragmentObj.id_token) {
+                idToken = fragmentObj.id_token;
+                console.log('ID token found in parsed fragment object');
+              }
+            } catch (e) {
+              console.log('Fragment is not a JSON object:', e);
+            }
+          }
+        } catch (e) {
+          console.error('Error extracting from URL fragment:', e);
+        }
       }
 
-      // If still not found, check if this is a state param with id_token inside
-      if (!idToken) {
-        const stateParam = params.get('state');
-        if (stateParam) {
+      // Check if the fragment has a state parameter containing the id_token
+      if (!idToken && url.includes('state=') && url.includes('id_token=')) {
+        console.log('Checking for state and id_token in URL');
+        
+        // Extract the state parameter
+        let stateMatch = url.match(/state=([^&]+)/);
+        let stateParam = stateMatch ? stateMatch[1] : null;
+        
+        // Extract the id_token directly
+        let tokenMatch = url.match(/id_token=([^&]+)/);
+        idToken = tokenMatch ? tokenMatch[1] : null;
+        
+        console.log('ID token from regex match:', idToken ? 'Found' : 'Not found');
+        
+        // If we have a state parameter but no id_token, try to extract from state
+        if (!idToken && stateParam) {
           try {
             const state = JSON.parse(decodeURIComponent(stateParam));
+            console.log('Parsed state:', state);
             if (state && state.id_token) {
               idToken = state.id_token;
-              console.log(' KARAN :: ID token found in state parameter:', idToken);
+              console.log('ID token found in state parameter');
             }
           } catch (e) {
             console.error('Error parsing state parameter:', e);
@@ -99,11 +161,20 @@ class OktoClient extends OktoCoreClient {
         }
       }
 
+      // Last resort: try to extract from the entire URL
+      if (!idToken) {
+        const idTokenMatch = url.match(/id_token=([^&]+)/);
+        if (idTokenMatch && idTokenMatch[1]) {
+          idToken = idTokenMatch[1];
+          console.log('ID token extracted with regex from full URL');
+        }
+      }
+
       if (error) {
         console.error('Authentication error:', error);
         this.authPromiseResolver.reject(new Error(`Authentication failed: ${error}`));
       } else if (idToken) {
-        console.log('ID token found in deep link, resolving promise');
+        console.log('ID token found, resolving promise');
         this.authPromiseResolver.resolve(idToken);
       } else {
         console.error('No ID token found in redirect URL');
@@ -131,9 +202,12 @@ class OktoClient extends OktoCoreClient {
   override async loginUsingSocial(
     provider: 'google'
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = 'https://onboarding.oktostage.com/__/auth/handler';
+    // Define the app's deep link URI that will be used for redirection
+    const appRedirectUri = 'oktosdk://auth';
+    
+    // Create state object with necessary information
     const state = {
-      redirect_uri: redirectUrl,
+      redirect_uri: appRedirectUri, // This is crucial - tells the auth server where to redirect
       platform: Platform.OS,
     };
   
@@ -146,7 +220,6 @@ class OktoClient extends OktoCoreClient {
         // Make sure any existing auth session is cleared
         if (this.authPromiseResolver) {
           console.warn('Existing auth session detected, clearing previous session');
-          console.log('KARAN :: Rejecting previous auth promise resolver');
           this.authPromiseResolver.reject(new Error('Auth session replaced by new request'));
           this.authPromiseResolver = null;
         }
@@ -170,14 +243,14 @@ class OktoClient extends OktoCoreClient {
           }, 300000); // 5 minute timeout
           
           // Open auth URL in browser
-          WebBrowser.openAuthSessionAsync(url, redirectUrl, {
+          WebBrowser.openAuthSessionAsync(url, appRedirectUri, {
             showInRecents: true,
             createTask: false,
             preferEphemeralSession: true,
           })
           .then((result) => {
             clearTimeout(authTimeout);
-            console.log('KARAN :: WebBrowser session ended with result:', result.type);
+            console.log('WebBrowser session ended with result:', result.type);
             
             // Only handle dismissal if still have an active resolver
             if (this.authPromiseResolver && result.type === 'dismiss') {
