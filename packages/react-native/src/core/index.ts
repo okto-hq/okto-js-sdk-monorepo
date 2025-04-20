@@ -131,7 +131,7 @@ class OktoClient extends OktoCoreClient {
   override async loginUsingSocial(
     provider: 'google'
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = 'oktosdk://auth';
+    const redirectUrl = 'https://onboarding.oktostage.com/__/auth/handler';
     const state = {
       redirect_uri: redirectUrl,
       platform: Platform.OS,
