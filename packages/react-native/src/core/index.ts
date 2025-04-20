@@ -7,22 +7,15 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform, Linking } from 'react-native';
-import type { EmitterSubscription } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
-  private deepLinkSubscription: EmitterSubscription | null = null;
-  private authPromiseResolver: {
-    resolve: (value: string) => void;
-    reject: (reason: Error) => void;
-  } | null = null;
 
   constructor(config: OktoClientConfig) {
     super(config);
     this.config = config;
     this.initializeSession();
-    this.initializeDeepLinkHandlers();
   }
 
   private initializeSession(): void {
@@ -36,155 +29,6 @@ class OktoClient extends OktoCoreClient {
         console.error('Error initializing session:', error);
         clearStorage('okto_session');
       }
-    }
-  }
-
-  private initializeDeepLinkHandlers(): void {
-    // Handle app startup with deep link
-    Linking.getInitialURL()
-      .then((url) => {
-        console.log('Initial URL:', url);
-        if (url) this.handleDeepLink(url);
-      })
-      .catch((error) => console.error('Error getting initial URL', error));
-
-    // Handle deep links while app is running
-    this.deepLinkSubscription = Linking.addListener('url', (event) => {
-      console.log('Deep link event received:', event.url);
-      this.handleDeepLink(event.url);
-    });
-  }
-
-  private handleDeepLink(url: string | null): void {
-    console.log('Handling deep link:', url);
-    
-    if (!url) {
-      console.log('No URL provided');
-      return;
-    }
-
-    console.log('Deep link URL format check:', url.includes('oktosdk://auth'));
-    
-    if (!url.includes('oktosdk://auth')) {
-      console.log('Not an auth deep link');
-      return;
-    }
-    
-    if (!this.authPromiseResolver) {
-      console.log('No active auth promise resolver');
-      return;
-    }
-
-    try {
-      // Log the full URL structure
-      console.log('URL structure:', {
-        full: url,
-        hasQueryParams: url.includes('?'),
-        hasFragment: url.includes('#'),
-      });
-
-      let idToken = null;
-      let error = null;
-
-      // Try extracting from URL parameters (after ?)
-      try {
-        const urlParams = url.split('?')[1];
-        if (urlParams) {
-          const params = new URLSearchParams(urlParams);
-          idToken = params.get('id_token');
-          error = params.get('error');
-          console.log('ID token in URL params:', idToken ? 'Found' : 'Not found');
-        }
-      } catch (e) {
-        console.error('Error extracting from URL params:', e);
-      }
-
-      // If not found, check for URL fragment (after #)
-      if (!idToken && url.includes('#')) {
-        console.log('Checking URL fragment for token');
-        try {
-          const fragmentStr = url.split('#')[1];
-          console.log('Fragment part:', fragmentStr);
-          
-          // If fragment contains id_token parameter directly
-          if (fragmentStr && fragmentStr.includes('id_token=')) {
-            const fragmentParams = new URLSearchParams(fragmentStr);
-            idToken = fragmentParams.get('id_token');
-            error = fragmentParams.get('error');
-            console.log('ID token in fragment params:', idToken ? 'Found' : 'Not found');
-          }
-          
-          // Try to parse the fragment as a structured object
-          if (!idToken && fragmentStr) {
-            // Some implementations might encode the entire object in the fragment
-            try {
-              const fragmentObj = JSON.parse(decodeURIComponent(fragmentStr));
-              if (fragmentObj && fragmentObj.id_token) {
-                idToken = fragmentObj.id_token;
-                console.log('ID token found in parsed fragment object');
-              }
-            } catch (e) {
-              console.log('Fragment is not a JSON object:', e);
-            }
-          }
-        } catch (e) {
-          console.error('Error extracting from URL fragment:', e);
-        }
-      }
-
-      // Check if the fragment has a state parameter containing the id_token
-      if (!idToken && url.includes('state=') && url.includes('id_token=')) {
-        console.log('Checking for state and id_token in URL');
-        
-        // Extract the state parameter
-        let stateMatch = url.match(/state=([^&]+)/);
-        let stateParam = stateMatch ? stateMatch[1] : null;
-        
-        // Extract the id_token directly
-        let tokenMatch = url.match(/id_token=([^&]+)/);
-        idToken = tokenMatch ? tokenMatch[1] : null;
-        
-        console.log('ID token from regex match:', idToken ? 'Found' : 'Not found');
-        
-        // If we have a state parameter but no id_token, try to extract from state
-        if (!idToken && stateParam) {
-          try {
-            const state = JSON.parse(decodeURIComponent(stateParam));
-            console.log('Parsed state:', state);
-            if (state && state.id_token) {
-              idToken = state.id_token;
-              console.log('ID token found in state parameter');
-            }
-          } catch (e) {
-            console.error('Error parsing state parameter:', e);
-          }
-        }
-      }
-
-      // Last resort: try to extract from the entire URL
-      if (!idToken) {
-        const idTokenMatch = url.match(/id_token=([^&]+)/);
-        if (idTokenMatch && idTokenMatch[1]) {
-          idToken = idTokenMatch[1];
-          console.log('ID token extracted with regex from full URL');
-        }
-      }
-
-      if (error) {
-        console.error('Authentication error:', error);
-        this.authPromiseResolver.reject(new Error(`Authentication failed: ${error}`));
-      } else if (idToken) {
-        console.log('ID token found, resolving promise');
-        this.authPromiseResolver.resolve(idToken);
-      } else {
-        console.error('No ID token found in redirect URL');
-        this.authPromiseResolver.reject(new Error('No ID token found in redirect URL'));
-      }
-    } catch (error) {
-      console.error('Error handling deep link:', error);
-      this.authPromiseResolver.reject(new Error('Failed to process authentication response'));
-    } finally {
-      this.authPromiseResolver = null;
     }
   }
 
@@ -202,115 +46,76 @@ class OktoClient extends OktoCoreClient {
   override async loginUsingSocial(
     provider: 'google'
   ): Promise<Address | RpcError | undefined> {
-    // Define the app's deep link URI that will be used for redirection
-    const appRedirectUri = 'oktosdk://auth';
-    
-    // Create state object with necessary information
+    const redirectUrl = 'oktosdk://auth';
     const state = {
-      redirect_uri: appRedirectUri, // This is crucial - tells the auth server where to redirect
+      redirect_uri: redirectUrl,
       platform: Platform.OS,
     };
-  
+
     return super.loginUsingSocial(
       provider,
       state,
       async (url: string) => {
         console.log('Opening auth URL:', url);
         
-        // Make sure any existing auth session is cleared
-        if (this.authPromiseResolver) {
-          console.warn('Existing auth session detected, clearing previous session');
-          this.authPromiseResolver.reject(new Error('Auth session replaced by new request'));
-          this.authPromiseResolver = null;
-        }
-        
-        return new Promise<string>((resolve, reject) => {
-          this.authPromiseResolver = { resolve, reject };
-          
-          // Set timeout for auth flow
-          const authTimeout = setTimeout(() => {
-            if (this.authPromiseResolver) {
-              console.warn('Authentication timed out');
-              this.authPromiseResolver.reject(new Error('Authentication timed out'));
-              this.authPromiseResolver = null;
-              
-              try {
-                WebBrowser.dismissAuthSession();
-              } catch (error) {
-                console.error('Error dismissing auth session on timeout:', error);
-              }
-            }
-          }, 300000); // 5 minute timeout
-          
-          // Open auth URL in browser
-          WebBrowser.openAuthSessionAsync(url, appRedirectUri, {
-            showInRecents: true,
-            createTask: false,
-            preferEphemeralSession: true,
-          })
-          .then((result) => {
-            clearTimeout(authTimeout);
-            console.log('WebBrowser session ended with result:', result.type);
-            
-            // Only handle dismissal if still have an active resolver
-            if (this.authPromiseResolver && result.type === 'dismiss') {
-              console.warn('User dismissed the auth session');
-              this.authPromiseResolver.reject(new Error('User canceled authentication'));
-              this.authPromiseResolver = null;
-            }
-          })
-          .catch((error) => {
-            clearTimeout(authTimeout);
-            console.error('Error in WebBrowser session:', error);
-            
-            if (this.authPromiseResolver) {
-              this.authPromiseResolver.reject(error);
-              this.authPromiseResolver = null;
-            }
-          });
+        const result = await WebBrowser.openAuthSessionAsync(url, redirectUrl, {
+          showInRecents: true,
+          preferEphemeralSession: true,
         });
+
+        if (result.type === 'success' && result.url) {
+          console.log('Auth session success:', result.url);
+          return this.extractIdTokenFromUrl(result.url);
+        } else if (result.type === 'dismiss') {
+          throw new Error('User canceled authentication');
+        } else {
+          throw new Error('Authentication failed');
+        }
       }
     );
+  }
+
+  private extractIdTokenFromUrl(url: string): string {
+    console.log('Processing redirect URL:', url);
+    
+    // Try to get from URL fragment first (after #)
+    if (url.includes('#')) {
+      const fragmentParams = new URLSearchParams(url.split('#')[1]);
+      const fragmentToken = fragmentParams.get('id_token');
+      if (fragmentToken) return fragmentToken;
+    }
+    
+    // Then try URL parameters (after ?)
+    if (url.includes('?')) {
+      const urlParams = new URLSearchParams(url.split('?')[1]);
+      const paramToken = urlParams.get('id_token');
+      if (paramToken) return paramToken;
+    }
+    
+    // Finally check state parameter
+    const stateParam = new URLSearchParams(url.split('?')[1] || url.split('#')[1] || '').get('state');
+    if (stateParam) {
+      try {
+        const state = JSON.parse(decodeURIComponent(stateParam));
+        if (state?.id_token) {
+          return state.id_token;
+        }
+      } catch (e) {
+        console.error('Error parsing state parameter:', e);
+      }
+    }
+    
+    throw new Error('No ID token found in redirect URL');
   }
 
   override sessionClear(): void {
     clearStorage('okto_session');
     super.sessionClear();
-
-    // Clear any active authentication
-    if (this.authPromiseResolver) {
-      this.authPromiseResolver.reject(new Error('Session cleared during authentication'));
-      this.authPromiseResolver = null;
-    }
-
-    try {
-      WebBrowser.dismissAuthSession();
-    } catch (error) {
-      console.error('Error dismissing auth session during clear:', error);
-    }
+    // WebBrowser.dismissAuthSession().catch(() => {});
   }
 
   public destroy(): void {
-    if (this.deepLinkSubscription) {
-      this.deepLinkSubscription.remove();
-      this.deepLinkSubscription = null;
-    }
-
     this.sessionClear();
-  }
-
-  public openWebView(url: string, navigation: any): void {
-    navigation.navigate('WebViewScreen', {
-      url,
-      clientConfig: this.config,
-      onAuthSuccess: (session: SessionConfig) => {
-        setStorage('okto_session', JSON.stringify(session));
-        this.setSessionConfig(session);
-      },
-      onAuthFailure: (error: Error) => {
-        console.error('WebView authentication failed:', error);
-      },
-    });
   }
 }
 
