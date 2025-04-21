@@ -6,7 +6,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
-import { Platform, Linking } from 'react-native';
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 class OktoClient extends OktoCoreClient {
@@ -43,44 +43,81 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  override async loginUsingSocial(
-    provider: 'google'
-  ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = 'oktosdk://auth';
-    const state = {
-      redirect_uri: redirectUrl,
-      platform: Platform.OS,
-    };
-
-    return super.loginUsingSocial(
-      provider,
-      state,
-      async (url: string) => {
-        console.log('Opening auth URL:', url);
+  public async loginUsingGoogleAuth(): Promise<void> {
+    try {
+      // Base URL for Google OAuth
+      const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+      
+      // Define redirect URI for your app
+      const redirectUri = 'https://onboarding.oktostage.com/__/auth/handler';
+      
+      // Generate a random nonce for security
+      const nonce = this.generateNonce();
+      
+      // Generate the state parameter with platform info and redirect URI
+      const state = JSON.stringify({
+        redirect_uri: "oktosdk://auth", // Your app's custom scheme
+        platform: Platform.OS // 'android' or 'ios'
+      });
+      
+      // Create params object with all required OAuth parameters
+      const params = new URLSearchParams({
+        scope: 'openid email profile',
+        redirect_uri: redirectUri,
+        response_type: 'id_token',
+        client_id: '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
+        nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
+        state: state,
+      });
+      
+      // Build the complete auth URL
+      const authUrl = `${baseUrl}?${params.toString()}`;
+      
+      console.log('Opening Google Auth URL:', authUrl);
+      
+      // Open the authentication URL in the browser
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        "oktosdk://auth" // This is your app's custom URL scheme
+      );
+      
+      if (result.type === 'success') {
+        // Handle successful authentication
+        const { url } = result;
+        console.log('Received redirect URL:', url);
         
-        const result = await WebBrowser.openAuthSessionAsync(url, redirectUrl, {
-          showInRecents: true,
-          preferEphemeralSession: true,
-        });
+        // Parse the URL to extract the id_token
+        const idToken = this.extractIdTokenFromUrl(url);
         
-        console.log('KARAN Auth session result type :', result.type);
-        if ('url' in result) {
-          console.log('KARAN Auth session result URL:', result.url);
-        }
-
-        if (result.type === 'success'
-        ) {
-          console.log('Auth session success:', result.url);
-          return this.extractIdTokenFromUrl(result.url);
-        } else if (result.type === 'dismiss') {
-          throw new Error('User canceled authentication');
+        if (idToken) {
+          console.log('ID Token received:', idToken);
+          setStorage('auth_token', idToken);
+          
+          // Call your login method
+          await this.loginUsingOAuth(
+            { 
+              idToken: idToken, 
+              provider: 'google' 
+            },
+            (session) => {
+              console.log('Login successful:', session);
+            }
+          );
         } else {
-          throw new Error('Authentication failed');
+          console.warn('No id_token found in the response');
+          throw new Error('No ID token found in the response');
         }
+      } else {
+        // Handle cancellation or errors
+        console.log('Authentication cancelled or failed:', result.type);
+        throw new Error('Authentication was cancelled or failed');
       }
-    );
+    } catch (error) {
+      console.error('Auth error:', error);
+      throw new Error('Failed to authenticate with Google: ' + (error instanceof Error ? error.message : String(error)));
+    }
   }
-
+  
   private extractIdTokenFromUrl(url: string): string {
     console.log('Processing redirect URL:', url);
     
@@ -114,10 +151,22 @@ class OktoClient extends OktoCoreClient {
     throw new Error('No ID token found in redirect URL');
   }
 
+  private generateNonce(length: number = 32): string {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      result += charset[randomIndex];
+    }
+    
+    return result;
+  }
+
   override sessionClear(): void {
     clearStorage('okto_session');
+    clearStorage('auth_token');
     super.sessionClear();
-    // WebBrowser.dismissAuthSession().catch(() => {});
   }
 
   public destroy(): void {
