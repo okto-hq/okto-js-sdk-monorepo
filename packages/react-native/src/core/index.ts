@@ -4,17 +4,24 @@ import {
 } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
-import type { Address, AuthData, SocialAuthType } from '@okto_web3/core-js-sdk/types';
+import type {
+  Address,
+  AuthData,
+  SocialAuthType,
+} from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import {
+  createExpoBrowserHandler,
+  type AuthPromiseResolver,
+} from '../utils/authBrowserUtils.js';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
-  private authPromiseResolver: {
-    resolve: (value: string) => void;
-    reject: (reason: Error) => void;
-  } | null = null;
+  private authPromiseResolverRef: { current: AuthPromiseResolver } = {
+    current: null,
+  };
 
   constructor(config: OktoClientConfig) {
     super(config);
@@ -33,7 +40,7 @@ class OktoClient extends OktoCoreClient {
         clearStorage('okto_session');
       }
     } else {
-      console.log('[OktoClient] No stored session found');
+      console.log('No stored session found');
     }
   }
 
@@ -49,7 +56,7 @@ class OktoClient extends OktoCoreClient {
   }
 
   override async loginUsingSocial(
-    provider: SocialAuthType
+    provider: SocialAuthType,
   ): Promise<Address | RpcError | undefined> {
     const redirectUrl = 'oktosdk://auth';
     const state = {
@@ -69,7 +76,7 @@ class OktoClient extends OktoCoreClient {
       return await super.loginUsingSocial(
         provider,
         state,
-        this.createExpoBrowserHandler(redirectUrl),
+        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
       );
     } catch (error) {
       console.error('[OktoClient] Social login error:', error);
@@ -77,112 +84,13 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
-  private createExpoBrowserHandler(
-    redirectUrl: string,
-  ): (url: string) => Promise<string> {
-    return async (authUrl: string) => {
-      // Check if we already have an auth session in progress
-      if (this.authPromiseResolver) {
-        console.warn(
-          'Existing auth session detected, clearing previous session',
-        );
-        this.authPromiseResolver.reject(
-          new Error('Auth session replaced by new request'),
-        );
-        this.authPromiseResolver = null;
-      }
-
-      // Create a new promise to handle the auth flow
-      return new Promise<string>((resolve, reject) => {
-        this.authPromiseResolver = { resolve, reject };
-
-        // Set a timeout for auth flow
-        const authTimeout = setTimeout(() => {
-          if (this.authPromiseResolver) {
-            this.authPromiseResolver.reject(
-              new Error('Authentication timed out'),
-            );
-            this.authPromiseResolver = null;
-
-            WebBrowser.coolDownAsync()
-              .then(() =>
-                console.log('[OktoClient] Browser cooled down after timeout'),
-              )
-              .catch((error) =>
-                console.error(
-                  '[OktoClient] Error cooling down browser:',
-                  error,
-                ),
-              );
-          }
-        }, 300000); // 5 minute timeout
-
-        // Open auth URL in the Expo WebBrowser
-        WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
-          showInRecents: true,
-          createTask: false,
-          preferEphemeralSession: true,
-        })
-          .then((result) => {
-            clearTimeout(authTimeout);
-
-            // The browser session ended, but we might have already processed the redirect
-            // Check if we still have an active promise resolver
-            if (this.authPromiseResolver) {
-              if (result.type === 'success') {
-                // If the URL contains an id_token, extract it (fallback mechanism)
-                try {
-                  if (result.url && result.url.includes('id_token=')) {
-                    const urlObj = new URL(result.url);
-                    const idToken = urlObj.searchParams.get('id_token');
-                    if (idToken) {
-                      this.authPromiseResolver.resolve(idToken);
-                      this.authPromiseResolver = null;
-                      return;
-                    }
-                  }
-                } catch (error) {
-                  console.error(
-                    '[OktoClient] Error extracting token from success URL:',
-                    error,
-                  );
-                }
-              }
-              if (result.type === 'dismiss') {
-                if (this.authPromiseResolver) {
-                  this.authPromiseResolver.reject(
-                    new Error('User canceled authentication'),
-                  );
-                  this.authPromiseResolver = null;
-                }
-              }
-            } else {
-              console.log(
-                '[OktoClient] No active promise resolver - auth may have completed via deep link',
-              );
-            }
-          })
-          .catch((error) => {
-            console.error('[OktoClient] Browser session error:', error);
-            clearTimeout(authTimeout);
-
-            if (this.authPromiseResolver) {
-              this.authPromiseResolver.reject(error);
-              this.authPromiseResolver = null;
-            }
-          });
-      });
-    };
-  }
-
   override sessionClear(): void {
-    console.log('[OktoClient] Clearing session');
     clearStorage('okto_session');
     super.sessionClear();
 
-    if (this.authPromiseResolver) {
+    if (this.authPromiseResolverRef.current) {
       console.log('[OktoClient] Clearing active auth promise resolver');
-      this.authPromiseResolver = null;
+      this.authPromiseResolverRef.current = null;
     }
 
     try {
