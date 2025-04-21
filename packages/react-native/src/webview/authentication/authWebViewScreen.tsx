@@ -9,6 +9,7 @@ import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
 import { clearStorage, getStorage } from '../../utils/storageUtils.js';
+import { OktoClient as OktoRnClient } from '../../core/index.js';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
@@ -52,18 +53,11 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
    * Used by request handlers to close WebView when appropriate
    */
   const navigateBack = () => {
-    const session = getStorage('okto_session');
-    if (session) {
-      try {
-        console.log('[OktoClient] Found existing session:', session);
-        const parsedSession = JSON.parse(session);
-        oktoClient.setSessionConfig(parsedSession);
-        console.log('[OktoClient] Session initialized:', parsedSession);
-        oktoClient.syncUserKeys();
-      } catch (error) {
-        clearStorage('okto_session');
-      }
-    }
+    oktoClientRef.current = new OktoRnClient({
+      environment: clientConfig.environment as 'staging' | 'sandbox',
+      clientPrivateKey: clientConfig.clientPrivateKey,
+      clientSWA: clientConfig.clientSWA,
+    });
     navigation.goBack();
   };
 
