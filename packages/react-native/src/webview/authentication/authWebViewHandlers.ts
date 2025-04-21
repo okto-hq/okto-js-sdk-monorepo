@@ -81,19 +81,6 @@ export class AuthWebViewRequestHandler {
     console.log('Handling login request:', request.data);
     const { type, provider } = request.data;
 
-    // Handle Google provider directly with no OTP flow
-    if (provider === 'google') {
-      const redirectUrl = 'oktosdk://auth';
-      await this.oktoClient.loginUsingSocial(
-        provider,
-        {
-          client_url: redirectUrl,
-          platform: Platform.OS,
-        },
-        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
-      );
-      return;
-    }
 
     // Route to specific handler based on login request type
     switch (type) {
@@ -113,9 +100,27 @@ export class AuthWebViewRequestHandler {
         await this.handleCloseWebView(request);
         break;
       default:
-        throw new Error(`Unknown login request type: ${type}`);
+        await this.handleGoogleLogin(request);
+        break;
     }
   };
+
+   // Handle Google provider directly with no OTP flow
+  private handleGoogleLogin = async (request: WebViewRequest) => {
+    const { provider } = request.data;
+    if (provider === 'google') {
+      const redirectUrl = 'oktosdk://auth';
+      await this.oktoClient.loginUsingSocial(
+        provider,
+        {
+          client_url: redirectUrl,
+          platform: Platform.OS,
+        },
+        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
+      );
+      return;
+    }
+  }
 
   /**
    * Handle request to generate a new OTP for authentication
