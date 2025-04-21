@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.148",
+  "version": "0.4.1-dev.149",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -34,7 +34,6 @@
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*",
-    "@react-native-clipboard/clipboard": "^1.16.2",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "@react-navigation/stack": "^7.2.10",
@@ -42,6 +41,7 @@
     "@types/react-native-get-random-values": "^1.8.2",
     "@types/react-navigation": "^3.4.0",
     "@types/uuid": "^10.0.0",
+    "expo-clipboard": "^7.0.1",
     "expo-web-browser": "^14.0.2",
     "react-native": "^0.79.0",
     "react-native-get-random-values": "^1.11.0",

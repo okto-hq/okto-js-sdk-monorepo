@@ -2,13 +2,13 @@
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
-import Clipboard from '@react-native-clipboard/clipboard';
+import * as Clipboard from 'expo-clipboard';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -387,6 +387,9 @@ export class AuthWebViewRequestHandler {
 
     try {
       const otpFromClipboard = await this.getOTPFromClipboard();
+      console.log(
+        `Pasting OTP from clipboard for ${provider}:`,
+        otpFromClipboard)
 
       if (!otpFromClipboard) {
         throw new Error('No valid OTP found in clipboard');
@@ -421,16 +424,13 @@ export class AuthWebViewRequestHandler {
 
   //TODO: check this implementation once
   private async getOTPFromClipboard(): Promise<string | null> {
-    if (Platform.OS === 'web') {
-      return null;
-    }
-
     try {
-      const otp = await Clipboard.default.getString();
-      console.log('OTP from clipboard:', otp);
-      return otp;
+      const content = await Clipboard.getStringAsync();
+      console.log('Clipboard content:', content);
+      const otpMatch = content.match(/\b\d{4,6}\b/);
+      return otpMatch ? otpMatch[0] : null;
     } catch (error) {
-      console.error('Error accessing clipboard:', error);
+      console.error('Failed to read clipboard:', error);
       return null;
     }
   }
