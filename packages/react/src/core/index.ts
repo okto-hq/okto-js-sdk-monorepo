@@ -28,7 +28,7 @@ class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
     this.initializeSession();
-    this.initializeWebView(); // Boolean: Debug mode optional parameter
+    this.initializeWebView(true); // Boolean: Debug mode optional parameter
   }
 
   private async initializeSession(): Promise<void> {
@@ -63,9 +63,11 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-  override loginUsingSocial(provider: SocialAuthType): Promise<Address | RpcError | undefined> {
+  override loginUsingSocial(
+    provider: SocialAuthType,
+  ): Promise<Address | RpcError | undefined> {
     const client_url = window.location.origin;
-    
+
     return super.loginUsingSocial(
       provider,
       {
@@ -78,18 +80,18 @@ class OktoClient extends OktoCoreClient {
           const height = 600;
           const left = window.screenX + (window.innerWidth - width) / 2;
           const top = window.screenY + (window.innerHeight - height) / 2;
-  
+
           const authWindow = window.open(
             url,
             '_blank',
             `width=${width},height=${height},top=${top},left=${left}`,
           );
-  
+
           if (!authWindow) {
             reject(new Error('Failed to open authentication popup.'));
             return;
           }
-  
+
           const interval = setInterval(() => {
             try {
               if (authWindow.closed) {
@@ -112,7 +114,7 @@ class OktoClient extends OktoCoreClient {
             }
           }, 500);
         });
-      }
+      },
     );
   }
 
