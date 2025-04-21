@@ -12,7 +12,6 @@ import * as WebBrowser from 'expo-web-browser';
 
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
-  private deepLinkSubscription: EmitterSubscription | null = null;
   private authPromiseResolver: {
     resolve: (value: string) => void;
     reject: (reason: Error) => void;
@@ -21,27 +20,7 @@ class OktoClient extends OktoCoreClient {
   constructor(config: OktoClientConfig) {
     super(config);
     this.config = config;
-    console.log('[OktoClient] Initializing with config:', JSON.stringify(config));
     this.initializeSession();
-    this.initializeDeepLinkHandlers();
-    this.setupDeepLinkTest();
-  }
-
-  /**
-   * Test deep linking setup when app initializes
-   */
-  private setupDeepLinkTest(): void {
-    // Check if deep linking is properly set up
-    Linking.canOpenURL('oktosdk://auth?test=true')
-      .then(supported => {
-        console.log('[OktoClient] Deep link scheme supported:', supported);
-        if (!supported) {
-          console.warn('[OktoClient] WARNING: Deep link scheme "oktosdk" is not supported. Authentication redirect may fail.');
-        }
-      })
-      .catch(error => {
-        console.error('[OktoClient] Error checking deep link support:', error);
-      });
   }
 
   private initializeSession(): void {
@@ -64,89 +43,6 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
-  private initializeDeepLinkHandlers(): void {
-    console.log('[OktoClient] Setting up deep link handlers');
-    
-    // Register for initial deep link that might have launched the app
-    Linking.getInitialURL()
-      .then((url) => {
-        console.log('[OktoClient] Initial URL:', url);
-        if (url) {
-          console.log('[OktoClient] Handling initial deep link');
-          this.handleDeepLink(url);
-        }
-      })
-      .catch((error) => console.error('[OktoClient] Error getting initial URL:', error));
-
-    // Register for deep links received while app is running
-    this.deepLinkSubscription = Linking.addListener('url', (event) => {
-      console.log('[OktoClient] Deep link received:', event.url);
-      this.handleDeepLink(event.url);
-    });
-    
-    console.log('[OktoClient] Deep link handlers initialized');
-  }
-
-  private handleDeepLink(url: string | null): void {
-    console.log('[OktoClient] Processing deep link:', url);
-    
-    if (!url) {
-      console.log('[OktoClient] Ignoring empty deep link');
-      return;
-    }
-    
-    if (!url.startsWith('oktosdk://auth')) {
-      console.log('[OktoClient] Ignoring deep link with wrong scheme:', url);
-      return;
-    }
-    
-    if (!this.authPromiseResolver) {
-      console.log('[OktoClient] Ignoring deep link - no active auth promise resolver');
-      return;
-    }
-
-    try {
-      console.log('[OktoClient] Parsing deep link URL');
-      const urlObj = new URL(url);
-      
-      // Log all parameters for debugging
-      const params: { [key: string]: string } = {};
-      urlObj.searchParams.forEach((value, key) => {
-        params[key] = value;
-      });
-      console.log('[OktoClient] Deep link params:', JSON.stringify(params));
-      
-      const idToken = urlObj.searchParams.get('id_token');
-      const error = urlObj.searchParams.get('error');
-
-      if (error) {
-        console.error('[OktoClient] Auth error from deep link:', error);
-        this.authPromiseResolver.reject(
-          new Error(`Authentication failed: ${error}`),
-        );
-        return;
-      }
-
-      if (idToken) {
-        console.log('[OktoClient] Auth successful, received id_token');
-        this.authPromiseResolver.resolve(idToken);
-      } else {
-        console.error('[OktoClient] No id_token found in redirect URL');
-        this.authPromiseResolver.reject(
-          new Error('No id_token found in redirect URL'),
-        );
-      }
-    } catch (error) {
-      console.error('[OktoClient] Failed to process deep link:', error);
-      this.authPromiseResolver.reject(
-        new Error('Failed to process authentication response'),
-      );
-    } finally {
-      console.log('[OktoClient] Clearing auth promise resolver');
-      this.authPromiseResolver = null;
-    }
-  }
-
   override loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -163,7 +59,9 @@ class OktoClient extends OktoCoreClient {
   override async loginUsingSocial(
     provider: 'google',
   ): Promise<Address | RpcError | undefined> {
-    console.log(`[OktoClient] Starting social login with provider: ${provider}`);
+    console.log(
+      `[OktoClient] Starting social login with provider: ${provider}`,
+    );
     const redirectUrl = 'oktosdk://auth';
     const state = {
       client_url: redirectUrl,
@@ -175,7 +73,9 @@ class OktoClient extends OktoCoreClient {
 
     // Clean up any existing sessions
     try {
-      console.log('[OktoClient] Attempting to complete any existing auth sessions');
+      console.log(
+        '[OktoClient] Attempting to complete any existing auth sessions',
+      );
       WebBrowser.maybeCompleteAuthSession();
       console.log('[OktoClient] Warming up browser');
       await WebBrowser.warmUpAsync();
@@ -184,7 +84,9 @@ class OktoClient extends OktoCoreClient {
     }
 
     try {
-      console.log('[OktoClient] Calling super.loginUsingSocial with custom handler');
+      console.log(
+        '[OktoClient] Calling super.loginUsingSocial with custom handler',
+      );
       return await super.loginUsingSocial(
         provider,
         state,
@@ -203,27 +105,34 @@ class OktoClient extends OktoCoreClient {
       console.log('[OktoClient] Creating browser handler');
       console.log('[OktoClient] Auth URL:', authUrl);
       console.log('[OktoClient] Redirect URL:', redirectUrl);
-      
+
       // Check if WebBrowser is available
       if (!WebBrowser) {
         console.error('[OktoClient] WebBrowser module is not available!');
         throw new Error('WebBrowser module is not available');
       }
-      
+
       // Check if we can open the auth URL
       try {
         const canOpen = await Linking.canOpenURL(authUrl);
         console.log('[OktoClient] Can open auth URL:', canOpen);
         if (!canOpen) {
-          console.warn('[OktoClient] Cannot open auth URL, this may cause issues');
+          console.warn(
+            '[OktoClient] Cannot open auth URL, this may cause issues',
+          );
         }
       } catch (error) {
-        console.error('[OktoClient] Error checking if can open auth URL:', error);
+        console.error(
+          '[OktoClient] Error checking if can open auth URL:',
+          error,
+        );
       }
-      
+
       // Check if we already have an auth session in progress
       if (this.authPromiseResolver) {
-        console.warn('[OktoClient] Existing auth session detected, clearing previous session');
+        console.warn(
+          '[OktoClient] Existing auth session detected, clearing previous session',
+        );
         this.authPromiseResolver.reject(
           new Error('Auth session replaced by new request'),
         );
@@ -237,22 +146,31 @@ class OktoClient extends OktoCoreClient {
 
         // Set a timeout for auth flow
         const authTimeout = setTimeout(() => {
-          console.error('[OktoClient] Authentication timed out after 5 minutes');
+          console.error(
+            '[OktoClient] Authentication timed out after 5 minutes',
+          );
           if (this.authPromiseResolver) {
             this.authPromiseResolver.reject(
               new Error('Authentication timed out'),
             );
             this.authPromiseResolver = null;
-            
+
             // Cool down the browser
             WebBrowser.coolDownAsync()
-              .then(() => console.log('[OktoClient] Browser cooled down after timeout'))
-              .catch(error => console.error('[OktoClient] Error cooling down browser:', error));
+              .then(() =>
+                console.log('[OktoClient] Browser cooled down after timeout'),
+              )
+              .catch((error) =>
+                console.error(
+                  '[OktoClient] Error cooling down browser:',
+                  error,
+                ),
+              );
           }
         }, 300000); // 5 minute timeout
 
         console.log('[OktoClient] Opening auth session in browser');
-        
+
         // Open auth URL in the Expo WebBrowser
         WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
           showInRecents: true,
@@ -260,40 +178,54 @@ class OktoClient extends OktoCoreClient {
           preferEphemeralSession: true,
         })
           .then((result) => {
-            console.log('[OktoClient] Browser session result:', JSON.stringify(result));
+            console.log(
+              '[OktoClient] Browser session result:',
+              JSON.stringify(result),
+            );
             clearTimeout(authTimeout);
 
             // The browser session ended, but we might have already processed the redirect
             // Check if we still have an active promise resolver
             if (this.authPromiseResolver) {
               if (result.type === 'success') {
-                console.log('[OktoClient] Browser reports success, but no deep link handling occurred');
+                console.log(
+                  '[OktoClient] Browser reports success, but no deep link handling occurred',
+                );
                 // If the URL contains an id_token, extract it (fallback mechanism)
                 try {
                   if (result.url && result.url.includes('id_token=')) {
                     const urlObj = new URL(result.url);
                     const idToken = urlObj.searchParams.get('id_token');
                     if (idToken) {
-                      console.log('[OktoClient] Extracted id_token from success URL');
+                      console.log(
+                        '[OktoClient] Extracted id_token from success URL',
+                      );
                       this.authPromiseResolver.resolve(idToken);
                       this.authPromiseResolver = null;
                       return;
                     }
                   }
                 } catch (error) {
-                  console.error('[OktoClient] Error extracting token from success URL:', error);
+                  console.error(
+                    '[OktoClient] Error extracting token from success URL:',
+                    error,
+                  );
                 }
               }
-              
+
               if (result.type === 'dismiss') {
-                console.log('[OktoClient] User dismissed the browser without completing auth');
+                console.log(
+                  '[OktoClient] User dismissed the browser without completing auth',
+                );
                 // this.authPromiseResolver.reject(
                 //   new Error('User canceled authentication'),
                 // );
                 this.authPromiseResolver = null;
               }
             } else {
-              console.log('[OktoClient] No active promise resolver - auth may have completed via deep link');
+              console.log(
+                '[OktoClient] No active promise resolver - auth may have completed via deep link',
+              );
             }
           })
           .catch((error) => {
@@ -325,26 +257,10 @@ class OktoClient extends OktoCoreClient {
       console.log('[OktoClient] Attempting to dismiss auth session');
       WebBrowser.dismissAuthSession();
     } catch (error) {
-      console.error('[OktoClient] Error dismissing auth session during clear:', error);
-    }
-  }
-
-  public destroy(): void {
-    console.log('[OktoClient] Destroying client instance');
-    if (this.deepLinkSubscription) {
-      console.log('[OktoClient] Removing deep link subscription');
-      this.deepLinkSubscription.remove();
-      this.deepLinkSubscription = null;
-    }
-
-    this.sessionClear();
-    
-    // Final cleanup
-    try {
-      console.log('[OktoClient] Cooling down browser');
-      WebBrowser.coolDownAsync().catch(console.error);
-    } catch (error) {
-      console.error('[OktoClient] Error during final cleanup:', error);
+      console.error(
+        '[OktoClient] Error dismissing auth session during clear:',
+        error,
+      );
     }
   }
 
@@ -362,40 +278,6 @@ class OktoClient extends OktoCoreClient {
         console.error('[OktoClient] WebView authentication failed:', error);
       },
     });
-  }
-
-  /**
-   * Test deep linking functionality
-   * Call this method from your app to verify deep linking is working
-   */
-  public testDeepLink(): void {
-    const testUrl = 'oktosdk://auth?test=true&id_token=test_token';
-    console.log('[OktoClient] Testing deep link:', testUrl);
-    
-    // Try to open the URL
-    Linking.openURL(testUrl)
-      .then(() => {
-        console.log('[OktoClient] Test URL opened successfully');
-      })
-      .catch(error => {
-        console.error('[OktoClient] Failed to open test URL:', error);
-      });
-  }
-
-  /**
-   * Get the current deep link handling status
-   * Call this method to debug deep linking issues
-   */
-  public getDeepLinkStatus(): string {
-    let status = {
-      deepLinkListenerActive: !!this.deepLinkSubscription,
-      authPromiseResolverActive: !!this.authPromiseResolver,
-      platform: Platform.OS,
-      redirectUrl: 'oktosdk://auth'
-    };
-    
-    console.log('[OktoClient] Deep link status:', JSON.stringify(status));
-    return JSON.stringify(status, null, 2);
   }
 }
 
