@@ -286,7 +286,7 @@ export class AuthWebViewRequestHandler {
       if (result) {
         setTimeout(() => {
           this.navigationCallback();
-        }, 500); // Short delay to allow WebView to process response
+        }, 500); 
       }
     } catch (error) {
       // Handle and report verification errors

@@ -1,3 +1,4 @@
+// OktoClient.ts
 import {
   OktoClient as OktoCoreClient,
   type OktoClientConfig,
@@ -22,6 +23,7 @@ class OktoClient extends OktoCoreClient {
   private authPromiseResolverRef: { current: AuthPromiseResolver } = {
     current: null,
   };
+  private navigationUnsubscribe: (() => void) | null = null;
 
   constructor(config: OktoClientConfig) {
     super(config);
@@ -86,26 +88,44 @@ class OktoClient extends OktoCoreClient {
 
   override sessionClear(): void {
     clearStorage('okto_session');
-    super.sessionClear();
-
-    if (this.authPromiseResolverRef.current) {
-      console.log('[OktoClient] Clearing active auth promise resolver');
-      this.authPromiseResolverRef.current = null;
-    }
-
-    try {
-      console.log('[OktoClient] Attempting to dismiss auth session');
-      WebBrowser.dismissAuthSession();
-    } catch (error) {
-      console.error(
-        '[OktoClient] Error dismissing auth session during clear:',
-        error,
-      );
-    }
+    return super.sessionClear();
   }
 
   public openWebView(url: string, navigation: any): void {
     console.log('[OktoClient] Opening WebView with URL:', url);
+    
+    // Clean up any existing listener
+    if (this.navigationUnsubscribe) {
+      this.navigationUnsubscribe();
+      this.navigationUnsubscribe = null;
+    }
+    
+    // Set up a one-time listener that auto-cleans
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      console.log('[OktoClient] Navigation event detected', e.target.route.name);
+      
+      // Only refresh if we're coming back from WebViewScreen
+      if (e.target.route.name === 'WebViewScreen') {
+        console.log('[OktoClient] Detected navigation from WebView, refreshing session');
+        
+        // Use setTimeout to ensure this runs after the navigation completes
+        setTimeout(() => {
+          console.log('[OktoClient] Refreshing session after WebView navigation');
+          this.initializeSession();
+        }, 100);
+      }
+      
+      // Clean up the listener after it fires
+      if (this.navigationUnsubscribe) {
+        this.navigationUnsubscribe();
+        this.navigationUnsubscribe = null;
+      }
+    });
+    
+    // Store the unsubscribe function
+    this.navigationUnsubscribe = unsubscribe;
+    
+    // Navigate to WebView
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
