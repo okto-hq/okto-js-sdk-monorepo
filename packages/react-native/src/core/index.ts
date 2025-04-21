@@ -39,8 +39,6 @@ class OktoClient extends OktoCoreClient {
       } catch (error) {
         clearStorage('okto_session');
       }
-    } else {
-      console.log('No stored session found');
     }
   }
 

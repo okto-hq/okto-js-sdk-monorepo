@@ -3,6 +3,7 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import { NativeModules } from 'react-native';
+import { OktoClient as OktoRnClient } from '../../core/index.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -76,7 +77,7 @@ export class AuthWebViewRequestHandler {
 
     // Handle Google provider directly with no OTP flow
     // if (provider === 'google') {
-    //   await this.handleGoogleLogin(request);
+    //   await OktoRnClient.loginUsingGoogle(provider);
     //   return;
     // }
 
@@ -392,7 +393,7 @@ export class AuthWebViewRequestHandler {
     }
   };
 
-   //TODO: check this implementation once
+  //TODO: check this implementation once
   private async getOTPFromClipboard(): Promise<string | null> {
     try {
       // Browser environment implementation
