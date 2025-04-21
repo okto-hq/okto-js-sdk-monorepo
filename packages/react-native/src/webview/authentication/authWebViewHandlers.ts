@@ -6,7 +6,7 @@ import { NativeModules, Platform } from 'react-native';
 import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
-} from 'src/utils/authBrowserUtils.js';
+} from '../../utils/authBrowserUtils.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
