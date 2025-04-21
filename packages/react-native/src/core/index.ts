@@ -45,167 +45,73 @@ class OktoClient extends OktoCoreClient {
 
   public async loginUsingGoogleAuth(): Promise<void> {
     try {
-      // Set up listener for URL events before opening browser
-      const subscription = Linking.addEventListener('url', this.handleRedirectUrl);
-      
-      // Base URL for Google OAuth
-      const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-      
-      // Define redirect URI for your app
-      const redirectUri = 'https://onboarding.oktostage.com/__/auth/handler';
-      
-      // Generate a random nonce for security
+      const redirectUri = 'https://onboarding.oktostage.com/auth/handler';
+      const customScheme = 'oktosdk://auth';
+
       const nonce = this.generateNonce();
-      
-      // Generate the state parameter with platform info and redirect URI
-      const state = JSON.stringify({
-        redirect_uri: "oktosdk://auth", // Your app's custom scheme
-        platform: Platform.OS // 'android' or 'ios'
-      });
-      
-      // Create params object with all required OAuth parameters
+      const state = encodeURIComponent(
+        JSON.stringify({ redirect_uri: customScheme, platform: Platform.OS })
+      );
+
       const params = new URLSearchParams({
         scope: 'openid email profile',
         redirect_uri: redirectUri,
         response_type: 'id_token',
         client_id: '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
-        nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
-        state: state,
+        nonce,
+        state,
       });
-      
-      // Build the complete auth URL
-      const authUrl = `${baseUrl}?${params.toString()}`;
-      
-      console.log('Opening Google Auth URL:', authUrl);
-      
-      // Use maybeCompleteAuthSession before opening browser
+      console.log('Google Auth URL Params:', params.toString());
+
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+      console.log('Google Auth URL:', authUrl);
+
       WebBrowser.maybeCompleteAuthSession();
+      console.log('KARAN :: Opening Auth Session with URL:', authUrl);
+      console.log('KARAN :: Custom Scheme:', customScheme);
+      console.log('KARAN :: Redirect URI:', redirectUri);
+      console.log('KARAN :: Platform:', Platform.OS);
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, customScheme);
+      console.log('KARAN :: Auth Session Result:', result);
+      console.log('KARAN :: Auth Session Result: type ', result.type);
       
-      // Log redirect URL for debugging
-      console.log('Redirect URL:', "oktosdk://auth");
-      
-      try {
-        // Open the authentication URL in the browser
-        const result = await WebBrowser.openAuthSessionAsync(
-          authUrl,
-          redirectUri // This is your app's custom URL scheme
-        );
-        
-        console.log('WebBrowser result:', JSON.stringify(result));
-        
-        if (result.type === 'success') {
-          // Handle successful authentication via the result
-          const { url } = result;
-          await this.processAuthUrl(url);
-        } else {
-          // The browser was dismissed without a success callback
-          console.log('Authentication flow was not completed successfully:', result.type);
-          
-          // We'll rely on the Linking event listener for the redirect
-          console.log('Waiting for redirect via Linking...');
-          // Don't throw error yet - we might still get the redirect via Linking
-        }
-      } finally {
-        // Clean up the subscription when done
-        subscription.remove();
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      throw new Error('Failed to authenticate with Google: ' + (error instanceof Error ? error.message : String(error)));
-    }
-  }
-  
-  // Handle redirect URL from either WebBrowser result or Linking event
-  private async processAuthUrl(url: string): Promise<void> {
-    try {
-      console.log('Processing auth URL:', url);
-      
-      // Parse the URL to extract the id_token
-      const idToken = this.extractIdTokenFromUrl(url);
-      
-      if (idToken) {
-        console.log('ID Token received:', idToken);
-        setStorage('auth_token', idToken);
-        
-        // Call your login method
+
+      if (result.type === 'success' && result.url) {
+        const idToken = this.extractIdTokenFromUrl(result.url);
+        if (!idToken) throw new Error('No ID token found in redirect URL');
+
         await this.loginUsingOAuth(
-          { 
-            idToken: idToken, 
-            provider: 'google' 
-          },
-          (session) => {
-            console.log('Login successful:', session);
+          { idToken, provider: 'google' },
+          () => {
+            Linking.openURL(customScheme);
           }
         );
       } else {
-        console.warn('No id_token found in the response');
-        throw new Error('No ID token found in the response');
+        throw new Error('Authentication was cancelled or failed');
       }
-    } catch (error) {
-      console.error('Error processing auth URL:', error);
-      throw error;
+    } catch (err) {
+      console.error('Google OAuth login failed:', err);
+      throw err;
     }
   }
-  
-  // Handle redirect URL from Linking events
-  private handleRedirectUrl = async (event: { url: string }): Promise<void> => {
+
+  private extractIdTokenFromUrl(url: string): string | null {
     try {
-      const { url } = event;
-      console.log('Received redirect URL:', url);
-      
-      // Only process URLs with our custom scheme
-      if (url.startsWith('https://onboarding')) {
-        console.log('Received redirect via Linking event:', url);
-        await this.processAuthUrl(url);
-      }
-    } catch (error) {
-      console.error('Error handling redirect URL:', error);
+      const fragment = url.split('#')[1];
+      if (!fragment) return null;
+
+      const params = new URLSearchParams(fragment);
+      return params.get('id_token');
+    } catch (e) {
+      console.error('Failed to parse redirect URL:', e);
+      return null;
     }
-  };
-  
-  private extractIdTokenFromUrl(url: string): string {
-    console.log('Processing redirect URL:', url);
-    
-    // Try to get from URL fragment first (after #)
-    if (url.includes('#')) {
-      const fragmentParams = new URLSearchParams(url.split('#')[1]);
-      const fragmentToken = fragmentParams.get('id_token');
-      if (fragmentToken) return fragmentToken;
-    }
-    
-    // Then try URL parameters (after ?)
-    if (url.includes('?')) {
-      const urlParams = new URLSearchParams(url.split('?')[1]);
-      const paramToken = urlParams.get('id_token');
-      if (paramToken) return paramToken;
-    }
-    
-    // Finally check state parameter
-    const stateParam = new URLSearchParams(url.split('?')[1] || url.split('#')[1] || '').get('state');
-    if (stateParam) {
-      try {
-        const state = JSON.parse(decodeURIComponent(stateParam));
-        if (state?.id_token) {
-          return state.id_token;
-        }
-      } catch (e) {
-        console.error('Error parsing state parameter:', e);
-      }
-    }
-    
-    throw new Error('No ID token found in redirect URL');
   }
 
   private generateNonce(length: number = 32): string {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      result += charset[randomIndex];
-    }
-    
-    return result;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   }
 
   override sessionClear(): void {
