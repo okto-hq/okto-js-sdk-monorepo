@@ -34,14 +34,18 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
 
   // Initialize OktoClient with the configuration provided through navigation
-  console.log('Initializing OktoClient with config:', clientConfig);
-  const oktoClient = useRef(
-    new OktoClient({
+  const oktoClientRef = useRef<OktoClient | null>(null);
+  
+  if (!oktoClientRef.current) {
+    console.log('Initializing OktoClient with config:', clientConfig);
+    oktoClientRef.current = new OktoClient({
       environment: clientConfig.environment as 'staging' | 'sandbox',
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
-    }),
-  ).current;
+    });
+  }
+  
+  const oktoClient = oktoClientRef.current;
 
   /**
    * Navigation callback to return to previous screen
