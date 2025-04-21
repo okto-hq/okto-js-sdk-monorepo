@@ -86,22 +86,7 @@ class OktoClient extends OktoCoreClient {
 
   override sessionClear(): void {
     clearStorage('okto_session');
-    super.sessionClear();
-
-    if (this.authPromiseResolverRef.current) {
-      console.log('[OktoClient] Clearing active auth promise resolver');
-      this.authPromiseResolverRef.current = null;
-    }
-
-    try {
-      console.log('[OktoClient] Attempting to dismiss auth session');
-      WebBrowser.dismissAuthSession();
-    } catch (error) {
-      console.error(
-        '[OktoClient] Error dismissing auth session during clear:',
-        error,
-      );
-    }
+    return super.sessionClear();
   }
 
   public openWebView(url: string, navigation: any): void {
