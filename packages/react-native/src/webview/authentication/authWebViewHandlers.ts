@@ -2,6 +2,7 @@
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
+import { NativeModules } from 'react-native';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -73,7 +74,6 @@ export class AuthWebViewRequestHandler {
     console.log('Handling login request:', request.data);
     const { type, provider } = request.data;
 
-    ///TODO: check for google login here
     // Handle Google provider directly with no OTP flow
     // if (provider === 'google') {
     //   await this.handleGoogleLogin(request);
@@ -90,6 +90,9 @@ export class AuthWebViewRequestHandler {
         break;
       case 'resend_otp':
         await this.handleResendOTP(request);
+        break;
+      case 'paste_otp':
+        await this.handlePasteOTP(request);
         break;
       case 'close_webview':
         await this.handleCloseWebView(request);
@@ -351,6 +354,70 @@ export class AuthWebViewRequestHandler {
       });
     }
   };
+
+  private handlePasteOTP = async (request: WebViewRequest) => {
+    const { provider } = request.data;
+
+    try {
+      const otpFromClipboard = await this.getOTPFromClipboard();
+
+      if (!otpFromClipboard) {
+        throw new Error('No valid OTP found in clipboard');
+      }
+
+      // Send the OTP back to WebView
+      const response: WebViewResponse = {
+        id: request.id,
+        method: request.method,
+        data: {
+          provider,
+          type: 'paste_otp',
+          message: otpFromClipboard,
+        },
+      };
+
+      console.log(`Sending OTP from clipboard for ${provider}:`, response);
+      this.bridge.sendResponse(response);
+    } catch (error) {
+      console.error(`Error pasting OTP for ${provider}:`, error);
+      this.bridge.sendResponse({
+        id: request.id,
+        method: request.method,
+        data: {
+          provider,
+          type: 'paste_otp',
+        },
+        error: error instanceof Error ? error.message : 'Failed to paste OTP',
+      });
+    }
+  };
+
+  private async getOTPFromClipboard(): Promise<string | null> {
+    try {
+      // Browser environment implementation
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        const text = await navigator.clipboard.readText();
+        const otpMatch = text.match(/\b\d{4,6}\b/);
+        return otpMatch ? otpMatch[0] : null;
+      }
+      // React Native implementation
+      if (typeof NativeModules !== 'undefined' && NativeModules.Clipboard) {
+        const Clipboard = NativeModules.Clipboard;
+        return Clipboard.getString()
+          .then((text: string) => {
+            const otpMatch = text.match(/\b\d{4,6}\b/);
+            return otpMatch ? otpMatch[0] : null;
+          })
+          .catch(() => null);
+      }
+
+      // Fallback for environments where clipboard access isn't available
+      return null;
+    } catch (error) {
+      console.error('Error accessing clipboard:', error);
+      return null;
+    }
+  }
 
   /**
    * Handle request to close the WebView

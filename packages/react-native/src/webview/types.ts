@@ -6,6 +6,7 @@ export type LoginRequestType =
   | 'request_otp'
   | 'verify_otp'
   | 'resend_otp'
+  | 'paste_otp'
   | 'close_webview';
 
 export interface WebViewRequest {
