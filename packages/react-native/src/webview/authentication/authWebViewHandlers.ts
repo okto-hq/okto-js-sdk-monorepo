@@ -81,7 +81,6 @@ export class AuthWebViewRequestHandler {
     console.log('Handling login request:', request.data);
     const { type, provider } = request.data;
 
-
     // Route to specific handler based on login request type
     switch (type) {
       case 'request_otp':
@@ -105,7 +104,7 @@ export class AuthWebViewRequestHandler {
     }
   };
 
-   // Handle Google provider directly with no OTP flow
+  // Handle Google provider directly with no OTP flow
   private handleGoogleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
     if (provider === 'google') {
@@ -120,7 +119,7 @@ export class AuthWebViewRequestHandler {
       );
       return;
     }
-  }
+  };
 
   /**
    * Handle request to generate a new OTP for authentication
