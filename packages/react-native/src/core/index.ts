@@ -94,6 +94,11 @@ class OktoClient extends OktoCoreClient {
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
+      onWebViewClose: () => {
+        const newClient = new OktoClient(this.config);
+        console.log("[OktoClient] New client created after WebView close", newClient);
+        this.initializeSession();
+      }
     });
   }
 }
