@@ -4,7 +4,7 @@ import { useOkto } from './useOkto.js';
 
 /**
  * Custom hook to access the OktoClient's openWebView functionality
- * 
+ *
  * @returns A function to open web view with the provided URL
  */
 export function useOktoWebView() {
@@ -19,7 +19,7 @@ export function useOktoWebView() {
     (url: string) => {
       oktoClient.openWebView(url, navigation);
     },
-    [oktoClient, navigation]
+    [oktoClient, navigation],
   );
 
   return openWebView;

@@ -2,8 +2,11 @@
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
-import { NativeModules } from 'react-native';
-import { OktoClient as OktoRnClient } from '../../core/index.js';
+import { NativeModules, Platform } from 'react-native';
+import {
+  createExpoBrowserHandler,
+  type AuthPromiseResolver,
+} from 'src/utils/authBrowserUtils.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -16,6 +19,9 @@ export class AuthWebViewRequestHandler {
   private bridge: WebViewBridge;
   private navigationCallback: () => void;
   private oktoClient: OktoClient;
+  private authPromiseResolverRef: { current: AuthPromiseResolver } = {
+    current: null,
+  };
 
   constructor(
     bridge: WebViewBridge,
@@ -76,10 +82,18 @@ export class AuthWebViewRequestHandler {
     const { type, provider } = request.data;
 
     // Handle Google provider directly with no OTP flow
-    // if (provider === 'google') {
-    //   await OktoRnClient.loginUsingGoogle(provider);
-    //   return;
-    // }
+    if (provider === 'google') {
+      const redirectUrl = 'oktosdk://auth';
+      await this.oktoClient.loginUsingSocial(
+        provider,
+        {
+          client_url: redirectUrl,
+          platform: Platform.OS,
+        },
+        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
+      );
+      return;
+    }
 
     // Route to specific handler based on login request type
     switch (type) {
