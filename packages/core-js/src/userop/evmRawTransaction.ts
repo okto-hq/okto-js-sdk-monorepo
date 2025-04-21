@@ -14,9 +14,12 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
+import type {
+  EVMRawTransaction,
+  EVMRawTransactionIntentParams,
+} from './types.js';
 import {
-  RawTransactionIntentParamsSchema,
+  EvmRawTransactionIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
 
@@ -25,14 +28,14 @@ import {
  */
 export async function evmRawTransaction(
   oc: OktoClient,
-  data: RawTransactionIntentParams,
+  data: EVMRawTransactionIntentParams,
   feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(RawTransactionIntentParamsSchema, data);
+  validateSchema(EvmRawTransactionIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
