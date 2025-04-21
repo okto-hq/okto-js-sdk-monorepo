@@ -166,7 +166,7 @@ class OktoClient extends OktoCoreClient {
     console.log(`[OktoClient] Starting social login with provider: ${provider}`);
     const redirectUrl = 'oktosdk://auth';
     const state = {
-      redirect_uri: redirectUrl,
+      client_url: redirectUrl,
       platform: Platform.OS,
     };
 
@@ -176,7 +176,7 @@ class OktoClient extends OktoCoreClient {
     // Clean up any existing sessions
     try {
       console.log('[OktoClient] Attempting to complete any existing auth sessions');
-      await WebBrowser.maybeCompleteAuthSession();
+      WebBrowser.maybeCompleteAuthSession();
       console.log('[OktoClient] Warming up browser');
       await WebBrowser.warmUpAsync();
     } catch (error) {
