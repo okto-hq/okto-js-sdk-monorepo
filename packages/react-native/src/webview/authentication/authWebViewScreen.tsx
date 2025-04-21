@@ -33,7 +33,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
 
-  // Initialize OktoClient with the configuration provided through navigation
+  
   const oktoClientRef = useRef<OktoClient | null>(null);
   
   if (!oktoClientRef.current) {
@@ -44,7 +44,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       clientSWA: clientConfig.clientSWA,
     });
   }
-  
+
   const oktoClient = oktoClientRef.current;
 
   /**
