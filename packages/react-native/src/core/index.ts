@@ -58,7 +58,7 @@ class OktoClient extends OktoCoreClient {
         redirect_uri: redirectUri,
         response_type: 'id_token',
         client_id: '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
-        nonce,
+        nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
         state,
       });
       console.log('Google Auth URL Params:', params.toString());
@@ -66,30 +66,44 @@ class OktoClient extends OktoCoreClient {
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
       console.log('Google Auth URL:', authUrl);
 
-      WebBrowser.maybeCompleteAuthSession();
-      console.log('KARAN :: Opening Auth Session with URL:', authUrl);
-      console.log('KARAN :: Custom Scheme:', customScheme);
-      console.log('KARAN :: Redirect URI:', redirectUri);
-      console.log('KARAN :: Platform:', Platform.OS);
+      // Open the auth URL in a browser (not a custom session)
+      await WebBrowser.openBrowserAsync(authUrl);
+      console.log("karan is here after open browser");
 
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, customScheme);
-      console.log('KARAN :: Auth Session Result:', result);
-      console.log('KARAN :: Auth Session Result: type ', result.type);
+      // Listen for the deep link with the OAuth result
+      const subscription = Linking.addEventListener('url', async ({ url }) => {
+        console.log('Deep link received:', url);
+
+        // Check if the URL starts with the custom scheme (indicating a successful redirect)
+        if (url.startsWith("https://onboarding")) {
+          console.log("karan is here in url");
+          const idToken = this.extractIdTokenFromUrl(url);
+          if (!idToken) throw new Error('No ID token found in redirect URL');
+
+          // Call loginUsingOAuth with the retrieved idToken
+          await this.loginUsingOAuth(
+            { idToken, provider: 'google' },
+            () => {
+              console.log('OAuth login successful');
+            }
+          );
+
+          // Store session
+          setStorage('okto_session', JSON.stringify({ idToken, provider: 'google' }));
+
+          // Navigate back manually using the custom scheme
+          Linking.openURL(customScheme);
+
+          // Close the deep link listener after successful processing
+          subscription.remove();
+        }
+      });
+
+      // Optionally, you can set a timeout to remove the listener if something goes wrong
+      setTimeout(() => {
+        subscription.remove();
+      }, 10000); // Remove listener after 10 seconds (optional)
       
-
-      if (result.type === 'success' && result.url) {
-        const idToken = this.extractIdTokenFromUrl(result.url);
-        if (!idToken) throw new Error('No ID token found in redirect URL');
-
-        await this.loginUsingOAuth(
-          { idToken, provider: 'google' },
-          () => {
-            Linking.openURL(customScheme);
-          }
-        );
-      } else {
-        throw new Error('Authentication was cancelled or failed');
-      }
     } catch (err) {
       console.error('Google OAuth login failed:', err);
       throw err;
