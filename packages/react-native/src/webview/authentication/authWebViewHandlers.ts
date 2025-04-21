@@ -7,6 +7,7 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
+import { setStorage } from '../../utils/storageUtils.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -229,6 +230,7 @@ export class AuthWebViewRequestHandler {
                 'WhatsApp login successful, session established:',
                 sessionConfig,
               );
+              setStorage('okto_session', JSON.stringify(sessionConfig));
             },
           );
           break;
@@ -250,6 +252,7 @@ export class AuthWebViewRequestHandler {
                 'Email login successful, session established:',
                 sessionConfig,
               );
+              setStorage('okto_session', JSON.stringify(sessionConfig));
             },
           );
           break;
@@ -422,16 +425,17 @@ export class AuthWebViewRequestHandler {
       }
       // React Native implementation
       if (typeof NativeModules !== 'undefined' && NativeModules.Clipboard) {
+        console.log('Accessing clipboard in React Native');
         const Clipboard = NativeModules.Clipboard;
         return Clipboard.getString()
           .then((text: string) => {
+            console.log('Clipboard text:', text);
             const otpMatch = text.match(/\b\d{4,6}\b/);
             return otpMatch ? otpMatch[0] : null;
           })
           .catch(() => null);
       }
 
-      // Fallback for environments where clipboard access isn't available
       return null;
     } catch (error) {
       console.error('Error accessing clipboard:', error);
