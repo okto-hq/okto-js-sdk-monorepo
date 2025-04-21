@@ -232,8 +232,6 @@ export class AuthWebViewRequestHandler {
                 sessionConfig,
               );
               setStorage('okto_session', JSON.stringify(sessionConfig));
-              const parsedSession = JSON.parse(sessionConfig);
-              this.oktoClient.setSessionConfig(parsedSession);
             },
           );
           break;
@@ -256,8 +254,6 @@ export class AuthWebViewRequestHandler {
                 sessionConfig,
               );
               setStorage('okto_session', JSON.stringify(sessionConfig));
-              const parsedSession = JSON.parse(sessionConfig);
-              this.oktoClient.setSessionConfig(parsedSession);
             },
           );
           break;
