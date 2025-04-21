@@ -231,6 +231,8 @@ export class AuthWebViewRequestHandler {
                 sessionConfig,
               );
               setStorage('okto_session', JSON.stringify(sessionConfig));
+              const parsedSession = JSON.parse(sessionConfig);
+              this.oktoClient.setSessionConfig(parsedSession);
             },
           );
           break;
@@ -253,6 +255,8 @@ export class AuthWebViewRequestHandler {
                 sessionConfig,
               );
               setStorage('okto_session', JSON.stringify(sessionConfig));
+              const parsedSession = JSON.parse(sessionConfig);
+              this.oktoClient.setSessionConfig(parsedSession);
             },
           );
           break;
@@ -416,27 +420,15 @@ export class AuthWebViewRequestHandler {
 
   //TODO: check this implementation once
   private async getOTPFromClipboard(): Promise<string | null> {
-    try {
-      // Browser environment implementation
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        const text = await navigator.clipboard.readText();
-        const otpMatch = text.match(/\b\d{4,6}\b/);
-        return otpMatch ? otpMatch[0] : null;
-      }
-      // React Native implementation
-      if (typeof NativeModules !== 'undefined' && NativeModules.Clipboard) {
-        console.log('Accessing clipboard in React Native');
-        const Clipboard = NativeModules.Clipboard;
-        return Clipboard.getString()
-          .then((text: string) => {
-            console.log('Clipboard text:', text);
-            const otpMatch = text.match(/\b\d{4,6}\b/);
-            return otpMatch ? otpMatch[0] : null;
-          })
-          .catch(() => null);
-      }
-
+    if (Platform.OS === 'web') {
       return null;
+    }
+
+    try {
+      const { Clipboard } = NativeModules;
+      const otp = await Clipboard.getString();
+      console.log('OTP from clipboard:', otp);
+      return otp;
     } catch (error) {
       console.error('Error accessing clipboard:', error);
       return null;

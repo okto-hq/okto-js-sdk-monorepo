@@ -49,18 +49,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
    */
   const navigateBack = () => {
     navigation.goBack();
-        const session = getStorage('okto_session');
-        if (session) {
-          try {
-            console.log('[OktoClient] Found existing session:', session);
-            const parsedSession = JSON.parse(session);
-            oktoClient.setSessionConfig(parsedSession);
-            console.log('[OktoClient] Session initialized:', parsedSession);
-            oktoClient.syncUserKeys();
-          } catch (error) {
-            clearStorage('okto_session');
-          }
-        }
   };
 
   // Initialize the authentication request handler with necessary dependencies
