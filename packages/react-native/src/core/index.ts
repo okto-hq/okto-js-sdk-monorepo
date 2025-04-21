@@ -6,7 +6,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type { Address, AuthData } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 class OktoClient extends OktoCoreClient {
@@ -45,6 +45,9 @@ class OktoClient extends OktoCoreClient {
 
   public async loginUsingGoogleAuth(): Promise<void> {
     try {
+      // Set up listener for URL events before opening browser
+      const subscription = Linking.addEventListener('url', this.handleRedirectUrl);
+      
       // Base URL for Google OAuth
       const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
       
@@ -75,48 +78,90 @@ class OktoClient extends OktoCoreClient {
       
       console.log('Opening Google Auth URL:', authUrl);
       
-      // Open the authentication URL in the browser
-      const result = await WebBrowser.openAuthSessionAsync(
-        authUrl,
-        "oktosdk://auth" // This is your app's custom URL scheme
-      );
+      // Use maybeCompleteAuthSession before opening browser
+      WebBrowser.maybeCompleteAuthSession();
       
-      if (result.type === 'success') {
-        // Handle successful authentication
-        const { url } = result;
-        console.log('Received redirect URL:', url);
+      // Log redirect URL for debugging
+      console.log('Redirect URL:', "oktosdk://auth");
+      
+      try {
+        // Open the authentication URL in the browser
+        const result = await WebBrowser.openAuthSessionAsync(
+          authUrl,
+          redirectUri // This is your app's custom URL scheme
+        );
         
-        // Parse the URL to extract the id_token
-        const idToken = this.extractIdTokenFromUrl(url);
+        console.log('WebBrowser result:', JSON.stringify(result));
         
-        if (idToken) {
-          console.log('ID Token received:', idToken);
-          setStorage('auth_token', idToken);
-          
-          // Call your login method
-          await this.loginUsingOAuth(
-            { 
-              idToken: idToken, 
-              provider: 'google' 
-            },
-            (session) => {
-              console.log('Login successful:', session);
-            }
-          );
+        if (result.type === 'success') {
+          // Handle successful authentication via the result
+          const { url } = result;
+          await this.processAuthUrl(url);
         } else {
-          console.warn('No id_token found in the response');
-          throw new Error('No ID token found in the response');
+          // The browser was dismissed without a success callback
+          console.log('Authentication flow was not completed successfully:', result.type);
+          
+          // We'll rely on the Linking event listener for the redirect
+          console.log('Waiting for redirect via Linking...');
+          // Don't throw error yet - we might still get the redirect via Linking
         }
-      } else {
-        // Handle cancellation or errors
-        console.log('Authentication cancelled or failed:', result.type);
-        throw new Error('Authentication was cancelled or failed');
+      } finally {
+        // Clean up the subscription when done
+        subscription.remove();
       }
     } catch (error) {
       console.error('Auth error:', error);
       throw new Error('Failed to authenticate with Google: ' + (error instanceof Error ? error.message : String(error)));
     }
   }
+  
+  // Handle redirect URL from either WebBrowser result or Linking event
+  private async processAuthUrl(url: string): Promise<void> {
+    try {
+      console.log('Processing auth URL:', url);
+      
+      // Parse the URL to extract the id_token
+      const idToken = this.extractIdTokenFromUrl(url);
+      
+      if (idToken) {
+        console.log('ID Token received:', idToken);
+        setStorage('auth_token', idToken);
+        
+        // Call your login method
+        await this.loginUsingOAuth(
+          { 
+            idToken: idToken, 
+            provider: 'google' 
+          },
+          (session) => {
+            console.log('Login successful:', session);
+          }
+        );
+      } else {
+        console.warn('No id_token found in the response');
+        throw new Error('No ID token found in the response');
+      }
+    } catch (error) {
+      console.error('Error processing auth URL:', error);
+      throw error;
+    }
+  }
+  
+  // Handle redirect URL from Linking events
+  private handleRedirectUrl = async (event: { url: string }): Promise<void> => {
+    try {
+      const { url } = event;
+      console.log('Received redirect URL:', url);
+      
+      // Only process URLs with our custom scheme
+      if (url.startsWith('https://onboarding')) {
+        console.log('Received redirect via Linking event:', url);
+        await this.processAuthUrl(url);
+      }
+    } catch (error) {
+      console.error('Error handling redirect URL:', error);
+    }
+  };
   
   private extractIdTokenFromUrl(url: string): string {
     console.log('Processing redirect URL:', url);
