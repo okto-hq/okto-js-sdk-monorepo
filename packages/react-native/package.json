@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.4.1-dev.147",
+  "version": "0.4.1-dev.148",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -34,6 +34,7 @@
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
     "@okto_web3/core-js-sdk": "workspace:*",
+    "@react-native-clipboard/clipboard": "^1.16.2",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "@react-navigation/stack": "^7.2.10",

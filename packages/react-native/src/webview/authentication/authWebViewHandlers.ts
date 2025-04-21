@@ -8,6 +8,7 @@ import {
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -425,8 +426,7 @@ export class AuthWebViewRequestHandler {
     }
 
     try {
-      const { Clipboard } = NativeModules;
-      const otp = await Clipboard.getString();
+      const otp = await Clipboard.default.getString();
       console.log('OTP from clipboard:', otp);
       return otp;
     } catch (error) {
