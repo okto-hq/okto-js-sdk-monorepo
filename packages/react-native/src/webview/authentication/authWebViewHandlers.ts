@@ -2,7 +2,7 @@
 import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
-import { NativeModules } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -392,32 +392,51 @@ export class AuthWebViewRequestHandler {
     }
   };
 
-  private async getOTPFromClipboard(): Promise<string | null> {
+  private getOTPFromClipboard = async () => {
     try {
-      // Browser environment implementation
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        const text = await navigator.clipboard.readText();
-        const otpMatch = text.match(/\b\d{4,6}\b/);
-        return otpMatch ? otpMatch[0] : null;
-      }
-      // React Native implementation
-      if (typeof NativeModules !== 'undefined' && NativeModules.Clipboard) {
-        const Clipboard = NativeModules.Clipboard;
-        return Clipboard.getString()
-          .then((text: string) => {
-            const otpMatch = text.match(/\b\d{4,6}\b/);
-            return otpMatch ? otpMatch[0] : null;
-          })
-          .catch(() => null);
+      const clipboardContent = Clipboard.default.getString();
+      console.log('Clipboard content:', clipboardContent);
+
+      if (!clipboardContent) {
+        console.log('Clipboard is empty');
+        return null;
       }
 
-      // Fallback for environments where clipboard access isn't available
+      // Try different OTP patterns (from most to least specific)
+
+      // Pattern 1: Look for "code", "otp", "verification" followed by numbers
+      let otpMatch = (await clipboardContent).match(
+        /(?:code|otp|verification|verify|code is)[:\s]+(\d{4,6})/i,
+      );
+      if (otpMatch && otpMatch[1]) {
+        console.log('Found OTP with keyword pattern:', otpMatch[1]);
+        return otpMatch[1];
+      }
+
+      // Pattern 2: Look for X-digit code mention
+      otpMatch = (await clipboardContent).match(
+        /(\d{4,6})[\s-]?(?:digit|code|is your|is the)/i,
+      );
+      if (otpMatch && otpMatch[1]) {
+        console.log('Found OTP with digit mention pattern:', otpMatch[1]);
+        return otpMatch[1];
+      }
+
+      // Pattern 3: Look for standalone 4-6 digit number (most aggressive)
+      otpMatch = (await clipboardContent).match(/\b(\d{4,6})\b/);
+      if (otpMatch && otpMatch[1]) {
+        console.log('Found standalone numeric OTP:', otpMatch[1]);
+        return otpMatch[1];
+      }
+
+      // No OTP pattern found
+      console.log('No OTP pattern found in clipboard');
       return null;
     } catch (error) {
       console.error('Error accessing clipboard:', error);
       return null;
     }
-  }
+  };
 
   /**
    * Handle request to close the WebView
