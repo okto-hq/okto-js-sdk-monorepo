@@ -33,8 +33,10 @@ class OktoClient extends OktoCoreClient {
     const session = getStorage('okto_session');
     if (session) {
       try {
+        console.log('[OktoClient] Found existing session:', session);
         const parsedSession = JSON.parse(session);
         this.setSessionConfig(parsedSession);
+        console.log('[OktoClient] Session initialized:', parsedSession);
         this.syncUserKeys();
       } catch (error) {
         clearStorage('okto_session');

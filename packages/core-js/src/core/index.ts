@@ -12,7 +12,11 @@ import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
+  validateContact,
+  validateEmail,
+  validateNotLoggedIn,
   validateOktoClientConfig,
+  validatePhoneNumber,
   validateUserOp,
 } from './oktoClientInputValidator.js';
 import { generatePaymasterData } from './paymaster.js';
@@ -105,6 +109,7 @@ class OktoClient {
     method: 'email' | 'whatsapp',
   ): Promise<EmailSendOtpResponse | WhatsAppSendOtpResponse> {
     try {
+      validateContact(contact, method);
       if (method === 'email') {
         return this._emailAuthentication.sendOTP(this, contact);
       } else if (method === 'whatsapp') {
@@ -132,6 +137,8 @@ class OktoClient {
     method: 'email' | 'whatsapp',
   ): Promise<EmailResendOtpResponse | WhatsAppResendOtpResponse> {
     try {
+      validateContact(contact, method);
+
       if (method === 'email') {
         return this._emailAuthentication.resendOTP(this, contact, token);
       } else if (method === 'whatsapp') {
@@ -162,6 +169,7 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    validateNotLoggedIn(this.isLoggedIn());
     validateAuthData(data);
 
     const clientPrivateKey = this._clientConfig.clientPrivKey;
@@ -227,6 +235,8 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    validateNotLoggedIn(this.isLoggedIn());
+    validateEmail(email);
     try {
       const verifyResponse = await this._emailAuthentication.verifyOTP(
         this,
@@ -274,6 +284,8 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    validateNotLoggedIn(this.isLoggedIn());
+    validatePhoneNumber(phoneNumber);
     try {
       const verifyResponse = await this._whatsAppAuthentication.verifyOTP(
         this,
@@ -309,6 +321,8 @@ class OktoClient {
     state: Record<string, string>,
     overrideOpenWindow: (url: string) => Promise<string>,
   ): Promise<Address | RpcError | undefined> {
+    validateNotLoggedIn(this.isLoggedIn());
+
     try {
       // Generate the authentication URL
       const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
