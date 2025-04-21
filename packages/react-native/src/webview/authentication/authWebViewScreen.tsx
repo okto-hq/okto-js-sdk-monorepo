@@ -33,7 +33,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
 
-  
+
   const oktoClientRef = useRef<OktoClient | null>(null);
   
   if (!oktoClientRef.current) {
@@ -52,6 +52,18 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
    * Used by request handlers to close WebView when appropriate
    */
   const navigateBack = () => {
+    const session = getStorage('okto_session');
+    if (session) {
+      try {
+        console.log('[OktoClient] Found existing session:', session);
+        const parsedSession = JSON.parse(session);
+        oktoClient.setSessionConfig(parsedSession);
+        console.log('[OktoClient] Session initialized:', parsedSession);
+        oktoClient.syncUserKeys();
+      } catch (error) {
+        clearStorage('okto_session');
+      }
+    }
     navigation.goBack();
   };
 
