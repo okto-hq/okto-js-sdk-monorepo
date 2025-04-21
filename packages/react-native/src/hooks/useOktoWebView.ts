@@ -1,33 +1,26 @@
-import { useContext, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { OktoClient } from '../core/index.js';
-
-import { createContext } from 'react';
-
-export const OktoContext = createContext<OktoClient | null>(null);
+import { useOkto } from './useOkto.js';
 
 /**
  * Custom hook to access the OktoClient's openWebView functionality
- *
+ * 
  * @returns A function to open web view with the provided URL
- * @throws Error if used outside of OktoContext provider
  */
-export const useOktoWebView = () => {
-  const oktoClient = useContext(OktoContext);
+export function useOktoWebView() {
+  const oktoClient = useOkto();
   const navigation = useNavigation();
 
-  if (!oktoClient) {
-    throw new Error(
-      'useOktoWebView must be used within an OktoContext.Provider',
-    );
-  }
-
+  /**
+   * Opens a URL in the WebView
+   * @param url The URL to open in the WebView
+   */
   const openWebView = useCallback(
     (url: string) => {
       oktoClient.openWebView(url, navigation);
     },
-    [oktoClient, navigation],
+    [oktoClient, navigation]
   );
 
   return openWebView;
-};
+}
