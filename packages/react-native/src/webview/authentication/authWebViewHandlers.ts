@@ -79,7 +79,7 @@ export class AuthWebViewRequestHandler {
    */
   private handleLoginRequest = async (request: WebViewRequest) => {
     console.log('Handling login request:', request.data);
-    const { type, provider } = request.data;
+    const { type } = request.data;
 
     // Route to specific handler based on login request type
     switch (type) {
