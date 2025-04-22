@@ -41,9 +41,11 @@ export async function aptosRawTransaction(
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+    console.log("karan is here in fee payer", feePayerAddress);
   }
 
   const nonce = generateUUID();
+  console.log("karan is here in fee payer", feePayerAddress);
 
   const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
