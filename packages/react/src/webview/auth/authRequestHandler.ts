@@ -18,19 +18,41 @@ export class AuthRequestHandler {
     this.webViewManager = webViewManager;
   }
 
-  public handleRequest: WebViewRequestHandler = (actualData: any) => {
+  public handleRequest: WebViewRequestHandler = async (actualData: any) => {
     console.log('Received request:', actualData);
-    if (!actualData?.data?.type) return;
+    // if (!actualData?.data?.type) return;
 
     const baseResponse = {
       id: actualData.id || 'uuid-for-webview',
       method: actualData.method || 'okto_sdk_login',
     };
-    console.log('Base response:', baseResponse);
-    console.log('Actual data:', actualData);
-    console.log('Request type:', actualData.data.type);
-    console.log('Request data:', actualData.data);
-    console.log('Request provider:', actualData.data.provider);
+
+    if (actualData.data.provider === 'google') {
+      console.log('Google login initiated');
+      const response = await this.oktoClient?.loginUsingSocial('google');
+      console.log('Google login response:', response);
+      if (!response) {
+        this.webViewManager.sendErrorResponse(
+          baseResponse.id,
+          baseResponse.method,
+          `error occurred while logging in with google: ${response}`,
+        );
+        return;
+      } else {
+        this.webViewManager.sendResponse(
+          baseResponse.id,
+          baseResponse.method,
+          {
+            success: true,
+            message: 'Google login successful',
+            token: response,
+          },
+          null,
+        );
+        return;
+      }
+    }
+
     switch (actualData.data.type) {
       case 'request_otp':
         this.handleSendOtp(
@@ -44,7 +66,7 @@ export class AuthRequestHandler {
 
       case 'verify_otp':
         console.log('Verifying OTP:', actualData.data.otp);
-        this.handleVerifyOtp(
+        const response = await this.handleVerifyOtp(
           actualData.data.provider == 'email'
             ? actualData.data.email
             : actualData.data.whatsapp_number,
@@ -53,20 +75,26 @@ export class AuthRequestHandler {
           actualData.data.token,
           baseResponse,
         );
-        break;
+        console.log('OTP verification response Srijan:', response);
+        return response;
 
       case 'resend_otp':
-        this.webViewManager.sendResponse(
-          baseResponse.id,
-          baseResponse.method,
-          {
-            success: true,
-            message: 'OTP resent successfully',
-          },
-          null,
+        this.handleResendOtp(
+          actualData.data.provider == 'email'
+            ? actualData.data.email
+            : actualData.data.whatsapp_number,
+          actualData.data.provider,
+          actualData.data.token,
+          baseResponse,
         );
         break;
-
+      case 'paste_otp':
+        this.handlePasteOtp(
+          actualData.data.provider,
+          actualData.data.otp,
+          baseResponse,
+        );
+        break;
       case 'close_webview':
         this.webViewManager.closeWebView();
         break;
@@ -103,21 +131,19 @@ export class AuthRequestHandler {
         );
       } else {
         console.warn('Token not found in response:', response);
-        this.webViewManager.sendResponse(
+        this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
-          {
-            message: 'Failed to send OTP: Token missing in response',
-          },
-          null,
+          'Failed to send OTP: Token missing in response',
         );
       }
     } catch (error) {
       console.error('Error while sending OTP:', error);
-      this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
-        message: 'Failed to send OTP',
-        error,
-      });
+      this.webViewManager.sendErrorResponse(
+        baseResponse.id,
+        baseResponse.method,
+        error as string,
+      );
     }
   }
 
@@ -165,25 +191,106 @@ export class AuthRequestHandler {
 
         setTimeout(() => {
           this.webViewManager.closeWebView();
-        }, 2000);
+        }, 1000);
 
         console.log('Login successful:', response);
+        return response;
       } else {
         throw new Error(response || 'Login failed');
       }
     } catch (error) {
       console.error('Error during OTP verification:', error);
 
+      this.webViewManager.sendErrorResponse(
+        baseResponse.id,
+        baseResponse.method,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+    }
+  }
+
+  private async handleResendOtp(
+    contact: string,
+    provider: 'email' | 'whatsapp',
+    token: string,
+    baseResponse: { id: string; method: string },
+  ) {
+    try {
+      if (!this.oktoClient) {
+        throw new Error('OktoClient is not initialized');
+      }
+
+      const response = await this.oktoClient.resendOTP(
+        contact,
+        token,
+        provider,
+      );
+
+      const payload =
+        provider === 'email'
+          ? { provider, email: contact, token: response?.token }
+          : {
+              provider,
+              whatsapp_number: contact,
+              token: response?.token,
+            };
+
+      if (response?.token) {
+        this.webViewManager.sendResponse(
+          baseResponse.id,
+          baseResponse.method,
+          payload,
+          null,
+        );
+      } else {
+        console.warn('Token not found in response:', response);
+        this.webViewManager.sendErrorResponse(
+          baseResponse.id,
+          baseResponse.method,
+          'Failed to resend OTP: Token missing in response',
+        );
+      }
+    } catch (error) {
+      console.error('Error while resending OTP:', error);
+
+      this.webViewManager.sendErrorResponse(
+        baseResponse.id,
+        baseResponse.method,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+    }
+  }
+
+  private async handlePasteOtp(
+    provider: 'email' | 'whatsapp',
+    otp: string,
+    baseResponse: { id: string; method: string },
+  ) {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      if (!clipboardText) {
+        throw new Error('No OTP found on clipboard');
+      }
+
+      const payload = {
+        provider: provider,
+        type: 'paste_otp',
+        message: clipboardText,
+      };
+
       this.webViewManager.sendResponse(
         baseResponse.id,
         baseResponse.method,
-        {
-          provider,
-          contact,
-          message: 'Failed to verify OTP',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
+        payload,
         null,
+      );
+    } catch (error) {
+      console.error('Error while fetching OTP from clipboard:', error);
+
+      this.webViewManager.sendErrorResponse(
+        baseResponse.id,
+        baseResponse.method,
+        error instanceof Error ? error.message : 'Unknown error',
       );
     }
   }

@@ -91,7 +91,7 @@ export class OktoAuthWebView {
                 : rawData.eventData
               : rawData;
 
-          this.authRequestHandler.handleRequest(actualData);
+          return this.authRequestHandler.handleRequest(actualData);
         } catch (e) {
           console.error('Failed to process WebView event:', e);
         }

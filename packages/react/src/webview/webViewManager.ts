@@ -352,16 +352,20 @@ export class WebViewManager {
    * webViewManager.sendErrorResponse('requestId', 'exampleMethod', 'An error occurred');
    */
   public sendErrorResponse(id: string, method: string, error: string): void {
-    this.webFrame?.contentWindow?.postMessage(
-      {
-        id,
-        method,
-        error,
-        channel: CHANNELS.RESPONSE,
-        status: 'error',
-      },
-      this.targetOrigin,
-    );
+    const payload = {
+      data: JSON.stringify({ id, method }),
+      error: error,
+    };
+
+    const message = payload;
+
+    if (this.debug) {
+      console.groupCollapsed(`[WebViewManager] Sending response: ${method}`);
+      console.log('Request ID:', id);
+      console.log('Error:', error);
+      console.groupEnd();
+    }
+    this.webFrame?.contentWindow?.postMessage(message, this.targetOrigin);
   }
 
   /**
