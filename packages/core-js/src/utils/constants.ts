@@ -3,7 +3,7 @@ import type { Hex } from '@/types/core.js';
 export class Constants {
   static readonly HOURS_IN_MS = 60 * 60 * 1000;
 
-  static readonly EXECUTE_USEROP_FUNCTION_SELECTOR = '0x8dd7712f';
+  static readonly EXECUTE_USEROP_FUNCTION_SELECTOR = '0xbf7b90d7';
 
   static readonly FUNCTION_NAME = 'initiateJob';
 
