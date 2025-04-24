@@ -13,10 +13,7 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type {
-  AptosRawTransaction,
-  AptosRawTransactionIntentParams,
-} from './types.js';
+import type { AptosRawTransactionIntentParams } from './types.js';
 import {
   AptosRawTransactionIntentParamsSchema,
   validateSchema,
@@ -65,14 +62,17 @@ export async function aptosRawTransaction(
     });
   }
 
-  const transactionsBytes = data.transactions.map((transaction) => {
-    const aptosTransaction: AptosRawTransaction = {
-      function: transaction.function,
-      typeArguments: transaction.typeArguments || [],
-      functionArguments: transaction.functionArguments || [],
-    };
-    return toHex(stringToBytes(JSON.stringify(aptosTransaction)));
-  });
+  const transactionsBytes = [
+    toHex(
+      stringToBytes(
+        JSON.stringify({
+          function: data.function,
+          typeArguments: data.typeArguments || [],
+          functionArguments: data.functionArguments || [],
+        }),
+      ),
+    ),
+  ];
 
   const jobparam = encodeAbiParameters(
     parseAbiParameters(jobParametersAbiType),

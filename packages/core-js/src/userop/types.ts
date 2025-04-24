@@ -101,15 +101,11 @@ export type AptosFunctionArgumentTypes =
   | ArrayBuffer
   | Array<AptosFunctionArgumentTypes>;
 
-export interface AptosRawTransaction {
+export interface AptosRawTransactionIntentParams {
+  caip2Id: string;
   function: string;
   typeArguments: string[];
   functionArguments: AptosFunctionArgumentTypes[];
-}
-
-export interface AptosRawTransactionIntentParams {
-  caip2Id: string;
-  transactions: AptosRawTransaction[];
 }
 
 /**

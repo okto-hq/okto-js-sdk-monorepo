@@ -58,6 +58,12 @@ export async function nftMint(
     });
   }
 
+  if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
+    throw new BaseError('NFT Minting is only supported on Aptos chain', {
+      details: `Provided chain: ${currentChain.caipId}`,
+    });
+  }
+
   // Encode the NFT mint data into bytes
   const nftDataEncoded = encodeAbiParameters(
     parseAbiParameters(
