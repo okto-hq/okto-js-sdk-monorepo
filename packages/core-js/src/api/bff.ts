@@ -12,7 +12,11 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
-import type { Token } from '@/types/bff/tokens.js';
+import type {
+  Token,
+  TokenListingFilter,
+  TradableToken,
+} from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
 
@@ -22,11 +26,12 @@ class BffClientRepository {
     getWallets: '/api/oc/v1/wallets',
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
-    getPortfolio: '/api/oc/v1/aggregated-portfolio',
+    getPortfolio: '/api/oc/v2/aggregated-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
+    getTokensForSwap: '/api/oc/v1/entities',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
@@ -198,6 +203,33 @@ class BffClientRepository {
    */
   public static async getNftOrderDetails(oc: OktoClient): Promise<Order[]> {
     return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
+  }
+
+  /**
+   * Retrieves a list of tokens based on specified filters
+   * @param oc OktoClient instance
+   * @param filters Filter parameters for token listing
+   * @returns Promise with array of TokenEntity objects
+   */
+  public static async getTokensForSwap(
+    oc: OktoClient,
+    filters: TokenListingFilter,
+  ): Promise<TradableToken[]> {
+    const response = await getBffClient(oc).get<
+      ApiResponseWithCount<'entities', TradableToken>
+    >(this.routes.getTokensForSwap, {
+      params: filters,
+    });
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve tokens: ' + response.data.error);
+    }
+
+    if (!response.data.data?.entities) {
+      throw new Error('No tokens found or response data is missing.');
+    }
+
+    return response.data.data.entities;
   }
 
   public static async estimateOrder(
