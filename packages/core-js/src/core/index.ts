@@ -12,7 +12,10 @@ import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
+  validateContact,
+  validateEmail,
   validateOktoClientConfig,
+  validatePhoneNumber,
   validateUserOp,
 } from './oktoClientInputValidator.js';
 import { generatePaymasterData } from './paymaster.js';
@@ -90,6 +93,12 @@ class OktoClient {
     method: 'email' | 'whatsapp',
   ): Promise<EmailSendOtpResponse | WhatsAppSendOtpResponse> {
     try {
+      const validatedContact = validateContact(contact, method);
+
+      if (validatedContact === null) {
+        throw new BaseError('Invalid contact information or method');
+      }
+
       if (method === 'email') {
         return this._emailAuthentication.sendOTP(this, contact);
       } else if (method === 'whatsapp') {
@@ -117,6 +126,12 @@ class OktoClient {
     method: 'email' | 'whatsapp',
   ): Promise<EmailResendOtpResponse | WhatsAppResendOtpResponse> {
     try {
+      const validatedContact = validateContact(contact, method);
+
+      if (validatedContact === null) {
+        throw new BaseError('Invalid contact information or method');
+      }
+
       if (method === 'email') {
         return this._emailAuthentication.resendOTP(this, contact, token);
       } else if (method === 'whatsapp') {
@@ -147,6 +162,9 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
     validateAuthData(data);
 
     const clientPrivateKey = this._clientConfig.clientPrivKey;
@@ -212,6 +230,10 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+    validateEmail(email);
     try {
       const verifyResponse = await this._emailAuthentication.verifyOTP(
         this,
@@ -259,6 +281,11 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+    validatePhoneNumber(phoneNumber);
+
     try {
       const verifyResponse = await this._whatsAppAuthentication.verifyOTP(
         this,

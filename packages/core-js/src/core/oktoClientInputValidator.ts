@@ -3,6 +3,8 @@ import {
   isHexString,
   isPrivateKey,
   isPublicKey,
+  isValidEmail,
+  isValidPhoneNumber,
 } from '@/utils/customValidators.js';
 import { z } from 'zod';
 
@@ -68,6 +70,16 @@ export const UserOpSchema = z.object({
   paymasterData: isHexString('Invalid paymaster data format'),
 });
 
+// **Schema for Email Contact**
+export const EmailContactSchema = z.object({
+  email: isValidEmail(),
+});
+
+// **Schema for Phone Contact**
+export const PhoneContactSchema = z.object({
+  phoneNumber: isValidPhoneNumber(),
+});
+
 export const validateOktoClientConfig = (data: unknown) =>
   OktoClientConfigSchema.parse(data);
 export const validateAuthData = (data: unknown) => AuthDataSchema.parse(data);
@@ -76,3 +88,22 @@ export const validateSessionConfig = (data: unknown) =>
 export const validateClientConfig = (data: unknown) =>
   ClientConfigSchema.parse(data);
 export const validateUserOp = (data: unknown) => UserOpSchema.parse(data);
+export const validateEmail = (email: string) =>
+  EmailContactSchema.parse({ email }).email;
+export const validatePhoneNumber = (phoneNumber: string) =>
+  PhoneContactSchema.parse({ phoneNumber }).phoneNumber;
+export const validateContact = (
+  contact: string,
+  method: 'email' | 'whatsapp',
+): string | null => {
+  try {
+    if (method === 'email') {
+      return validateEmail(contact);
+    } else if (method === 'whatsapp') {
+      return validatePhoneNumber(contact);
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
