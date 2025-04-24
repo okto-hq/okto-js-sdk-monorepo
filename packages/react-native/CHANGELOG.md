@@ -1,5 +1,18 @@
 # @okto_web3/react-native-sdk
 
+## 0.5.0
+
+### Minor Changes
+
+- 24248fa: update job manager abi
+- bd0cc04: Update signMessage Payload Generation
+
+### Patch Changes
+
+- Updated dependencies [24248fa]
+- Updated dependencies [bd0cc04]
+  - @okto_web3/core-js-sdk@0.6.0
+
 ## 0.4.1
 
 ### Patch Changes

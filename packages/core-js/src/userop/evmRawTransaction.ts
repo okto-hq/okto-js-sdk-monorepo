@@ -64,6 +64,12 @@ export async function evmRawTransaction(
     });
   }
 
+  if (!currentChain.caipId.toLowerCase().startsWith('eip155:')) {
+    throw new BaseError('Invalid Chain Type', {
+      details: `${data.caip2Id} is not an EVM-compatible chain. EVM Raw Transactions can only be created for EVM chains.`,
+    });
+  }
+
   const jobparam = encodeAbiParameters(
     parseAbiParameters(jobParametersAbiType),
     [

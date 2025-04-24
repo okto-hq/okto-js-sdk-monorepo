@@ -1,5 +1,12 @@
 # @okto_web3/core-js-sdk
 
+## 0.6.0
+
+### Minor Changes
+
+- 24248fa: update job manager abi
+- bd0cc04: Update signMessage Payload Generation
+
 ## 0.5.1
 
 ### Patch Changes
