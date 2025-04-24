@@ -35,15 +35,17 @@ class EmailAuthentication {
   ): Promise<
     EmailSendOtpRequest | EmailResendOtpRequest | EmailVerifyOtpRequest
   > {
-    // Create an empty object and build it with properties in the exact order needed
     const data: any = {};
 
-    // These two fields always come first
     data.email = email;
 
-    // For verifyOTP: add token then otp
-    // For resendOTP: add only token
-    // For sendOTP: don't add token or otp
+    /**
+     * Token and OTP handling logic:
+     * - For verifyOTP: Requires both token and OTP
+     * - For resendOTP: Requires only token
+     * - For sendOTP: Neither token nor OTP required
+     */
+
     if (token) {
       data.token = token;
     }
@@ -51,8 +53,6 @@ class EmailAuthentication {
     if (otp) {
       data.otp = otp;
     }
-
-    // These fields always come last, in this order
     data.client_swa = oc.clientSWA;
     data.timestamp = Date.now();
 

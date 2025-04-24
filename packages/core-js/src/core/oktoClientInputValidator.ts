@@ -3,34 +3,10 @@ import {
   isHexString,
   isPrivateKey,
   isPublicKey,
+  isValidEmail,
+  isValidPhoneNumber,
 } from '@/utils/customValidators.js';
-import { BaseError } from 'viem';
 import { z } from 'zod';
-
-/**
- * ---------------------------------------------------------------------------
- * Custom Validators
- * ---------------------------------------------------------------------------
- */
-
-// Email validation
-export const isValidEmail = () =>
-  z
-    .string()
-    .email('Invalid email format')
-    .transform((val) => val);
-
-// Phone number validation (10 digits)
-export const isValidPhoneNumber = (
-  errorMessage = 'Invalid phone number format: must contain exactly 10 digits',
-) =>
-  z.string().refine(
-    (value) => {
-      const digitsOnly = value.replace(/\D/g, '');
-      return digitsOnly.length === 10;
-    },
-    { message: errorMessage },
-  );
 
 /**
  * ---------------------------------------------------------------------------
@@ -116,23 +92,18 @@ export const validateEmail = (email: string) =>
   EmailContactSchema.parse({ email }).email;
 export const validatePhoneNumber = (phoneNumber: string) =>
   PhoneContactSchema.parse({ phoneNumber }).phoneNumber;
-
-// Combined validation for contact based on method
 export const validateContact = (
   contact: string,
   method: 'email' | 'whatsapp',
-): string => {
-  if (method === 'email') {
-    return validateEmail(contact);
-  } else if (method === 'whatsapp') {
-    return validatePhoneNumber(contact);
-  }
-  throw new BaseError('Invalid contact method specified');
-};
-
-// Validate login status - throws error if already logged in
-export const validateNotLoggedIn = (isLoggedIn: boolean): void => {
-  if (isLoggedIn) {
-    throw new BaseError('User is already logged in. Please log out first.');
+): string | null => {
+  try {
+    if (method === 'email') {
+      return validateEmail(contact);
+    } else if (method === 'whatsapp') {
+      return validatePhoneNumber(contact);
+    }
+    return null;
+  } catch (error) {
+    return null;
   }
 };

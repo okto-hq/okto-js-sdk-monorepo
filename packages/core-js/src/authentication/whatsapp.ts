@@ -37,25 +37,23 @@ class WhatsAppAuthentication {
   ): Promise<
     WhatsAppSendOtpRequest | WhatsAppResendOtpRequest | WhatsAppVerifyOtpRequest
   > {
-    // Create an empty object and build it with properties in the exact order needed
     const data: any = {};
-
-    // These two fields always come first
     data.whatsapp_number = whatsappNumber;
     data.country_short_name = countryShortName;
 
-    // For verifyOTP: add token then otp
-    // For resendOTP: add only token
-    // For sendOTP: don't add token or otp
+    /**
+     * Token and OTP handling logic:
+     * - For verifyOTP: Requires both token and OTP
+     * - For resendOTP: Requires only token
+     * - For sendOTP: Neither token nor OTP required
+     */
+
     if (token) {
       data.token = token;
     }
-
     if (otp) {
       data.otp = otp;
     }
-
-    // These fields always come last, in this order
     data.client_swa = oc.clientSWA;
     data.timestamp = Date.now();
 
@@ -65,7 +63,6 @@ class WhatsAppAuthentication {
       privateKey: this.clientPrivateKey,
     });
 
-    // Return the payload with the signed message
     return {
       data,
       client_signature: clientSignature,
