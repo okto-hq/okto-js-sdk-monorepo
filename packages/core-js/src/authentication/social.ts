@@ -1,8 +1,9 @@
-// import type { SocialAuthType } from "@/types/auth/social.js";
+import type { SocialAuthType } from '@/types/auth/social.js';
 
 class SocialAuthUrlGenerator {
-  private providers: Record<'google', string> = {
+  private providers: Record<SocialAuthType, string> = {
     google: 'https://accounts.google.com/o/oauth2/v2/auth',
+    // Add more providers like 'x': 'https://x.com/oauth/...' if needed
   };
 
   private buildAuthUrl(

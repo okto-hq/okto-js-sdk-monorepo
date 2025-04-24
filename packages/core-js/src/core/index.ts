@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData } from '@/types/index.js';
+import type { AuthData, SocialAuthType } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -319,12 +319,21 @@ class OktoClient {
     }
   }
 
+  /**
+   * Login using social authentication providers.
+   * @param provider - The social authentication provider (e.g., 'google', 'facebook')
+   * @param state - Additional state parameters for the auth URL
+   * @param overrideOpenWindow - Function to override the default window opening behavior
+   * @returns {Promise<Address | RpcError | undefined>} - Returns the user's address after successful login
+   */
   public async loginUsingSocial(
-    provider: 'google',
+    provider: SocialAuthType,
     state: Record<string, string>,
     overrideOpenWindow: (url: string) => Promise<string>,
   ): Promise<Address | RpcError | undefined> {
-    validateNotLoggedIn(this.isLoggedIn());
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
 
     try {
       // Generate the authentication URL
