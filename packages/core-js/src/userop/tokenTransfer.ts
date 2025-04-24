@@ -39,7 +39,6 @@ export async function tokenTransfer(
     throw new BaseError('User not logged in');
   }
   validateSchema(TokenTransferIntentParamsSchema, data);
-  console.log("karan is here in fee payer", feePayerAddress);
 
   if (data.recipient === oc.userSWA) {
     throw new BaseError('Recipient address cannot be same as the user address');
@@ -47,7 +46,6 @@ export async function tokenTransfer(
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-    console.log("karan is here in fee payer", feePayerAddress);
   }
 
   const nonce = generateUUID();

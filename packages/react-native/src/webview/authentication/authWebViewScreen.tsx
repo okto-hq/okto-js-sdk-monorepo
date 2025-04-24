@@ -15,7 +15,7 @@ import { OktoClient as OktoRnClient } from '../../core/index.js';
  * Props type for WebViewScreen component using React Navigation's typing system
  */
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'> & {
-  onWebViewClose?: () => void;  // Add this line
+  onWebViewClose?: () => void; // Add this line
 };
 
 /**
@@ -36,11 +36,9 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
 
-
   const oktoClientRef = useRef<OktoClient | null>(null);
-  
+
   if (!oktoClientRef.current) {
-    console.log('Initializing OktoClient with config:', clientConfig);
     oktoClientRef.current = new OktoClient({
       environment: clientConfig.environment as 'staging' | 'sandbox',
       clientPrivateKey: clientConfig.clientPrivateKey,
@@ -58,7 +56,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
     if (route.params.onWebViewClose) {
       route.params.onWebViewClose();
     }
-    
+
     navigation.goBack();
   };
 

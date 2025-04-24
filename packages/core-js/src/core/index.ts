@@ -81,20 +81,8 @@ class OktoClient {
     }
   }
 
-  public setSessionConfig(sessionConfig: SessionConfig): void {
-    console.log('karan is here in set', sessionConfig.sessionPrivKey);
-    console.log('karan is here in set', sessionConfig.sessionPubKey);
-    console.log('karan is here in set', sessionConfig.userSWA);
+  protected setSessionConfig(sessionConfig: SessionConfig): void {
     this._sessionConfig = sessionConfig;
-    console.log(
-      'karan is here in set session',
-      this._sessionConfig.sessionPrivKey,
-    );
-    console.log(
-      'karan is here in set session',
-      this._sessionConfig.sessionPubKey,
-    );
-    console.log('karan is here in set session', this._sessionConfig.userSWA);
   }
 
   /**
@@ -329,7 +317,6 @@ class OktoClient {
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);
-      console.log('ID Token:', idToken);
       if (!idToken) {
         throw new Error('No ID token received from authentication');
       }
@@ -413,7 +400,6 @@ class OktoClient {
   }
 
   get userSWA(): Hex | undefined {
-    console.log('karan is here in userSWA', this._sessionConfig?.userSWA);
     return this._sessionConfig?.userSWA;
   }
 

@@ -73,8 +73,6 @@ export class WebViewBridge {
   }
 
   public sendResponse = (response: WebViewResponse) => {
-    console.log('Sending response to WebView:', response);
-
     if (!this.webViewRef.current) {
       console.error('WebView reference is null, cannot send response');
       return;

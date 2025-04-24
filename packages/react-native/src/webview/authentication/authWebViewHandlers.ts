@@ -48,8 +48,6 @@ export class AuthWebViewRequestHandler {
    * @param request Request data from WebView
    */
   private handleRequest = async (request: WebViewRequest) => {
-    console.log('Received request from WebView:', request);
-
     try {
       // Route request based on method
       switch (request.method) {
@@ -385,7 +383,8 @@ export class AuthWebViewRequestHandler {
       const otpFromClipboard = await this.getOTPFromClipboard();
       console.log(
         `Pasting OTP from clipboard for ${provider}:`,
-        otpFromClipboard)
+        otpFromClipboard,
+      );
 
       if (!otpFromClipboard) {
         throw new Error('No valid OTP found in clipboard');

@@ -34,13 +34,11 @@ export async function evmRawTransaction(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  console.log("karan is here in fee payer", feePayerAddress);
 
   validateSchema(EvmRawTransactionIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-    console.log("karan is here in fee payer", feePayerAddress);
   }
 
   const transaction: EVMRawTransaction = {

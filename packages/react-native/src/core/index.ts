@@ -33,10 +33,8 @@ class OktoClient extends OktoCoreClient {
     const session = getStorage('okto_session');
     if (session) {
       try {
-        console.log('[OktoClient] Found existing session:', session);
         const parsedSession = JSON.parse(session);
         this.setSessionConfig(parsedSession);
-        console.log('[OktoClient] Session initialized:', parsedSession);
         this.syncUserKeys();
       } catch (error) {
         clearStorage('okto_session');
@@ -90,15 +88,14 @@ class OktoClient extends OktoCoreClient {
   }
 
   public openWebView(url: string, navigation: any): void {
-    console.log('[OktoClient] Opening WebView with URL:', url);
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
-        console.log("[OktoClient] New client created after WebView close", newClient);
+        console.log('Client SWA After Login', newClient.clientSWA);
         this.initializeSession();
-      }
+      },
     });
   }
 }
