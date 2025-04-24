@@ -7,6 +7,7 @@ export interface EnvConfig {
   bffBaseUrl: string;
   paymasterAddress: Address;
   jobManagerAddress: Address;
+  entryPointAddress: Address;
   chainId: number;
 }
 

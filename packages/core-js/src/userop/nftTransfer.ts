@@ -1,6 +1,7 @@
+import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -12,7 +13,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTTransferIntentParams } from './types.js';
-import { NFTTransferIntentParamsSchema } from './userOpInputValidator.js';
+import {
+  NFTTransferIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -29,11 +33,13 @@ import { NFTTransferIntentParamsSchema } from './userOpInputValidator.js';
 export async function nftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  NFTTransferIntentParamsSchema.parse(data);
+
+  validateSchema(NFTTransferIntentParamsSchema as any, data);
 
   if (data.recipientWalletAddress === oc.userSWA) {
     throw new BaseError(
@@ -41,8 +47,11 @@ export async function nftTransfer(
     );
   }
 
-  const nonce = generateUUID();
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+  }
 
+  const nonce = generateUUID();
   const jobParametersAbiType =
     '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
@@ -69,6 +78,7 @@ export async function nftTransfer(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
@@ -101,6 +111,8 @@ export async function nftTransfer(
     ],
   );
 
+  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
@@ -108,8 +120,8 @@ export async function nftTransfer(
     callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: toHex(Constants.GAS_LIMITS.MAX_FEE_PER_GAS),
-    maxPriorityFeePerGas: toHex(Constants.GAS_LIMITS.MAX_PRIORITY_FEE_PER_GAS),
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit: toHex(
       Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
     ),

@@ -1,7 +1,8 @@
+import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -12,7 +13,10 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { TokenTransferIntentParams } from './types.js';
-import { TokenTransferIntentParamsSchema } from './userOpInputValidator.js';
+import {
+  TokenTransferIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token transfer.
@@ -25,17 +29,23 @@ import { TokenTransferIntentParamsSchema } from './userOpInputValidator.js';
  * @param data - The parameters for transferring the token (caip2Id, recipientWalletAddress, tokenAddress, amount).
  * @returns The User Operation (UserOp) for the token transfer.
  */
+// TODO: Implement a destructured param instead before V1 release
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  TokenTransferIntentParamsSchema.parse(data);
+  validateSchema(TokenTransferIntentParamsSchema, data);
 
   if (data.recipient === oc.userSWA) {
     throw new BaseError('Recipient address cannot be same as the user address');
+  }
+
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
   const nonce = generateUUID();
@@ -68,6 +78,7 @@ export async function tokenTransfer(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
@@ -98,6 +109,8 @@ export async function tokenTransfer(
     ],
   );
 
+  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
@@ -105,8 +118,8 @@ export async function tokenTransfer(
     callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: toHex(Constants.GAS_LIMITS.MAX_FEE_PER_GAS),
-    maxPriorityFeePerGas: toHex(Constants.GAS_LIMITS.MAX_PRIORITY_FEE_PER_GAS),
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit: toHex(
       Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
     ),

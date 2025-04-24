@@ -8,7 +8,6 @@ import {
   pad,
   parseAbiParameters,
 } from 'viem';
-import { Constants } from './constants.js';
 
 export function generatePackedUserOp(userOp: UserOp): PackedUserOp {
   // TODO: Add better checks; this is temporary and should not go to release
@@ -103,11 +102,7 @@ export function generateUserOpHash(oc: OktoClient, userOp: PackedUserOp): Hash {
 
   const userOpPack = encodeAbiParameters(
     parseAbiParameters('bytes32, address, uint256'),
-    [
-      keccak256(pack),
-      Constants.ENTRYPOINT_CONTRACT_ADDRESS,
-      BigInt(oc.env.chainId),
-    ],
+    [keccak256(pack), oc.env.entryPointAddress, BigInt(oc.env.chainId)],
   );
 
   return keccak256(userOpPack);

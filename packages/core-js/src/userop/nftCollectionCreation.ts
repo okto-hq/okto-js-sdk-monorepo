@@ -1,7 +1,6 @@
 import type OktoClient from '@/core/index.js';
-import { BaseError } from '@/errors/index.js';
 import { getChains } from '@/explorer/chain.js';
-import type { UserOp } from '@/types/core.js';
+import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
 import {
@@ -12,7 +11,11 @@ import {
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
 import type { NFTCollectionCreationIntentParams } from './types.js';
-import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
+import {
+  NFTCollectionCreationSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
+import { BaseError } from '@/errors/index.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -29,11 +32,17 @@ import { NFTCollectionCreationSchema } from './userOpInputValidator.js';
 async function nftCollectionCreation(
   oc: OktoClient,
   data: NFTCollectionCreationIntentParams,
+  feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  NFTCollectionCreationSchema.parse(data);
+  validateSchema(NFTCollectionCreationSchema, data);
+
+  if (!feePayerAddress) {
+    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+  }
+
   const nonce = generateUUID();
 
   const jobParametersAbiType =
@@ -64,6 +73,7 @@ async function nftCollectionCreation(
           toHex(nonceToBigInt(nonce), { size: 32 }),
           oc.clientSWA,
           oc.userSWA,
+          feePayerAddress,
           encodeAbiParameters(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [

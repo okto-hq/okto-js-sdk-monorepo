@@ -11,7 +11,11 @@ export const INTENT_ABI = [
         type: 'address',
       },
       {
-        name: '_jobCreatorId',
+        name: '_userSWA',
+        type: 'address',
+      },
+      {
+        name: '_feePayerAddress',
         type: 'address',
       },
       {

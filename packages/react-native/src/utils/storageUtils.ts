@@ -19,9 +19,9 @@ export const getStorage = (key: string) => {
   return null;
 };
 
-export const clearStorage = () => {
+export const clearStorage = (key: string) => {
   try {
-    storage.clearAll();
+    storage.delete(key);
   } catch (e) {
     console.error('Error clearing storage', e);
   }
