@@ -59,6 +59,25 @@ const isUppercaseAlpha = (message?: string) =>
     message: message ?? 'Must contain only uppercase letters',
   });
 
+// Email validation
+const isValidEmail = (message?: string) =>
+  z
+    .string()
+    .email(message ?? 'Invalid email format')
+    .transform((val) => val);
+
+// Phone number validation (10 digits)
+const isValidPhoneNumber = (
+  message = 'Invalid phone number format: must contain exactly 10 digits',
+) =>
+  z.string().refine(
+    (value) => {
+      const digitsOnly = value.replace(/\D/g, '');
+      return digitsOnly.length === 10;
+    },
+    { message },
+  );
+
 export {
   isHexString,
   isPrivateKey,
@@ -66,4 +85,6 @@ export {
   isPublicKey,
   isTokenId,
   isUppercaseAlpha,
+  isValidEmail,
+  isValidPhoneNumber,
 };
