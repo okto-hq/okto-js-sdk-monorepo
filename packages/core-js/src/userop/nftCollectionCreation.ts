@@ -60,6 +60,15 @@ export async function nftCreateCollection(
     });
   }
 
+  if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
+    throw new BaseError(
+      'NFT Collection creation is only supported on Aptos chain',
+      {
+        details: `Provided chain: ${currentChain.caipId}`,
+      },
+    );
+  }
+
   const nftDataEncoded = encodeAbiParameters(
     parseAbiParameters(
       '(string attributes, string symbol, string type, string description)',
@@ -112,7 +121,7 @@ export async function nftCreateCollection(
               data: nftDataEncoded,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_COLLECTION_CREATION,
+          Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
         ],
       }),
     ],
