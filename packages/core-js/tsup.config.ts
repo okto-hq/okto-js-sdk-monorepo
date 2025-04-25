@@ -9,6 +9,7 @@ export default defineConfig({
     'errors/index': 'src/errors/index.ts',
     'userop/index': 'src/userop/index.ts',
     'abstract/index': 'src/abstract/index.ts',
+    'authentication/index': 'src/authentication/index.ts',
   },
   format: ['cjs', 'esm'],
   dts: true,

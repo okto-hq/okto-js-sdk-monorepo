@@ -10,3 +10,8 @@ export function useOkto(): OktoClient {
 
   return client;
 }
+
+export function useAuthWebView() {
+  const client = useOkto();
+  return client['authWebView']; // Access the private `authWebView` instance
+}
