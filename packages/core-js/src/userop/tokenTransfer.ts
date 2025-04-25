@@ -44,9 +44,15 @@ export async function tokenTransfer(
     throw new BaseError('Recipient address cannot be same as the user address');
   }
 
+  console.log('KARAN :: feePayerAddress1 ', feePayerAddress);
+
   if (!feePayerAddress) {
+    console.log('KARAN :: feePayerAddress not provided ');
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+    console.log('KARAN :: feePayerAddress set to default', feePayerAddress);
   }
+
+  console.log('KARAN :: feePayerAddress2', feePayerAddress);
 
   const nonce = generateUUID();
 
