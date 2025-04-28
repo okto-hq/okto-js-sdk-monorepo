@@ -17,8 +17,8 @@ importers:
         specifier: ^2.27.11
         version: 2.29.2
       '@okto_web3/react-sdk':
-        specifier: ^0.4.1-dev.13
-        version: 0.4.1(react@19.1.0)(typescript@5.5.4)
+        specifier: ^0.5.1-dev.3
+        version: link:packages/react
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.6.1
@@ -1997,14 +1997,6 @@ packages:
 
   '@octokit/types@13.10.0':
     resolution: {integrity: sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA==}
-
-  '@okto_web3/core-js-sdk@0.5.1-dev.10':
-    resolution: {integrity: sha512-D8xTXv82yOALBgp40B1Xm9nemrdLIPsUE4h77z4mVOn44jwFe5WhYwwEqx6OwAgnWQgGOJyV+G1kUrwyR2pijg==}
-
-  '@okto_web3/react-sdk@0.4.1':
-    resolution: {integrity: sha512-3t8v2sGPCHc54l3HIC+b28BnRQpRiPD0Ug8butOCr+lZtBLer62UzjDTgKCoP4UffRhezoH3UaNWwIAqW+Dr8w==}
-    peerDependencies:
-      react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -9717,33 +9709,6 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 24.2.0
 
-  '@okto_web3/core-js-sdk@0.5.1-dev.10(typescript@5.5.4)':
-    dependencies:
-      '@noble/curves': 1.9.0
-      '@noble/hashes': 1.8.0
-      axios: 1.9.0
-      axios-retry: 4.5.0(axios@1.9.0)
-      json-canonicalize: 1.0.6
-      uuid: 11.1.0
-      viem: 2.28.0(typescript@5.5.4)(zod@3.24.3)
-      zod: 3.24.3
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - typescript
-      - utf-8-validate
-
-  '@okto_web3/react-sdk@0.4.1(react@19.1.0)(typescript@5.5.4)':
-    dependencies:
-      '@noble/ciphers': 1.3.0
-      '@okto_web3/core-js-sdk': 0.5.1-dev.10(typescript@5.5.4)
-      react: 19.1.0
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - typescript
-      - utf-8-validate
-
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -10376,11 +10341,6 @@ snapshots:
       through: 2.3.8
 
   abbrev@2.0.0: {}
-
-  abitype@1.0.8(typescript@5.5.4)(zod@3.24.3):
-    optionalDependencies:
-      typescript: 5.5.4
-      zod: 3.24.3
 
   abitype@1.0.8(typescript@5.8.3)(zod@3.24.3):
     optionalDependencies:
@@ -14280,20 +14240,6 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  ox@0.6.9(typescript@5.5.4)(zod@3.24.3):
-    dependencies:
-      '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.9.0
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.5.4)(zod@3.24.3)
-      eventemitter3: 5.0.1
-    optionalDependencies:
-      typescript: 5.5.4
-    transitivePeerDependencies:
-      - zod
-
   ox@0.6.9(typescript@5.8.3)(zod@3.24.3):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
@@ -15968,23 +15914,6 @@ snapshots:
   validate-npm-package-name@5.0.1: {}
 
   vary@1.1.2: {}
-
-  viem@2.28.0(typescript@5.5.4)(zod@3.24.3):
-    dependencies:
-      '@noble/curves': 1.8.2
-      '@noble/hashes': 1.7.2
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.5.4)(zod@3.24.3)
-      isows: 1.0.6(ws@8.18.1)
-      ox: 0.6.9(typescript@5.5.4)(zod@3.24.3)
-      ws: 8.18.1
-    optionalDependencies:
-      typescript: 5.5.4
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
 
   viem@2.28.0(typescript@5.8.3)(zod@3.24.3):
     dependencies:

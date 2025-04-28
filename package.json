@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@changesets/cli": "^2.27.11",
-    "@okto_web3/react-sdk": "^0.4.1-dev.13"
+    "@okto_web3/react-sdk": "^0.5.1-dev.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.1",

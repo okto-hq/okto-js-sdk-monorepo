@@ -35,6 +35,7 @@ export class AuthRequestHandler {
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
+          actualData,
           `error occurred while logging in with google: ${response}`,
         );
         return;
@@ -47,7 +48,6 @@ export class AuthRequestHandler {
             message: 'Google login successful',
             token: response,
           },
-          null,
         );
         return;
       }
@@ -61,6 +61,7 @@ export class AuthRequestHandler {
             : actualData.data.whatsapp_number,
           actualData.data.provider,
           baseResponse,
+          actualData
         );
         break;
 
@@ -74,6 +75,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.token,
           baseResponse,
+          actualData
         );
         console.log('OTP verification response Srijan:', response);
         return response;
@@ -86,6 +88,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.token,
           baseResponse,
+          actualData
         );
         break;
       case 'paste_otp':
@@ -93,6 +96,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.otp,
           baseResponse,
+          actualData,
         );
         break;
       case 'close_webview':
@@ -108,6 +112,7 @@ export class AuthRequestHandler {
     contact: string,
     provider: 'email' | 'whatsapp',
     baseResponse: { id: string; method: string },
+    data: any
   ) {
     try {
       if (!this.oktoClient) {
@@ -127,13 +132,13 @@ export class AuthRequestHandler {
           baseResponse.id,
           baseResponse.method,
           payload,
-          null,
         );
       } else {
         console.warn('Token not found in response:', response);
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
+          data,
           'Failed to send OTP: Token missing in response',
         );
       }
@@ -142,6 +147,7 @@ export class AuthRequestHandler {
       this.webViewManager.sendErrorResponse(
         baseResponse.id,
         baseResponse.method,
+        data,
         error as string,
       );
     }
@@ -153,6 +159,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     token: string,
     baseResponse: { id: string; method: string },
+    data: any
   ) {
     try {
       if (!this.oktoClient) {
@@ -186,7 +193,6 @@ export class AuthRequestHandler {
           baseResponse.id,
           baseResponse.method,
           payload,
-          null,
         );
 
         setTimeout(() => {
@@ -204,6 +210,7 @@ export class AuthRequestHandler {
       this.webViewManager.sendErrorResponse(
         baseResponse.id,
         baseResponse.method,
+        data,
         error instanceof Error ? error.message : 'Unknown error',
       );
     }
@@ -214,6 +221,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     token: string,
     baseResponse: { id: string; method: string },
+    data: any
   ) {
     try {
       if (!this.oktoClient) {
@@ -240,13 +248,13 @@ export class AuthRequestHandler {
           baseResponse.id,
           baseResponse.method,
           payload,
-          null,
         );
       } else {
         console.warn('Token not found in response:', response);
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
+          data,
           'Failed to resend OTP: Token missing in response',
         );
       }
@@ -256,6 +264,7 @@ export class AuthRequestHandler {
       this.webViewManager.sendErrorResponse(
         baseResponse.id,
         baseResponse.method,
+        data,
         error instanceof Error ? error.message : 'Unknown error',
       );
     }
@@ -265,6 +274,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     otp: string,
     baseResponse: { id: string; method: string },
+    data: any
   ) {
     try {
       const clipboardText = await navigator.clipboard.readText();
@@ -282,7 +292,6 @@ export class AuthRequestHandler {
         baseResponse.id,
         baseResponse.method,
         payload,
-        null,
       );
     } catch (error) {
       console.error('Error while fetching OTP from clipboard:', error);
@@ -290,6 +299,7 @@ export class AuthRequestHandler {
       this.webViewManager.sendErrorResponse(
         baseResponse.id,
         baseResponse.method,
+        data,
         error instanceof Error ? error.message : 'Unknown error',
       );
     }

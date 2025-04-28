@@ -320,13 +320,11 @@ export class WebViewManager {
     id: string,
     method: string,
     data: any,
-    error: string | null = null,
   ): void {
     const payload = {
       id,
       method,
       data,
-      error,
     };
 
     const message = JSON.stringify(payload);
@@ -335,7 +333,6 @@ export class WebViewManager {
       console.groupCollapsed(`[WebViewManager] Sending response: ${method}`);
       console.log('Request ID:', id);
       console.log('Data:', data);
-      console.log('Error:', error);
       console.groupEnd();
     }
     this.webFrame?.contentWindow?.postMessage(message, this.targetOrigin);
@@ -351,9 +348,9 @@ export class WebViewManager {
    * @example
    * webViewManager.sendErrorResponse('requestId', 'exampleMethod', 'An error occurred');
    */
-  public sendErrorResponse(id: string, method: string, error: string): void {
+  public sendErrorResponse(id: string, method: string, data: any, error: string): void {
     const payload = {
-      data: JSON.stringify({ id, method }),
+      data: JSON.stringify({ data }),
       error: error,
     };
 
@@ -362,6 +359,7 @@ export class WebViewManager {
     if (this.debug) {
       console.groupCollapsed(`[WebViewManager] Sending response: ${method}`);
       console.log('Request ID:', id);
+      console.log('Data:', data);
       console.log('Error:', error);
       console.groupEnd();
     }
