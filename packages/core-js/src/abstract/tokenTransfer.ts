@@ -18,7 +18,7 @@ import type { Address } from '@/types/core.js';
 export async function tokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
-  feePayerAddress?: Address
+  feePayerAddress?: Address,
 ): Promise<string> {
   const userop = await useropgen(oc, data, feePayerAddress);
   const signedUserOp = await oc.signUserOp(userop);

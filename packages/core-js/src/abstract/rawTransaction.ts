@@ -9,7 +9,7 @@ import type { Address } from '@/types/core.js';
 export async function evmRawTransaction(
   oc: OktoClient,
   data: RawTransactionIntentParams,
-  feePayerAddress?: Address
+  feePayerAddress?: Address,
 ): Promise<string> {
   const userop = await useropgen(oc, data, feePayerAddress);
   const signedUserOp = await oc.signUserOp(userop);
