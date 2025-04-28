@@ -17,6 +17,17 @@ import {
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
 
+interface NavigationProps {
+  navigate: (
+    screen: string,
+    params: {
+      url: string;
+      clientConfig: OktoClientConfig;
+      onWebViewClose: () => void;
+    },
+  ) => void;
+}
+
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
   private authPromiseResolverRef: { current: AuthPromiseResolver } = {
@@ -36,7 +47,7 @@ class OktoClient extends OktoCoreClient {
         const parsedSession = JSON.parse(session);
         this.setSessionConfig(parsedSession);
         this.syncUserKeys();
-      } catch (error) {
+      } catch {
         clearStorage('okto_session');
       }
     }
@@ -87,7 +98,7 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(url: string, navigation: any): void {
+  public openWebView(url: string, navigation: NavigationProps): void {
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,

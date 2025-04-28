@@ -11,6 +11,23 @@ import type {
 import { signMessage as viemSignMessage } from 'viem/accounts';
 import type { Hash } from '@/types/core.js';
 
+// Define base interface for email data
+interface EmailOtpBaseData {
+  email: string;
+  client_swa: string;
+  timestamp: number;
+}
+
+// Interface for email data with token
+interface EmailOtpTokenData extends EmailOtpBaseData {
+  token: string;
+}
+
+// Interface for email data with token and OTP
+interface EmailOtpVerifyData extends EmailOtpTokenData {
+  otp: string;
+}
+
 class EmailAuthentication {
   private readonly clientPrivateKey: Hash;
 
@@ -35,9 +52,12 @@ class EmailAuthentication {
   ): Promise<
     EmailSendOtpRequest | EmailResendOtpRequest | EmailVerifyOtpRequest
   > {
-    const data: any = {};
-
-    data.email = email;
+    // Create data object based on parameters
+    let data: EmailOtpBaseData | EmailOtpTokenData | EmailOtpVerifyData = {
+      email,
+      client_swa: oc.clientSWA || '', // Ensure client_swa is always a string
+      timestamp: Date.now(),
+    };
 
     /**
      * Token and OTP handling logic:
@@ -45,16 +65,13 @@ class EmailAuthentication {
      * - For resendOTP: Requires only token
      * - For sendOTP: Neither token nor OTP required
      */
-
     if (token) {
-      data.token = token;
+      data = { ...data, token };
     }
 
-    if (otp) {
-      data.otp = otp;
+    if (otp && token) {
+      data = { ...data, token, otp };
     }
-    data.client_swa = oc.clientSWA;
-    data.timestamp = Date.now();
 
     const message = JSON.stringify(data);
     const clientSignature = await viemSignMessage({
@@ -62,12 +79,29 @@ class EmailAuthentication {
       privateKey: this.clientPrivateKey,
     });
 
-    // Return the payload with the signed message
-    return {
-      data,
-      client_signature: clientSignature,
-      type: 'ethsign',
-    } as any;
+    // Create the appropriate request object based on parameters
+    if (otp && token) {
+      // It's a verify request
+      return {
+        data,
+        client_signature: clientSignature,
+        type: 'ethsign',
+      } as unknown as EmailVerifyOtpRequest;
+    } else if (token) {
+      // It's a resend request
+      return {
+        data,
+        client_signature: clientSignature,
+        type: 'ethsign',
+      } as unknown as EmailResendOtpRequest;
+    } else {
+      // It's a send request
+      return {
+        data,
+        client_signature: clientSignature,
+        type: 'ethsign',
+      } as unknown as EmailSendOtpRequest;
+    }
   }
 
   /**

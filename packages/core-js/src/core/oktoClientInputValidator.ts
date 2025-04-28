@@ -103,7 +103,7 @@ export const validateContact = (
       return validatePhoneNumber(contact);
     }
     return null;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

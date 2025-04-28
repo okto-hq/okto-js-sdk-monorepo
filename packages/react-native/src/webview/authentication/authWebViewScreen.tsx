@@ -1,5 +1,5 @@
 // WebViewScreen.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { WebView } from 'react-native-webview';
 import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,14 +8,12 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
-import { clearStorage, getStorage } from '../../utils/storageUtils.js';
-import { OktoClient as OktoRnClient } from '../../core/index.js';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
  */
 type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'> & {
-  onWebViewClose?: () => void; // Add this line
+  onWebViewClose?: () => void;
 };
 
 /**
@@ -29,9 +27,8 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
   // Extract parameters passed through navigation
   const { url, title, clientConfig } = route.params;
 
-  // Create refs and state
+  // Create refs
   const webViewRef = useRef<WebView>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize the communication bridge with the WebView
   const bridge = useRef(new WebViewBridge(webViewRef)).current;
@@ -101,9 +98,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         ref={webViewRef}
         source={{ uri: url }}
         onMessage={bridge.handleWebViewMessage}
-        onLoadStart={() => setIsLoading(true)}
         onLoadEnd={() => {
-          setIsLoading(false);
           // Re-initialize bridge connections after page load completes
           bridge.reinitializeBridge();
         }}
