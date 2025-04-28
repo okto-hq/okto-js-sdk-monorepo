@@ -350,6 +350,8 @@ export class WebViewManager {
    */
   public sendErrorResponse(id: string, method: string, data: any, error: string): void {
     const payload = {
+      id,
+      method,
       data: JSON.stringify({ data }),
       error: error,
     };

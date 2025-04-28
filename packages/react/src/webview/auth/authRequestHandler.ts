@@ -31,11 +31,11 @@ export class AuthRequestHandler {
       console.log('Google login initiated');
       const response = await this.oktoClient?.loginUsingSocial('google');
       console.log('Google login response:', response);
-      if (!response) {
+      if (response) {
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
-          actualData,
+          actualData.data,
           `error occurred while logging in with google: ${response}`,
         );
         return;
@@ -61,7 +61,7 @@ export class AuthRequestHandler {
             : actualData.data.whatsapp_number,
           actualData.data.provider,
           baseResponse,
-          actualData
+          actualData.data
         );
         break;
 
@@ -75,7 +75,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.token,
           baseResponse,
-          actualData
+          actualData.data
         );
         console.log('OTP verification response Srijan:', response);
         return response;
@@ -88,7 +88,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.token,
           baseResponse,
-          actualData
+          actualData.data
         );
         break;
       case 'paste_otp':
@@ -96,7 +96,7 @@ export class AuthRequestHandler {
           actualData.data.provider,
           actualData.data.otp,
           baseResponse,
-          actualData,
+          actualData.data,
         );
         break;
       case 'close_webview':

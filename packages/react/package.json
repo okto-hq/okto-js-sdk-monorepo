@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-sdk",
-  "version": "0.5.1-dev.3",
+  "version": "0.5.1-dev.4",
   "description": "ReactJS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
