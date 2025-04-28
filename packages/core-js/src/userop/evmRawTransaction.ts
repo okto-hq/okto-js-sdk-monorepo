@@ -102,7 +102,7 @@ export async function evmRawTransaction(
                 sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
-          ), // policyinfo  //TODO: get this data from user
+          ), // info  //TODO: get this data from userpolicy
           encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
             {
               isRequired: false,

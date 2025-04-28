@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData } from '@/types/index.js';
+import type { AuthData, SocialAuthType } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -32,7 +32,6 @@ import type {
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
 import SocialAuthUrlGenerator from '@/authentication/social.js';
-import type { SocialAuthType } from '@/types/auth/social.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -332,13 +331,16 @@ class OktoClient {
     state: Record<string, string>,
     overrideOpenWindow: (url: string) => Promise<string>,
   ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+
     try {
       // Generate the authentication URL
       const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);
-      console.log('ID Token:', idToken);
       if (!idToken) {
         throw new Error('No ID token received from authentication');
       }

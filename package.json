@@ -40,5 +40,10 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "resolutions": {
+    "@types/react": "18.2.0",
+    "@types/react-native": "0.73.0",
+    "@types/react-native-get-random-values": "1.8.2"
   }
 }
