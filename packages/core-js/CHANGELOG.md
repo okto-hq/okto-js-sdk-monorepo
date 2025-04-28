@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.6.1
+
+### Patch Changes
+
+- e89feb3: updated constant values on sandbox
+
 ## 0.6.0
 
 ### Minor Changes
