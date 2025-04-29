@@ -18,16 +18,25 @@ export class AuthRequestHandler {
     this.webViewManager = webViewManager;
   }
 
-  public handleRequest: WebViewRequestHandler = async (actualData: any) => {
+  public handleRequest: WebViewRequestHandler = async (actualData: {
+    data?: { [key: string]: unknown } | undefined;
+  }) => {
     console.log('Received request:', actualData);
     // if (!actualData?.data?.type) return;
 
+    if (typeof actualData !== 'object' || actualData === null) {
+      throw new Error('Invalid request data');
+    }
+
     const baseResponse = {
-      id: actualData.id || 'uuid-for-webview',
-      method: actualData.method || 'okto_sdk_login',
+      id: (actualData as { id?: string }).id || 'uuid-for-webview',
+      method: (actualData as { method?: string }).method || 'okto_sdk_login',
     };
 
-    if (actualData.data.provider === 'google') {
+    if (
+      (actualData as { data?: { provider?: string } }).data?.provider ===
+      'google'
+    ) {
       console.log('Google login initiated');
       const response = await this.oktoClient?.loginUsingSocial('google');
       console.log('Google login response:', response);
@@ -35,66 +44,63 @@ export class AuthRequestHandler {
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
-          actualData.data,
+          (actualData as { data?: { [key: string]: unknown } }).data,
           `error occurred while logging in with google: ${response}`,
         );
         return;
       } else {
-        this.webViewManager.sendResponse(
-          baseResponse.id,
-          baseResponse.method,
-          {
-            success: true,
-            message: 'Google login successful',
-            token: response,
-          },
-        );
+        this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
+          success: true,
+          message: 'Google login successful',
+          token: response,
+        });
         return;
       }
     }
 
-    switch (actualData.data.type) {
+    switch (actualData.data?.type) {
       case 'request_otp':
         this.handleSendOtp(
           actualData.data.provider == 'email'
-            ? actualData.data.email
-            : actualData.data.whatsapp_number,
-          actualData.data.provider,
+            ? (actualData.data.email as string)
+            : (actualData.data.whatsapp_number as string),
+          actualData.data.provider as 'email' | 'whatsapp',
           baseResponse,
-          actualData.data
+          actualData.data,
         );
         break;
 
-      case 'verify_otp':
+      case 'verify_otp': {
         console.log('Verifying OTP:', actualData.data.otp);
         const response = await this.handleVerifyOtp(
           actualData.data.provider == 'email'
-            ? actualData.data.email
-            : actualData.data.whatsapp_number,
-          actualData.data.otp,
-          actualData.data.provider,
-          actualData.data.token,
+            ? (actualData.data.email as string)
+            : (actualData.data.whatsapp_number as string),
+          actualData.data.otp as string,
+          actualData.data.provider as 'email' | 'whatsapp',
+          actualData.data.token as string,
           baseResponse,
-          actualData.data
+          actualData.data,
         );
         console.log('OTP verification response Srijan:', response);
         return response;
+      }
 
       case 'resend_otp':
         this.handleResendOtp(
           actualData.data.provider == 'email'
-            ? actualData.data.email
-            : actualData.data.whatsapp_number,
-          actualData.data.provider,
-          actualData.data.token,
+            ? (actualData.data.email as string)
+            : (actualData.data.whatsapp_number as string),
+          actualData.data.provider as 'email' | 'whatsapp',
+          actualData.data.token as string,
           baseResponse,
-          actualData.data
+          actualData.data,
         );
         break;
       case 'paste_otp':
         this.handlePasteOtp(
-          actualData.data.provider,
-          actualData.data.otp,
+          actualData.data.provider as 'email' | 'whatsapp',
+          actualData.data.otp as string,
           baseResponse,
           actualData.data,
         );
@@ -104,7 +110,10 @@ export class AuthRequestHandler {
         break;
 
       default:
-        console.warn('Unhandled request type:', actualData.data.type);
+        console.warn(
+          'Unhandled request type:',
+          actualData.data?.type ?? 'undefined',
+        );
     }
   };
 
@@ -112,14 +121,14 @@ export class AuthRequestHandler {
     contact: string,
     provider: 'email' | 'whatsapp',
     baseResponse: { id: string; method: string },
-    data: any
+    data: unknown,
   ) {
     try {
       if (!this.oktoClient) {
         throw new Error('OktoClient is not initialized');
       }
       const response = await this.oktoClient.sendOTP(contact, provider);
-      var payload =
+      const payload =
         provider == 'email'
           ? { provider: provider, email: contact, token: response?.token }
           : {
@@ -159,7 +168,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     token: string,
     baseResponse: { id: string; method: string },
-    data: any
+    data: unknown,
   ) {
     try {
       if (!this.oktoClient) {
@@ -221,7 +230,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     token: string,
     baseResponse: { id: string; method: string },
-    data: any
+    data: unknown,
   ) {
     try {
       if (!this.oktoClient) {
@@ -274,7 +283,7 @@ export class AuthRequestHandler {
     provider: 'email' | 'whatsapp',
     otp: string,
     baseResponse: { id: string; method: string },
-    data: any
+    data: unknown,
   ) {
     try {
       const clipboardText = await navigator.clipboard.readText();

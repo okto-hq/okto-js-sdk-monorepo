@@ -1,4 +1,5 @@
 import type { SocialAuthType } from '@/types/auth/social.js';
+import { Constants } from '@/utils/constants.js';
 
 class SocialAuthUrlGenerator {
   private providers: Record<SocialAuthType, string> = {
@@ -43,8 +44,7 @@ class SocialAuthUrlGenerator {
       scope: 'openid email profile',
       redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
       response_type: 'id_token',
-      client_id:
-        '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com',
+      client_id: Constants.GOOGLE_CLIENT_ID,
       nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
       state: {
         ...state,

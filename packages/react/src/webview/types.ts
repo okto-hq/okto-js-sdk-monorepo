@@ -14,7 +14,7 @@ export interface WebViewOptions {
   url?: string;
   width?: number;
   height?: number;
-  onSuccess?: (user: any) => void;
+  onSuccess?: (user: unknown) => void;
   onError?: (error: Error) => void;
   onClose?: () => void;
   modalStyle?: Partial<CSSStyleDeclaration>;
@@ -32,7 +32,7 @@ export interface WebViewMessage {
   id: string;
   method: string;
   channel: 'requestChannel' | 'responseChannel' | 'infoChannel';
-  data?: any;
+  data?: unknown;
   status?: 'success' | 'error';
   message?: string;
 }
@@ -48,7 +48,7 @@ export interface WebViewMessage {
 export interface WebViewRequest {
   eventName?: string;
   eventData?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 /**
  * @WebViewRequestHandler

@@ -33,12 +33,15 @@ import type { WebViewOptions } from './types.js';
  */
 export class WebViewManager {
   private webPopup: Window | null = null;
-  private messageHandlers: Map<string, (data: any) => void> = new Map();
+  private messageHandlers: Map<string, (data: unknown) => void> = new Map();
   private allowedOrigins?: string[];
   private popupCheckInterval?: number;
   private readonly requestTimeout = DEFAULT_REQUEST_TIMEOUT;
   private debug: boolean;
-  private requestHandlers = new Map<string, (data: any) => Promise<any>>();
+  private requestHandlers = new Map<
+    string,
+    (data: unknown) => Promise<unknown>
+  >();
 
   private webModal: HTMLDivElement | null = null;
   private webFrame: HTMLIFrameElement | null = null;
@@ -80,7 +83,7 @@ export class WebViewManager {
       iframeStyle = {},
     } = options;
 
-    this.debug &&
+    if (this.debug) {
       console.log('[WebViewManager] Opening web view with options:', {
         url,
         width,
@@ -88,17 +91,22 @@ export class WebViewManager {
         modalStyle,
         iframeStyle,
       });
+    }
 
     try {
       const urlObj = new URL(url);
       this.currentTargetOrigin = urlObj.origin;
 
       if (!this.allowedOrigins?.includes(this.currentTargetOrigin)) {
-        this.debug && console.error('[WebViewManager] Origin not allowed');
+        if (this.debug) {
+          console.error('[WebViewManager] Origin not allowed');
+        }
         return false;
       }
     } catch (error) {
-      this.debug && console.error('[WebViewManager] Invalid URL:', error);
+      if (this.debug) {
+        console.error('[WebViewManager] Invalid URL:', error);
+      }
       return false;
     }
 
@@ -160,8 +168,9 @@ export class WebViewManager {
       return origin;
     } catch {
       console.warn('Invalid origin specified, using current origin');
-      this.debug &&
+      if (this.debug) {
         console.warn('[WebViewManager] Invalid origin, using current origin');
+      }
       return window.location.origin;
     }
   }
@@ -192,7 +201,10 @@ export class WebViewManager {
    *   return { success: true };
    * });
    */
-  public onRequest(method: string, handler: (data: any) => Promise<any>): void {
+  public onRequest(
+    method: string,
+    handler: (data: unknown) => Promise<unknown>,
+  ): void {
     this.requestHandlers.set(method, handler);
   }
 
@@ -216,13 +228,14 @@ export class WebViewManager {
    * @throws Error if the request times out.
    * @throws Error if the request fails.
    */
-  public sendRequest(method: string, data: any): Promise<any> {
+  public sendRequest(method: string, data: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       if (!this.isWebViewOpen()) {
-        this.debug &&
+        if (this.debug) {
           console.warn(
             '[WebViewManager] WebView not available for sending request',
           );
+        }
         reject(new Error('WebView not available'));
         return;
       }
@@ -238,21 +251,38 @@ export class WebViewManager {
 
       const timeoutId = setTimeout(() => {
         this.messageHandlers.delete(requestId);
-        this.debug &&
+        if (this.debug) {
           console.warn(`[WebViewManager] Request timeout: ${method}`);
+        }
         reject(new Error('Request timeout'));
       }, this.requestTimeout);
 
       this.messageHandlers.set(requestId, (responseData) => {
         clearTimeout(timeoutId);
-        this.debug &&
+        if (this.debug) {
           console.log(
             `[WebViewManager] Received response for ${method}:`,
             responseData,
           );
-        responseData.status === 'error'
-          ? reject(new Error(responseData.message || 'Request failed'))
-          : resolve(responseData);
+        }
+        if (
+          typeof responseData === 'object' &&
+          responseData !== null &&
+          'status' in responseData
+        ) {
+          if (responseData.status === 'error') {
+            reject(
+              new Error(
+                (responseData as { message?: string }).message ||
+                  'Request failed',
+              ),
+            );
+          } else {
+            resolve(responseData);
+          }
+        } else {
+          reject(new Error('Invalid response data'));
+        }
       });
 
       this.webFrame?.contentWindow?.postMessage(
@@ -276,7 +306,7 @@ export class WebViewManager {
    * @example
    * webViewManager.sendInfo('exampleMethod', { key: 'value' });
    */
-  public sendInfo(method: string, data: any): void {
+  public sendInfo(method: string, data: unknown): void {
     if (!this.isWebViewOpen()) {
       console.warn('Cannot send info - WebView closed');
       return;
@@ -316,11 +346,7 @@ export class WebViewManager {
    * @throws Error if the error message is not valid.
    * @throws Error if the web view is not available.
    */
-  public sendResponse(
-    id: string,
-    method: string,
-    data: any,
-  ): void {
+  public sendResponse(id: string, method: string, data: unknown): void {
     const payload = {
       id,
       method,
@@ -348,7 +374,12 @@ export class WebViewManager {
    * @example
    * webViewManager.sendErrorResponse('requestId', 'exampleMethod', 'An error occurred');
    */
-  public sendErrorResponse(id: string, method: string, data: any, error: string): void {
+  public sendErrorResponse(
+    id: string,
+    method: string,
+    data: unknown,
+    error: string,
+  ): void {
     const payload = {
       id,
       method,
