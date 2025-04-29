@@ -49,6 +49,8 @@ export function createExpoBrowserHandler(
       }, 300000); // 5 minute timeout
 
       // Open auth URL in the Expo WebBrowser
+      console.log(
+        '[OktoClient] Redirect URL for social login:',redirectUrl);
       WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
         showInRecents: true,
         createTask: false,
