@@ -109,7 +109,7 @@ export class AuthWebViewRequestHandler {
   private handleGoogleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
     if (provider === 'google') {
-      const redirectUrl = 'oktosdk://auth';
+      const redirectUrl =  `oktosdk_${this.oktoClient.clientSWA}://auth`;
       await this.oktoClient.loginUsingSocial(
         provider,
         {
