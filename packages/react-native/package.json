@@ -40,8 +40,22 @@
     "@okto_web3/prettier-config": "workspace:*",
     "@okto_web3/typescript-config": "workspace:*",
     "@types/react": "^18.2.0",
+    "@types/react-native": "^0.73.0",
+    "@types/react-native-get-random-values": "^1.8.2",
+    "@types/react-navigation": "^3.4.0",
+    "@types/uuid": "^10.0.0",
     "react": "^18.2.0",
     "react-native": "^0.79.0",
+    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/native-stack": "^7.3.10",
+    "@react-navigation/stack": "^7.2.10",
+    "expo-clipboard": "^7.0.1",
+    "expo-web-browser": "^14.0.2",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-mmkv": "^3.2.0",
+    "react-native-safe-area-context": "^5.3.0",
+    "react-native-webview": "^13.6.4",
+    "uuid": "^11.0.4",
     "react-native-builder-bob": "^0.35.3",
     "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.10",
@@ -59,7 +73,8 @@
     "@react-navigation/native-stack": ">=6.0.0",
     "@react-navigation/stack": ">=6.0.0",
     "expo-clipboard": ">=4.0.0",
-    "expo-web-browser": ">=12.0.0"
+    "expo-web-browser": ">=12.0.0",
+    "uuid": ">=11.0.0"
   },
   "peerDependenciesMeta": {
     "expo-clipboard": {
