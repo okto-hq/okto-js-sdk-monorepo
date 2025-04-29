@@ -1,2 +1,2 @@
 export { useOkto } from './useOkto.js';
-export { useWebViewAuth } from './useWebViewAuth.js';
+export { useOktoWebView } from './useWebViewAuth.js';

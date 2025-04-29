@@ -40,12 +40,13 @@ class SocialAuthUrlGenerator {
     }
   }
   private buildGoogleAuthUrl(state: Record<string, string>): string {
+    const nonce = crypto.randomUUID();
     return this.buildAuthUrl('google', {
       scope: 'openid email profile',
       redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
       response_type: 'id_token',
       client_id: Constants.GOOGLE_CLIENT_ID,
-      nonce: 'b703d535-bc46-4911-8aa3-25fb6c19e2ce',
+      nonce, // 'b703d535-bc46-4911-8aa3-25fb6c19e2ce'
       state: {
         ...state,
       },

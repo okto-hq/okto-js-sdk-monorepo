@@ -34,7 +34,7 @@ export class OktoAuthWebView {
     this.authRequestHandler = authRequestHandler;
   }
 
-  public open(options: WebViewOptions = {}): Promise<unknown> {
+  public open(options: WebViewOptions = {}) {
     return new Promise((resolve, reject) => {
       const {
         url = `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,

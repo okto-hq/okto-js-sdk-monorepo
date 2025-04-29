@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useAuthWebView } from './useOkto.js';
+import { useOkto } from './useOkto.js';
 import type { WebViewOptions } from 'src/webview/types.js';
 
-export function useWebViewAuth() {
-  const authWebView = useAuthWebView();
+export function useOktoWebView() {
+  const client = useOkto();
+  const authWebView = client['authWebView'];
   const [isModalOpen, setModalOpen] = useState(false);
 
   const authenticate = useCallback(
