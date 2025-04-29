@@ -11,24 +11,6 @@ import type {
 import { signMessage as viemSignMessage } from 'viem/accounts';
 import type { Hash } from '@/types/core.js';
 
-// Define base interface for WhatsApp data
-interface WhatsAppOtpBaseData {
-  whatsapp_number: string;
-  country_short_name: string;
-  client_swa: string;
-  timestamp: number;
-}
-
-// Interface for WhatsApp data with token
-interface WhatsAppOtpTokenData extends WhatsAppOtpBaseData {
-  token: string;
-}
-
-// Interface for WhatsApp data with token and OTP
-interface WhatsAppOtpVerifyData extends WhatsAppOtpTokenData {
-  otp: string;
-}
-
 class WhatsAppAuthentication {
   private readonly clientPrivateKey: Hash;
 
@@ -55,16 +37,9 @@ class WhatsAppAuthentication {
   ): Promise<
     WhatsAppSendOtpRequest | WhatsAppResendOtpRequest | WhatsAppVerifyOtpRequest
   > {
-    // Create data object based on parameters
-    let data:
-      | WhatsAppOtpBaseData
-      | WhatsAppOtpTokenData
-      | WhatsAppOtpVerifyData = {
-      whatsapp_number: whatsappNumber,
-      country_short_name: countryShortName,
-      client_swa: oc.clientSWA || '', // Ensure client_swa is always a string
-      timestamp: Date.now(),
-    };
+    const data: any = {};
+    data.whatsapp_number = whatsappNumber;
+    data.country_short_name = countryShortName;
 
     /**
      * Token and OTP handling logic:
@@ -72,13 +47,15 @@ class WhatsAppAuthentication {
      * - For resendOTP: Requires only token
      * - For sendOTP: Neither token nor OTP required
      */
-    if (token) {
-      data = { ...data, token };
-    }
 
-    if (otp && token) {
-      data = { ...data, token, otp };
+    if (token) {
+      data.token = token;
     }
+    if (otp) {
+      data.otp = otp;
+    }
+    data.client_swa = oc.clientSWA;
+    data.timestamp = Date.now();
 
     const message = JSON.stringify(data);
     const clientSignature = await viemSignMessage({
@@ -86,29 +63,11 @@ class WhatsAppAuthentication {
       privateKey: this.clientPrivateKey,
     });
 
-    // Create the appropriate request object based on parameters
-    if (otp && token) {
-      // It's a verify request
-      return {
-        data,
-        client_signature: clientSignature,
-        type: 'ethsign',
-      } as unknown as WhatsAppVerifyOtpRequest;
-    } else if (token) {
-      // It's a resend request
-      return {
-        data,
-        client_signature: clientSignature,
-        type: 'ethsign',
-      } as unknown as WhatsAppResendOtpRequest;
-    } else {
-      // It's a send request
-      return {
-        data,
-        client_signature: clientSignature,
-        type: 'ethsign',
-      } as unknown as WhatsAppSendOtpRequest;
-    }
+    return {
+      data,
+      client_signature: clientSignature,
+      type: 'ethsign',
+    } as any;
   }
 
   /**
