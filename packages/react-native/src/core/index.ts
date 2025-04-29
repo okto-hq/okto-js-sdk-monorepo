@@ -67,7 +67,7 @@ class OktoClient extends OktoCoreClient {
   override async loginUsingSocial(
     provider: SocialAuthType,
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = `oktosdk-${this.clientSWA}://auth`;
+    const redirectUrl = `oktosdk_0x00://auth`;
     console.log(
       '[OktoClient] Redirect URL for social login:',redirectUrl);
     const state = {
