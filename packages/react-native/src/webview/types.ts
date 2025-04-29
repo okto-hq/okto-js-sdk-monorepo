@@ -23,7 +23,7 @@ export interface LoginRequestData {
   type?: LoginRequestType;
   otp?: string;
   token?: string;
-  [key: string]: any;
+  [key: string]: string | AuthProvider | LoginRequestType | undefined;
 }
 
 export interface WebViewResponse {
@@ -38,7 +38,7 @@ export interface WebViewResponse {
     token?: string;
     message?: string;
     type?: LoginRequestType;
-    [key: string]: any;
+    [key: string]: string | AuthProvider | LoginRequestType | undefined;
   };
   error?: string;
 }
@@ -48,8 +48,8 @@ export type WebViewParamList = {
     url: string;
     title?: string;
     provider?: AuthProvider;
-    initialData?: Record<string, any>;
-    onAuthComplete?: (data: Record<string, any>) => void;
+    initialData?: Record<string, string | number | boolean>;
+    onAuthComplete?: (data: Record<string, string | number | boolean>) => void;
     clientConfig: {
       environment: string;
       clientPrivateKey: string;
@@ -68,7 +68,7 @@ export interface AuthResult {
     name?: string;
     email?: string;
     phone?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
   };
 }
 
