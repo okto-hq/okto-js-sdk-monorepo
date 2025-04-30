@@ -5,15 +5,15 @@ export interface TokenSwapIntentParams {
   fromChainCaip2Id: string;
   fromChainTokenAmount: string;
   toChainCaip2Id: string;
-  minToTokenAmount: string;
+  minToTokenAmount: string | null;
   fromChainTokenAddress?: string;
   toChainTokenAddress?: string;
-  slippage?: string;
-  sameChainFee?: string;
-  sameChainFeeCollector?: string;
-  crossChainFee?: string;
-  crossChainFeeCollector?: string;
-  advancedSettings?: Uint8Array | string;
+  slippage?: string | null;
+  sameChainFee?: string | null;
+  sameChainFeeCollector?: string | null;
+  crossChainFee?: string | null;
+  crossChainFeeCollector?: string | null;
+  advancedSettings?: Uint8Array | string | null;
 }
 
 // Type definition for swap estimate response
