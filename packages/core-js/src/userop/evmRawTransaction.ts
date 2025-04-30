@@ -14,9 +14,12 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { EVMRawTransaction, RawTransactionIntentParams } from './types.js';
+import type {
+  EVMRawTransaction,
+  EVMRawTransactionIntentParams,
+} from './types.js';
 import {
-  RawTransactionIntentParamsSchema,
+  EvmRawTransactionIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
 
@@ -25,14 +28,14 @@ import {
  */
 export async function evmRawTransaction(
   oc: OktoClient,
-  data: RawTransactionIntentParams,
+  data: EVMRawTransactionIntentParams,
   feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(RawTransactionIntentParamsSchema, data);
+  validateSchema(EvmRawTransactionIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
@@ -58,6 +61,12 @@ export async function evmRawTransaction(
   if (!currentChain) {
     throw new BaseError(`Chain Not Supported`, {
       details: `${data.caip2Id} is not supported for this client`,
+    });
+  }
+
+  if (!currentChain.caipId.toLowerCase().startsWith('eip155:')) {
+    throw new BaseError('Invalid Chain Type', {
+      details: `${data.caip2Id} is not an EVM-compatible chain. EVM Raw Transactions can only be created for EVM chains.`,
     });
   }
 
@@ -93,7 +102,7 @@ export async function evmRawTransaction(
                 sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
-          ), // policyinfo  //TODO: get this data from user
+          ), // info  //TODO: get this data from userpolicy
           encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
             {
               isRequired: false,

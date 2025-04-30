@@ -12,32 +12,30 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NftCreateCollectionParams } from './types.js';
-import {
-  NftCreateCollectionParamsSchema,
-  validateSchema,
-} from './userOpInputValidator.js';
+import type { NftMintParams } from './types.js';
+import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
 
 /**
- * Creates a user operation for NFT collection creation.
+ * Creates a user operation for minting an NFT.
  *
- * This function initiates the process of creating an NFT collection by encoding
+ * This function initiates the process of minting an NFT by encoding
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, data with attributes, symbol, type, description).
- * @returns The User Operation (UserOp) for the NFT collection creation.
+ * @param data - The parameters for minting an NFT (caip2Id, nftName, collectionAddress, uri, and additional data).
+ * @returns The User Operation (UserOp) for the NFT minting.
  */
-export async function nftCreateCollection(
+export async function nftMint(
   oc: OktoClient,
-  data: NftCreateCollectionParams,
+  data: NftMintParams,
   feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  validateSchema(NftCreateCollectionParamsSchema, data);
+
+  validateSchema(NftMintParamsSchema, data);
 
   const nonce = generateUUID();
 
@@ -46,7 +44,7 @@ export async function nftCreateCollection(
   }
 
   const jobParametersAbiType =
-    '(string caip2Id, string name, string uri, bytes data)';
+    '(string caip2Id, string nftName, string collectionAddress, string uri, bytes data)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const chains = await getChains(oc);
@@ -61,24 +59,25 @@ export async function nftCreateCollection(
   }
 
   if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
-    throw new BaseError(
-      'NFT Collection creation is only supported on Aptos chain',
-      {
-        details: `Provided chain: ${currentChain.caipId}`,
-      },
-    );
+    throw new BaseError('NFT Minting is only supported on Aptos chain', {
+      details: `Provided chain: ${currentChain.caipId}`,
+    });
   }
 
+  // Encode the NFT mint data into bytes
   const nftDataEncoded = encodeAbiParameters(
     parseAbiParameters(
-      '(string attributes, string symbol, string type, string description)',
+      '(string recipientWalletAddress, string description, (string name, string valueType, string value)[] properties)',
     ),
     [
       {
-        attributes: data.data.attributes,
-        symbol: data.data.symbol,
-        type: data.data.type,
+        recipientWalletAddress: data.data.recipientWalletAddress,
         description: data.data.description,
+        properties: data.data.properties.map((prop) => ({
+          name: prop.name,
+          valueType: prop.valueType,
+          value: prop.value,
+        })),
       },
     ],
   );
@@ -116,12 +115,13 @@ export async function nftCreateCollection(
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               caip2Id: data.caip2Id,
-              name: data.name,
+              nftName: data.nftName,
+              collectionAddress: data.collectionAddress,
               uri: data.uri,
               data: nftDataEncoded,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
+          Constants.INTENT_TYPE.NFT_MINT,
         ],
       }),
     ],

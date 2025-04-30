@@ -25,8 +25,9 @@ export class Constants {
   static readonly INTENT_TYPE = {
     TOKEN_TRANSFER: 'TOKEN_TRANSFER',
     NFT_TRANSFER: 'NFT_TRANSFER',
-    NFT_COLLECTION_CREATION: 'NFT_COLLECTION_CREATION',
+    NFT_CREATE_COLLECTION: 'NFT_CREATE_COLLECTION',
     RAW_TRANSACTION: 'RAW_TRANSACTION',
+    NFT_MINT: 'NFT_MINT',
   };
 
   static readonly ENV_CONFIG = {
@@ -50,4 +51,7 @@ export class Constants {
     //   CHAIN_ID: 24879,
     // },
   };
+
+  static readonly GOOGLE_CLIENT_ID =
+    '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com';
 }

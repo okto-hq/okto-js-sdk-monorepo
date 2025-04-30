@@ -9,44 +9,40 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   parseAbiParameters,
+  stringToBytes,
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NftCreateCollectionParams } from './types.js';
+import type { AptosRawTransactionIntentParams } from './types.js';
 import {
-  NftCreateCollectionParamsSchema,
+  AptosRawTransactionIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
 
 /**
- * Creates a user operation for NFT collection creation.
- *
- * This function initiates the process of creating an NFT collection by encoding
- * the necessary parameters into a User Operation. The operation is then
- * submitted through the OktoClient for execution.
+ * Creates a user operation for Aptos Raw Transaction.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, data with attributes, symbol, type, description).
- * @returns The User Operation (UserOp) for the NFT collection creation.
+ * @param data - The parameters for the Aptos raw transaction.
+ * @returns The User Operation (UserOp) for the Aptos raw transaction.
  */
-export async function nftCreateCollection(
+export async function aptosRawTransaction(
   oc: OktoClient,
-  data: NftCreateCollectionParams,
+  data: AptosRawTransactionIntentParams,
   feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  validateSchema(NftCreateCollectionParamsSchema, data);
-
-  const nonce = generateUUID();
+  validateSchema(AptosRawTransactionIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
-  const jobParametersAbiType =
-    '(string caip2Id, string name, string uri, bytes data)';
+  const nonce = generateUUID();
+
+  const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const chains = await getChains(oc);
@@ -60,25 +56,30 @@ export async function nftCreateCollection(
     });
   }
 
-  if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
-    throw new BaseError(
-      'NFT Collection creation is only supported on Aptos chain',
-      {
-        details: `Provided chain: ${currentChain.caipId}`,
-      },
-    );
+  if (!data.caip2Id.toLowerCase().startsWith('aptos:')) {
+    throw new BaseError('Invalid chain for Aptos transaction', {
+      details: `${data.caip2Id} is not an Aptos chain`,
+    });
   }
 
-  const nftDataEncoded = encodeAbiParameters(
-    parseAbiParameters(
-      '(string attributes, string symbol, string type, string description)',
+  const transactionsBytes = [
+    toHex(
+      stringToBytes(
+        JSON.stringify({
+          function: data.function,
+          typeArguments: data.typeArguments || [],
+          functionArguments: data.functionArguments || [],
+        }),
+      ),
     ),
+  ];
+
+  const jobparam = encodeAbiParameters(
+    parseAbiParameters(jobParametersAbiType),
     [
       {
-        attributes: data.data.attributes,
-        symbol: data.data.symbol,
-        type: data.data.type,
-        description: data.data.description,
+        caip2Id: data.caip2Id,
+        transactions: transactionsBytes,
       },
     ],
   );
@@ -113,15 +114,8 @@ export async function nftCreateCollection(
               tokens: [],
             },
           ]),
-          encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
-            {
-              caip2Id: data.caip2Id,
-              name: data.name,
-              uri: data.uri,
-              data: nftDataEncoded,
-            },
-          ]),
-          Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
+          jobparam,
+          Constants.INTENT_TYPE.RAW_TRANSACTION,
         ],
       }),
     ],
