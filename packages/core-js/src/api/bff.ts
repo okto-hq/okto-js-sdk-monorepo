@@ -2,9 +2,7 @@ import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
 import type {
-  EstimateOrderPayload,
   Order,
-  OrderEstimateResponse,
   OrderFilterRequest,
   UserNFTBalance,
   UserPortfolioActivity,
@@ -19,6 +17,10 @@ import type {
 } from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
+import type {
+  SwapEstimateRequest,
+  SwapEstimateResponse,
+} from '@/types/bff/swap.js';
 
 class BffClientRepository {
   private static routes = {
@@ -32,6 +34,7 @@ class BffClientRepository {
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
     getTokensForSwap: '/api/oc/v1/entities',
+    getSwapEstimate: '/api/oc/v1/estimate',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
@@ -232,14 +235,14 @@ class BffClientRepository {
     return response.data.data.entities;
   }
 
-  public static async estimateOrder(
+  public static async getSwapEstimate(
     oc: OktoClient,
-    payload: EstimateOrderPayload,
-  ): Promise<OrderEstimateResponse> {
+    requestBody: SwapEstimateRequest,
+  ): Promise<SwapEstimateResponse> {
     const response = await getBffClient(oc).get<
-      ApiResponse<OrderEstimateResponse>
-    >(this.routes.estimateOrder, {
-      data: payload,
+      ApiResponse<SwapEstimateResponse>
+    >(this.routes.getSwapEstimate, {
+      data: requestBody,
     });
 
     if (response.data.status === 'error') {
