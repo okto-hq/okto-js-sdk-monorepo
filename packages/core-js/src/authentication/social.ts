@@ -1,5 +1,6 @@
 import type { SocialAuthType } from '@/types/auth/social.js';
 import { Constants } from '@/utils/constants.js';
+import { v4 as uuidv4 } from 'uuid';
 
 class SocialAuthUrlGenerator {
   private providers: Record<SocialAuthType, string> = {
@@ -40,7 +41,7 @@ class SocialAuthUrlGenerator {
     }
   }
   private buildGoogleAuthUrl(state: Record<string, string>): string {
-    const nonce = crypto.randomUUID();
+    const nonce = uuidv4();
     return this.buildAuthUrl('google', {
       scope: 'openid email profile',
       redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
