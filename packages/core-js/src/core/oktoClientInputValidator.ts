@@ -31,6 +31,10 @@ export const AuthDataSchema = z.union([
     idToken: z.string(),
     provider: z.literal('okto'),
   }),
+  z.object({
+    idToken: z.string(),
+    provider: z.literal('client_jwt'),
+  }),
 ]);
 
 // **Schema for Session Configuration**
