@@ -15,11 +15,11 @@ import {
   setLocalStorage,
 } from 'src/utils/storageUtils.js';
 
-import { WebViewManager } from '../webview/webViewManager.js';
-import type { WebViewOptions } from 'src/webview/types.js';
-import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
-import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
+import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
+import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
+import type { WebViewOptions } from 'src/webview/types.js';
+import { WebViewManager } from '../webview/webViewManager.js';
 
 class OktoClient extends OktoCoreClient {
   private webViewManager: WebViewManager | undefined;
@@ -45,9 +45,7 @@ class OktoClient extends OktoCoreClient {
     this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
   }
 
-  public authenticateWithWebView(
-    options: WebViewOptions = {},
-  ): Promise<unknown> {
+  public authenticateWithWebView(options: WebViewOptions = {}): Promise<void> {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
     }
