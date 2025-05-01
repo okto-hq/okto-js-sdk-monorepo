@@ -18,6 +18,10 @@ import type {
   SwapEstimateRequest,
 } from '@/types/bff/swap.js';
 import BffClientRepository from '@/api/bff.js';
+import {
+  TokenSwapIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
 
 /**
  * Creates a user operation for token swap.
@@ -39,6 +43,8 @@ export async function swapToken(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
+
+  validateSchema(TokenSwapIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;

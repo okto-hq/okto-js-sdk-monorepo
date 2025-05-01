@@ -1,16 +1,9 @@
 import { z, ZodError } from 'zod';
-import type {
-  NFTCollectionCreationIntentParams,
-  NFTTransferIntentParams,
-  RawTransactionIntentParams,
-  TokenTransferIntentParams,
-} from './types.js';
 import {
   isHexString,
   isTokenId,
   isUppercaseAlpha,
 } from '@/utils/customValidators.js';
-import OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 
 /**
@@ -145,6 +138,91 @@ export const TokenTransferIntentParamsSchema = z
     ]),
   })
   .strict();
+
+/**
+ * Schema for Token Swap Intent parameters validation.
+ */
+export const TokenSwapIntentParamsSchema = z
+  .object({
+    // Chain and token information
+    fromChainCaip2Id: z
+      .string({
+        required_error: 'Source chain CAIP2 ID is required',
+      })
+      .min(1, 'Source chain CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'Source chain CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    toChainCaip2Id: z
+      .string({
+        required_error: 'Destination chain CAIP2 ID is required',
+      })
+      .min(1, 'Destination chain CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'Destination chain CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    fromChainTokenAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid source token address format'),
+    toChainTokenAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid destination token address format'),
+
+    // Amount information
+    fromChainTokenAmount: z.union([
+      z.string().regex(/^\d+$/, 'Token amount must be a positive number'),
+      z.number().positive('Token amount must be positive'),
+      z.bigint().positive('Token amount must be positive'),
+    ]),
+    minToTokenAmount: z
+      .union([
+        z
+          .string()
+          .regex(/^\d+$/, 'Minimum token amount must be a positive number')
+          .optional(),
+        z
+          .number()
+          .nonnegative('Minimum token amount cannot be negative')
+          .optional(),
+        z
+          .bigint()
+          .nonnegative('Minimum token amount cannot be negative')
+          .optional(),
+      ])
+      .optional(),
+
+    // Fee information
+    sameChainFee: z.string().optional(),
+    sameChainFeeCollector: z.string().optional(),
+    crossChainFee: z.string().optional(),
+    crossChainFeeCollector: z.string().optional(),
+
+    // Route and slippage
+    routeId: z.string().optional(),
+    slippage: z.string().optional(),
+
+    // Advanced settings
+    advancedSettings: z.record(z.unknown()).optional(),
+  })
+  .strict()
+  .refine(
+    (data) => {
+      // Ensure fee collector is provided if fee is specified
+      if (data.sameChainFee && !data.sameChainFeeCollector) {
+        return false;
+      }
+      if (data.crossChainFee && !data.crossChainFeeCollector) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Fee collector address must be provided when specifying a fee',
+      path: ['feeCollector'],
+    },
+  );
 
 export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
   try {
