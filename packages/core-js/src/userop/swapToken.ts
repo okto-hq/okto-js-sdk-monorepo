@@ -36,23 +36,18 @@ export async function swapToken(
   data: TokenSwapIntentParams,
   feePayerAddress?: Address,
 ): Promise<{ userOp: UserOp; details: SwapDetails }> {
-  // Validate if user is logged in
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
 
-  // Set fee payer address to default if not provided
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
-  // Generate unique nonce for this operation
   const nonce = generateUUID();
 
-  // Fetch current gas prices from Gateway Client
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
-  // Get chain information to validate the chain IDs
   const chains = await getChains(oc);
   const fromChain = chains.find(
     (chain) =>
@@ -62,7 +57,6 @@ export async function swapToken(
     (chain) => chain.caipId.toLowerCase() === data.toChainCaip2Id.toLowerCase(),
   );
 
-  // Validate chains are supported
   if (!fromChain) {
     throw new BaseError(`Chain Not Supported`, {
       details: `${data.fromChainCaip2Id} is not supported for this client`,
@@ -75,7 +69,6 @@ export async function swapToken(
     });
   }
 
-  // Generate paymaster data with validity window
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
@@ -91,23 +84,18 @@ export async function swapToken(
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
     details: {
-      fromChainTokenAddress: data.fromChainTokenAddress || '',
+      fromChainTokenAddress: data.fromChainTokenAddress,
       fromChainCaip2Id: data.fromChainCaip2Id,
-      toChainTokenAddress: data.toChainTokenAddress || '',
+      toChainTokenAddress: data.toChainTokenAddress,
       toChainCaip2Id: data.toChainCaip2Id,
-      sameChainFee: data.sameChainFee || '0',
-      sameChainFeeCollector: data.sameChainFeeCollector || '',
-      crossChainFee: data.crossChainFee || '0',
-      crossChainFeeCollector: data.crossChainFeeCollector || '',
+      sameChainFee: data.sameChainFee,
+      sameChainFeeCollector: data.sameChainFeeCollector,
+      crossChainFee: data.crossChainFee,
+      crossChainFeeCollector: data.crossChainFeeCollector,
       fromChainTokenAmount: data.fromChainTokenAmount,
-      minToTokenAmount: data.minToTokenAmount || '0',
-      slippage: data.slippage || '0.1',
-      advancedSettings:
-        typeof data.advancedSettings === 'string'
-          ? JSON.parse(data.advancedSettings)
-          : data.advancedSettings
-            ? {}
-            : data.advancedSettings || {},
+      minToTokenAmount: data.minToTokenAmount,
+      slippage: data.slippage,
+      advancedSettings: data.advancedSettings || {},
     },
   };
 
@@ -162,19 +150,14 @@ export async function swapToken(
               fromChainTokenAddress: data.fromChainTokenAddress || '',
               toChainTokenAddress: data.toChainTokenAddress || '',
               slippage:
-                data.slippage ||
-                swapEstimate.details.estimation.slippageUsed ||
-                '0',
-              sameChainFee: data.sameChainFee || '0',
-              sameChainFeeCollector: data.sameChainFeeCollector || '0x0',
-              crossChainFee: data.crossChainFee || '0',
-              crossChainFeeCollector: data.crossChainFeeCollector || '0x0',
-              advancedSettings:
-                typeof data.advancedSettings === 'string'
-                  ? toHex(data.advancedSettings)
-                  : data.advancedSettings instanceof Uint8Array
-                    ? toHex(data.advancedSettings)
-                    : '0x',
+                data.slippage || swapEstimate.details.estimation.slippageUsed,
+              sameChainFee: data.sameChainFee || '',
+              sameChainFeeCollector: data.sameChainFeeCollector || '',
+              crossChainFee: data.crossChainFee || '',
+              crossChainFeeCollector: data.crossChainFeeCollector || '',
+              advancedSettings: data.advancedSettings
+                ? toHex(JSON.stringify(data.advancedSettings))
+                : '0x',
             },
           ]),
           Constants.INTENT_TYPE.SWAP,
@@ -182,14 +165,6 @@ export async function swapToken(
       }),
     ],
   );
-
-  // Prioritize gas prices from swap estimate if available, otherwise use previously fetched values
-  const finalGasPrice = swapEstimate.userOps
-    ? {
-        maxFeePerGas: swapEstimate.userOps.maxFeePerGas,
-        maxPriorityFeePerGas: swapEstimate.userOps.maxPriorityFeePerGas,
-      }
-    : gasPrice;
 
   // Create the user operation
   const userOp: UserOp = {
@@ -205,8 +180,8 @@ export async function swapToken(
     preVerificationGas:
       swapEstimate.userOps?.preVerificationGas ||
       toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: finalGasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: finalGasPrice.maxPriorityFeePerGas,
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
       swapEstimate.userOps?.paymasterPostOpGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),

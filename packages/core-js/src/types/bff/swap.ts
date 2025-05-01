@@ -5,15 +5,15 @@ export interface TokenSwapIntentParams {
   fromChainCaip2Id: string;
   fromChainTokenAmount: string;
   toChainCaip2Id: string;
-  minToTokenAmount: string | null;
-  fromChainTokenAddress?: string;
-  toChainTokenAddress?: string;
-  slippage?: string | null;
-  sameChainFee?: string | null;
-  sameChainFeeCollector?: string | null;
-  crossChainFee?: string | null;
-  crossChainFeeCollector?: string | null;
-  advancedSettings?: Uint8Array | string | null;
+  fromChainTokenAddress: string;
+  toChainTokenAddress: string;
+  minToTokenAmount?: string;
+  slippage?: string;
+  sameChainFee?: string;
+  sameChainFeeCollector?: string;
+  crossChainFee?: string;
+  crossChainFeeCollector?: string;
+  advancedSettings?: Record<string, unknown>;
 }
 
 // Type definition for swap estimate response
@@ -89,17 +89,17 @@ export interface SwapEstimateRequest {
     maxPriorityFeePerGas: string;
   };
   details: {
-    fromChainTokenAddress: string;
     fromChainCaip2Id: string;
-    toChainTokenAddress: string;
-    toChainCaip2Id: string;
-    sameChainFee: string;
-    sameChainFeeCollector: string;
-    crossChainFee: string;
-    crossChainFeeCollector: string;
     fromChainTokenAmount: string;
-    minToTokenAmount: string;
-    slippage: string;
-    advancedSettings?: Record<string, string>;
+    toChainCaip2Id: string;
+    fromChainTokenAddress: string;
+    toChainTokenAddress: string;
+    minToTokenAmount?: string;
+    slippage?: string;
+    sameChainFee?: string;
+    sameChainFeeCollector?: string;
+    crossChainFee?: string;
+    crossChainFeeCollector?: string;
+    advancedSettings?: Record<string, unknown>;
   };
 }
