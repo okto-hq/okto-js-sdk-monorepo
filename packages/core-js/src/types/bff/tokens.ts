@@ -1,10 +1,5 @@
 import type { Network } from './common.js';
 
-export type TokenListingIdentifier =
-  | 'active_tradable_tokens_v1'
-  | 'active_tradable_tokens_by_caip2_ids_v1'
-  | 'searchable_tokens_v1';
-
 /**
  * Represents Token data
  */
@@ -26,7 +21,6 @@ export type Token = {
 /**
  * Represents NFT data
  */
-
 export type NftCollection = {
   nftCollectionId: string;
   collectionAddress: string;
@@ -38,32 +32,56 @@ export type NftCollection = {
 /**
  * Represents Token data for SWAP
  */
-
-export type TradableToken = {
-  address: string;
-  caip_id: string;
-  symbol: string;
-  image: string;
-  name: string;
-  short_name: string;
+export type TokenEntity = {
   id: string;
-  group_id: string;
-  is_primary: boolean;
-  network_id: string;
-  network_name: string;
-  decimals: string;
-  precision: string;
-  price?: string;
-  price_change_24h?: number;
+  entityType: string;
+  details: {
+    address: string;
+    chain_id: string;
+    decimals: string;
+    name: string;
+    symbol: string;
+    logo: string;
+    price: string;
+    network_name: string;
+    is_active: boolean;
+    is_tradable: boolean;
+    group_id?: string;
+    is_primary?: boolean;
+    tags?: string[];
+    total_supply?: string;
+    type?: string;
+    age?: number;
+    priority?: number;
+    fdv?: number;
+    price_change_24h?: number;
+    price_vol_data?: Record<string, unknown>;
+    token_rank?: number;
+    category?: string[];
+    [key: string]:
+      | string
+      | number
+      | boolean
+      | string[]
+      | Record<string, unknown>
+      | undefined;
+  };
 };
 
 /**
- * Updated TokenListingFilter using the TokenListingIdentifier enum
+ * Parameters for token listing requests
+ */
+export type TokenListingParams = {
+  identifier: string;
+  caip2_ids?: string[];
+  searchText?: string;
+};
+
+/**
+ * Options for the getTokensForSwap method
  */
 export type TokenListingFilter = {
-  identifier: TokenListingIdentifier;
-  page?: number;
-  size?: number;
-  caip2_ids?: string[];
+  type: 'discovery' | 'network_filter' | 'search';
+  networks?: string[]; // Networks in caip2 format (e.g., "eip155:222")
   searchText?: string;
 };

@@ -12,8 +12,9 @@ import type {
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type {
   Token,
+  TokenEntity,
   TokenListingFilter,
-  TradableToken,
+  TokenListingParams,
 } from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
@@ -33,7 +34,7 @@ class BffClientRepository {
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
-    getTokensForSwap: '/api/oc/v1/entities',
+    getEntities: '/api/oc/v1/entities',
     getSwapEstimate: '/api/oc/v1/estimate',
 
     // POST
@@ -174,9 +175,6 @@ class BffClientRepository {
   /**
    * Retrieves the list of orders for the authenticated user from the BFF service.
    */
-  /**
-   * Retrieves the list of orders for the authenticated user from the BFF service.
-   */
   public static async getOrders(
     oc: OktoClient,
     filters?: OrderFilterRequest,
@@ -209,27 +207,52 @@ class BffClientRepository {
   }
 
   /**
-   * Retrieves a list of tokens based on specified filters
+   * Retrieves tokens for swap based on different listing criteria
    * @param oc OktoClient instance
-   * @param filters Filter parameters for token listing
+   * @param options Listing options (discovery, network filter, or search)
    * @returns Promise with array of TokenEntity objects
    */
   public static async getTokensForSwap(
     oc: OktoClient,
     filters: TokenListingFilter,
-  ): Promise<TradableToken[]> {
+  ): Promise<TokenEntity[]> {
+    const params: TokenListingParams = {
+      identifier: '',
+    };
+
+    switch (filters.type) {
+      case 'discovery':
+        params.identifier = 'active_tradable_tokens_v1';
+        break;
+      case 'network_filter':
+        if (!filters.networks || filters.networks.length === 0) {
+          throw new Error('Networks must be provided for network filter type');
+        }
+        params.identifier = 'active_tradable_tokens_by_caip2_ids_v1';
+        params.caip2_ids = filters.networks;
+        break;
+      case 'search':
+        if (!filters.searchText) {
+          throw new Error('Search text must be provided for search type');
+        }
+        params.identifier = 'searchable_tokens_v1';
+        params.searchText = filters.searchText;
+        break;
+      default:
+        throw new Error('Invalid listing type specified');
+    }
     const response = await getBffClient(oc).get<
-      ApiResponseWithCount<'entities', TradableToken>
-    >(this.routes.getTokensForSwap, {
-      params: filters,
-    });
+      ApiResponse<{ entities: TokenEntity[] }>
+    >(this.routes.getEntities, { params });
 
     if (response.data.status === 'error') {
-      throw new Error('Failed to retrieve tokens: ' + response.data.error);
+      throw new Error(
+        `Failed to retrieve tokens: ${response.data.error?.message || 'Unknown error'}`,
+      );
     }
 
-    if (!response.data.data?.entities) {
-      throw new Error('No tokens found or response data is missing.');
+    if (!response.data.data || !response.data.data.entities) {
+      throw new Error('Response data is missing');
     }
 
     return response.data.data.entities;
