@@ -74,7 +74,6 @@ export async function swapToken(
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  // Build the request body for swap estimate with proper type
   const requestBody: SwapEstimateRequest = {
     type: Constants.INTENT_TYPE.SWAP,
     jobId: nonce,
@@ -105,7 +104,6 @@ export async function swapToken(
     requestBody,
   );
 
-  // Prepare job parameters for the swap intent
   const jobParametersAbiType =
     '(string routeId, string fromChainCaip2Id, uint fromChainTokenAmount, string toChainCaip2Id, string minToTokenAmount, string fromChainTokenAddress, string toChainTokenAddress, string slippage, string sameChainFee, string sameChainFeeCollector, string crossChainFee, string crossChainFeeCollector, bytes advancedSettings)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
@@ -166,31 +164,30 @@ export async function swapToken(
     ],
   );
 
-  // Create the user operation
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
     callGasLimit:
-      swapEstimate.userOps?.callGasLimit ||
+      swapEstimate.userOps.callGasLimit ||
       toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit:
-      swapEstimate.userOps?.verificationGasLimit ||
+      swapEstimate.userOps.verificationGasLimit ||
       toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas:
-      swapEstimate.userOps?.preVerificationGas ||
+      swapEstimate.userOps.preVerificationGas ||
       toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
     maxFeePerGas: gasPrice.maxFeePerGas,
     maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      swapEstimate.userOps?.paymasterPostOpGasLimit ||
+      swapEstimate.userOps.paymasterPostOpGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
     paymasterVerificationGasLimit:
-      swapEstimate.userOps?.paymasterVerificationGasLimit ||
+      swapEstimate.userOps.paymasterVerificationGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: swapEstimate.userOps?.callData || calldata,
+    callData: swapEstimate.userOps.callData || calldata,
     paymasterData:
-      swapEstimate.userOps?.paymasterData ||
+      swapEstimate.userOps.paymasterData ||
       (await oc.paymasterData({
         nonce: nonce,
         validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
