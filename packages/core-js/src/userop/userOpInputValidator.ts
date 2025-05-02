@@ -283,12 +283,8 @@ export const TokenSwapIntentParamsSchema = z
         (val) => val.trim() === val,
         'Destination chain CAIP2 ID cannot have leading or trailing spaces',
       ),
-    fromChainTokenAddress: z
-      .string()
-      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid source token address format'),
-    toChainTokenAddress: z
-      .string()
-      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid destination token address format'),
+    fromChainTokenAddress: z.string(),
+    toChainTokenAddress: z.string(),
 
     // Amount information
     fromChainTokenAmount: z.union([
