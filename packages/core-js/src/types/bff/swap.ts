@@ -59,13 +59,17 @@ export interface SwapDetails {
     amount: string;
     crossChainFee: string;
     crossChainFeeCollector: string;
+    gasFeesInInputToken: string;
+    integratorFeesInInputToken: string;
     outputAmount: string;
+    platformBaseFeesInInputToken: string;
     recommendedSlippage: string;
     routeId: string;
     routeValidUntil: string;
     sameChainFee: string;
     sameChainFeeCollector: string;
     slippageUsed: string;
+    totalFeesInInputToken: string;
   };
   swapFees?: {
     totalFeesInInputToken: string;
