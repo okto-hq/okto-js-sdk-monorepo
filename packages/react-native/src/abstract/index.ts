@@ -15,5 +15,5 @@ export {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  swapToken,
 };
-export { evmRawTransaction, nftTransfer, tokenTransfer, swapToken };

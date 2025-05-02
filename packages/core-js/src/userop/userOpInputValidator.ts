@@ -1,9 +1,5 @@
 import { z, ZodError } from 'zod';
-import {
-  isHexString,
-  isTokenId,
-  isUppercaseAlpha,
-} from '@/utils/customValidators.js';
+import { isHexString, isTokenId } from '@/utils/customValidators.js';
 import { BaseError } from '@/errors/base.js';
 
 /**
