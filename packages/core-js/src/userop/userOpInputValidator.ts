@@ -9,7 +9,7 @@ import { BaseError } from '@/errors/base.js';
 /**
  * Schema for NFT Collection Creation parameters validation.
  */
-export const NFTCollectionCreationSchema = z
+export const NftCreateCollectionParamsSchema = z
   .object({
     caip2Id: z
       .string({
@@ -21,22 +21,34 @@ export const NFTCollectionCreationSchema = z
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
     name: z
-      .string()
-      .min(2, 'Collection name must be at least 2 characters')
-      .max(50, 'Collection name cannot exceed 50 characters'),
-    description: z
-      .string()
-      .max(500, 'Description cannot exceed 500 characters')
-      .optional(),
-    metadataUri: z
-      .string()
-      .url('Invalid metadata URL format')
-      .refine(
-        (uri) => uri.startsWith('https://'),
-        'Metadata URI must use HTTPS protocol',
-      ),
-    symbol: isUppercaseAlpha('Symbol must contain only uppercase letters'),
-    type: z.enum(['ERC721', 'ERC1155']),
+      .string({
+        required_error: 'Collection name is required',
+      })
+      .min(1, 'Collection name cannot be empty')
+      .max(100, 'Collection name cannot exceed 100 characters'),
+    uri: z
+      .string({
+        required_error: 'URI is required',
+      })
+      .min(1, 'URI cannot be empty'),
+    data: z
+      .object({
+        attributes: z.string().optional(),
+        symbol: z
+          .string({
+            required_error: 'Symbol is required',
+          })
+          .min(1, 'Symbol cannot be empty'),
+        type: z.enum(['ERC721', 'ERC1155'], {
+          required_error: 'Type must be either ERC721 or ERC1155',
+        }),
+        description: z
+          .string({
+            required_error: 'Description is required',
+          })
+          .min(1, 'Description cannot be empty'),
+      })
+      .strict(),
   })
   .strict();
 
@@ -77,10 +89,122 @@ export const NFTTransferIntentParamsSchema = z
     path: ['amount'],
   });
 
+export const NftMintParamsSchema = z
+  .object({
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    nftName: z
+      .string({
+        required_error: 'NFT name is required',
+      })
+      .min(1, 'NFT name cannot be empty'),
+    collectionAddress: isHexString('Invalid collection address format'),
+    uri: z
+      .string({
+        required_error: 'URI is required',
+      })
+      .min(1, 'URI cannot be empty'),
+    data: z
+      .object({
+        recipientWalletAddress: z
+          .string({
+            required_error: 'Recipient wallet address is required',
+          })
+          .min(1, 'Recipient wallet address cannot be empty'),
+        description: z
+          .string({
+            required_error: 'Description is required',
+          })
+          .min(1, 'Description cannot be empty'),
+        properties: z.array(
+          z.object({
+            name: z
+              .string({
+                required_error: 'Property name is required',
+              })
+              .min(1, 'Property name cannot be empty'),
+            valueType: z.string(),
+            value: z.string(),
+          }),
+        ),
+      })
+      .strict(),
+  })
+  .strict();
+
+export const AptosRawTransactionIntentParamsSchema = z
+  .object({
+    caip2Id: z
+      .string({
+        required_error: 'CAIP2 ID is required',
+      })
+      .min(1, 'CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'CAIP2 ID cannot have leading or trailing spaces',
+      )
+      .refine(
+        (val) => val.toLowerCase().startsWith('aptos:'),
+        'CAIP2 ID must be for an Aptos chain',
+      ),
+    transactions: z
+      .array(
+        z.object({
+          function: z
+            .string({
+              required_error: 'Function is required',
+            })
+            .min(1, 'Function cannot be empty'),
+          typeArguments: z.array(z.string()).optional().default([]),
+          functionArguments: z
+            .array(
+              z.union([
+                z.string(),
+                z.number(),
+                z.boolean(),
+                z.bigint(),
+                z.null(),
+                z.undefined(),
+                z.instanceof(Uint8Array),
+                z.instanceof(ArrayBuffer),
+                z.array(
+                  z.lazy(() =>
+                    z.union([
+                      z.string(),
+                      z.number(),
+                      z.boolean(),
+                      z.bigint(),
+                      z.null(),
+                      z.undefined(),
+                      z.instanceof(Uint8Array),
+                      z.instanceof(ArrayBuffer),
+                    ]),
+                  ),
+                ),
+              ]),
+            )
+            .optional()
+            .default([]),
+        }),
+        {
+          required_error: 'At least one transaction is required',
+        },
+      )
+      .min(1, 'At least one transaction is required'),
+  })
+  .strict();
+
 /**
  * Schema for Raw Transaction validation.
  */
-export const RawTransactionSchema = z
+export const EvmRawTransactionSchema = z
   .object({
     from: isHexString('Invalid from address format'),
     to: isHexString('Invalid to address format'),
@@ -101,7 +225,7 @@ export const RawTransactionSchema = z
 /**
  * Schema for Raw Transaction Intent Parameters.
  */
-export const RawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
+export const EvmRawTransactionIntentParamsSchema = z // TODO: add a check against in memory array fetched from BE at init
   .object({
     caip2Id: z
       .string({
@@ -112,7 +236,7 @@ export const RawTransactionIntentParamsSchema = z // TODO: add a check against i
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
-    transaction: RawTransactionSchema,
+    transaction: EvmRawTransactionSchema,
   })
   .strict();
 

@@ -4,4 +4,4 @@
 "@okto_web3/react-sdk": minor
 ---
 
-Update signMessage Payload Generation
+added whatsapp and email apis to the core sdk

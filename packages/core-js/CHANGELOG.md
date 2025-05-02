@@ -1,5 +1,24 @@
 # @okto_web3/core-js-sdk
 
+## 0.6.2
+
+### Patch Changes
+
+- a04c6e0: added optional fee payer address in abstract functions
+
+## 0.6.1
+
+### Patch Changes
+
+- e89feb3: updated constant values on sandbox
+
+## 0.6.0
+
+### Minor Changes
+
+- 24248fa: update job manager abi
+- bd0cc04: Update signMessage Payload Generation
+
 ## 0.5.1
 
 ### Patch Changes

@@ -4,4 +4,4 @@
 "@okto_web3/react-sdk": minor
 ---
 
-update job manager abi
+Added Onboarding Screen UI and communication channels

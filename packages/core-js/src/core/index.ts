@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData } from '@/types/index.js';
+import type { AuthData, SocialAuthType } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -12,12 +12,26 @@ import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
+  validateContact,
+  validateEmail,
   validateOktoClientConfig,
+  validatePhoneNumber,
   validateUserOp,
 } from './oktoClientInputValidator.js';
 import { generatePaymasterData } from './paymaster.js';
 import { generateSignMessagePayload } from './signMessage.js';
 import type { ClientConfig, Env, EnvConfig, SessionConfig } from './types.js';
+import WhatsAppAuthentication from '@/authentication/whatsapp.js';
+import EmailAuthentication from '@/authentication/email.js';
+import type {
+  EmailResendOtpResponse,
+  EmailSendOtpResponse,
+} from '@/types/auth/email.js';
+import type {
+  WhatsAppResendOtpResponse,
+  WhatsAppSendOtpResponse,
+} from '@/types/auth/whatsapp.js';
+import SocialAuthUrlGenerator from '@/authentication/social.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -31,6 +45,9 @@ class OktoClient {
   private _sessionConfig: SessionConfig | undefined;
   private _userKeys: GetUserKeysResult | undefined;
   readonly isDev: boolean = true; //* Mark it as true for development environment
+  private _whatsAppAuthentication: WhatsAppAuthentication;
+  private _emailAuthentication: EmailAuthentication;
+  private _socialAuthUrlGenerator: SocialAuthUrlGenerator;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -41,6 +58,13 @@ class OktoClient {
       clientSWA: config.clientSWA,
     };
     this._environment = config.environment;
+    this._whatsAppAuthentication = new WhatsAppAuthentication(
+      config.clientPrivateKey,
+    );
+    this._emailAuthentication = new EmailAuthentication(
+      config.clientPrivateKey,
+    );
+    this._socialAuthUrlGenerator = new SocialAuthUrlGenerator();
   }
 
   get env(): EnvConfig {
@@ -61,6 +85,75 @@ class OktoClient {
   }
 
   /**
+   * Sends an OTP to the specified contact (email or phone number).
+   *
+   * @param {string} contact - The email address or phone number with country code
+   * @param {'email' | 'whatsapp'} method - The method to send OTP (email or whatsapp)
+   * @returns {Promise<EmailSendOtpResponse | WhatsAppSendOtpResponse>} - The response from the server
+   */
+  public async sendOTP(
+    contact: string,
+    method: 'email' | 'whatsapp',
+  ): Promise<EmailSendOtpResponse | WhatsAppSendOtpResponse> {
+    try {
+      const validatedContact = validateContact(contact, method);
+
+      if (validatedContact === null) {
+        throw new BaseError('Invalid contact information or method');
+      }
+
+      if (method === 'email') {
+        return this._emailAuthentication.sendOTP(this, contact);
+      } else if (method === 'whatsapp') {
+        return this._whatsAppAuthentication.sendOTP(this, contact, 'IN');
+      } else {
+        throw new Error('Invalid OTP method specified');
+      }
+    } catch (error) {
+      console.error(`Error sending OTP via ${method}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resends an OTP using the token from a previous request.
+   *
+   * @param {string} contact - The email address or phone number with country code
+   * @param {string} token - The token received from the previous send OTP request
+   * @param {'email' | 'whatsapp'} method - The method to resend OTP (email or whatsapp)
+   * @returns {Promise<EmailResendOtpResponse | WhatsAppResendOtpResponse>} - The response from the server
+   */
+  public async resendOTP(
+    contact: string,
+    token: string,
+    method: 'email' | 'whatsapp',
+  ): Promise<EmailResendOtpResponse | WhatsAppResendOtpResponse> {
+    try {
+      const validatedContact = validateContact(contact, method);
+
+      if (validatedContact === null) {
+        throw new BaseError('Invalid contact information or method');
+      }
+
+      if (method === 'email') {
+        return this._emailAuthentication.resendOTP(this, contact, token);
+      } else if (method === 'whatsapp') {
+        return this._whatsAppAuthentication.resendOTP(
+          this,
+          contact,
+          'IN',
+          token,
+        );
+      } else {
+        throw new Error('Invalid OTP method specified');
+      }
+    } catch (error) {
+      console.error(`Error resending OTP via ${method}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Logs in a user using OAuth authentication.
    * @param data - Authentication data.
    * @param onSuccess - Callback function executed on successful login.
@@ -72,6 +165,9 @@ class OktoClient {
     onSuccess?: (session: SessionConfig) => void,
     overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
     validateAuthData(data);
 
     const clientPrivateKey = this._clientConfig.clientPrivKey;
@@ -112,6 +208,153 @@ class OktoClient {
 
       return this.userSWA;
     } catch (error) {
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Logs in a user using Email authentication by first sending an OTP, verifying it,
+   * and then using the auth token to complete the OAuth login flow.
+   *
+   * @param {string} email - The email address of the user
+   * @param {string} otp - The OTP received by the user
+   * @param {string} token - The token received from the sendOTP request
+   * @param {Function} onSuccess - Callback function executed on successful login
+   * @param {SessionConfig} overrideSessionConfig - Optional session configuration to override the current session
+   * @returns {Promise<Address | RpcError | undefined>} - A promise that resolves to the user's address, an RpcError, or undefined
+   */
+  public async loginUsingEmail(
+    email: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+    validateEmail(email);
+    try {
+      const verifyResponse = await this._emailAuthentication.verifyOTP(
+        this,
+        email,
+        token,
+        otp,
+      );
+
+      if (!verifyResponse.authToken) {
+        throw new Error(
+          'Authentication token not received from OTP verification',
+        );
+      }
+
+      const authData: AuthData = {
+        idToken: verifyResponse.authToken,
+        provider: 'okto',
+      };
+
+      return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
+    } catch (error) {
+      console.error('Error logging in using email:', error);
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Logs in a user using WhatsApp authentication by first sending an OTP, verifying it,
+   * and then using the auth token to complete the OAuth login flow.
+   *
+   * @param {string} phoneNumber - The phone number of the user with country code
+   * @param {string} otp - The OTP received by the user
+   * @param {string} token - The token received from the sendOTP request
+   * @param {Function} onSuccess - Callback function executed on successful login
+   * @param {SessionConfig} overrideSessionConfig - Optional session configuration to override the current session
+   * @returns {Promise<Address | RpcError | undefined>} - A promise that resolves to the user's address, an RpcError, or undefined
+   */
+  public async loginUsingWhatsApp(
+    phoneNumber: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+    validatePhoneNumber(phoneNumber);
+
+    try {
+      const verifyResponse = await this._whatsAppAuthentication.verifyOTP(
+        this,
+        phoneNumber,
+        'IN',
+        token,
+        otp,
+      );
+
+      if (!verifyResponse.authToken) {
+        throw new Error(
+          'Authentication token not received from OTP verification',
+        );
+      }
+
+      const authData: AuthData = {
+        idToken: verifyResponse.authToken,
+        provider: 'okto',
+      };
+
+      return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
+    } catch (error) {
+      console.error('Error logging in using WhatsApp:', error);
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Login using social authentication providers.
+   * @param provider - The social authentication provider (e.g., 'google', 'facebook')
+   * @param state - Additional state parameters for the auth URL
+   * @param overrideOpenWindow - Function to override the default window opening behavior
+   * @returns {Promise<Address | RpcError | undefined>} - Returns the user's address after successful login
+   */
+  public async loginUsingSocial(
+    provider: SocialAuthType,
+    state: Record<string, string>,
+    overrideOpenWindow: (url: string) => Promise<string>,
+  ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+
+    try {
+      // Generate the authentication URL
+      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+
+      // Get the ID token using the provided window override function
+      const idToken = await overrideOpenWindow(url);
+      if (!idToken) {
+        throw new Error('No ID token received from authentication');
+      }
+
+      // Create auth data for OAuth login
+      const authData: AuthData = {
+        idToken,
+        provider: provider,
+      };
+
+      // Perform OAuth login with the received token
+      return await this.loginUsingOAuth(authData);
+    } catch (error) {
+      console.error('Error during social authentication:', error);
       if (error instanceof RpcError) {
         return error;
       }

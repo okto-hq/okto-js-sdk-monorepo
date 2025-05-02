@@ -1,4 +1,5 @@
 import type OktoClient from '@/core/index.js';
+import type { Address } from '@/types/core.js';
 import { nftTransfer as useropgen } from '@/userop/nftTransfer.js';
 import type { NFTTransferIntentParams } from '@/userop/types.js';
 
@@ -17,8 +18,9 @@ import type { NFTTransferIntentParams } from '@/userop/types.js';
 export async function nftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
+  feePayerAddress?: Address,
 ): Promise<string> {
-  const userop = await useropgen(oc, data);
+  const userop = await useropgen(oc, data, feePayerAddress);
   const signedUserOp = await oc.signUserOp(userop);
   const res = await oc.executeUserOp(signedUserOp);
   return res;

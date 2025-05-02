@@ -1,4 +1,6 @@
+import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
+import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
@@ -10,12 +12,11 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NFTCollectionCreationIntentParams } from './types.js';
+import type { NftCreateCollectionParams } from './types.js';
 import {
-  NFTCollectionCreationSchema,
+  NftCreateCollectionParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import { BaseError } from '@/errors/index.js';
 
 /**
  * Creates a user operation for NFT collection creation.
@@ -24,29 +25,28 @@ import { BaseError } from '@/errors/index.js';
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
- * @param data - The parameters for creating the NFT collection (caip2Id, name, description, etc.)
  * @param oc - The OktoClient instance used to interact with the blockchain.
+ * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, data with attributes, symbol, type, description).
  * @returns The User Operation (UserOp) for the NFT collection creation.
  */
-// ? Removed until Aptos is ready
-async function nftCollectionCreation(
+export async function nftCreateCollection(
   oc: OktoClient,
-  data: NFTCollectionCreationIntentParams,
+  data: NftCreateCollectionParams,
   feePayerAddress?: Address,
 ): Promise<UserOp> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  validateSchema(NFTCollectionCreationSchema, data);
+  validateSchema(NftCreateCollectionParamsSchema, data);
+
+  const nonce = generateUUID();
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
-  const nonce = generateUUID();
-
   const jobParametersAbiType =
-    '(string caip2Id, string name,string description ,string metadataUri, string symbol,string type)';
+    '(string caip2Id, string name, string uri, bytes data)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const chains = await getChains(oc);
@@ -60,8 +60,31 @@ async function nftCollectionCreation(
     });
   }
 
+  if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
+    throw new BaseError(
+      'NFT Collection creation is only supported on Aptos chain',
+      {
+        details: `Provided chain: ${currentChain.caipId}`,
+      },
+    );
+  }
+
+  const nftDataEncoded = encodeAbiParameters(
+    parseAbiParameters(
+      '(string attributes, string symbol, string type, string description)',
+    ),
+    [
+      {
+        attributes: data.data.attributes,
+        symbol: data.data.symbol,
+        type: data.data.type,
+        description: data.data.description,
+      },
+    ],
+  );
+
   const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address,uint256, bytes'),
+    parseAbiParameters('bytes4, address, uint256, bytes'),
     [
       Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
       oc.env.jobManagerAddress,
@@ -94,17 +117,17 @@ async function nftCollectionCreation(
             {
               caip2Id: data.caip2Id,
               name: data.name,
-              description: data.description,
-              metadataUri: data.metadataUri,
-              symbol: data.symbol,
-              type: data.type,
+              uri: data.uri,
+              data: nftDataEncoded,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_COLLECTION_CREATION,
+          Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
         ],
       }),
     ],
   );
+
+  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
   const userOp: UserOp = {
     sender: oc.userSWA,
@@ -113,8 +136,8 @@ async function nftCollectionCreation(
     callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: toHex(Constants.GAS_LIMITS.MAX_FEE_PER_GAS),
-    maxPriorityFeePerGas: toHex(Constants.GAS_LIMITS.MAX_PRIORITY_FEE_PER_GAS),
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit: toHex(
       Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
     ),
