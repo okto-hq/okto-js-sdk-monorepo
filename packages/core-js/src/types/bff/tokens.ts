@@ -37,26 +37,26 @@ export type TokenEntity = {
   entityType: string;
   details: {
     address: string;
-    chain_id: string;
+    chainId: string;
     decimals: string;
     name: string;
     symbol: string;
     logo: string;
     price: string;
-    network_name: string;
-    is_active: boolean;
-    is_tradable: boolean;
-    group_id?: string;
-    is_primary?: boolean;
+    networkName: string;
+    isActive: boolean;
+    isTradable: boolean;
+    groupId?: string;
+    isPrimary?: boolean;
     tags?: string[];
-    total_supply?: string;
+    totalSupply?: string;
     type?: string;
     age?: number;
     priority?: number;
     fdv?: number;
-    price_change_24h?: number;
-    price_vol_data?: Record<string, unknown>;
-    token_rank?: number;
+    priceChange24h?: number;
+    priceVolData?: Record<string, unknown>;
+    tokenRank?: number;
     category?: string[];
     [key: string]:
       | string
