@@ -73,7 +73,7 @@ function getBffClient(oc: OktoClient) {
         config.headers.delete('Skip-Authorization');
         return config;
       }
-      console.log('karan is here in config',config.method,config,config.baseURL);
+      console.log('karan is here in config',config.method,config.url,config.baseURL);
       config.headers.setAuthorization(
         `Bearer ${await oc.getAuthorizationToken()}`,
       );

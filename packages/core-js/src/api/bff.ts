@@ -263,11 +263,13 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
-    const serliazedPayload = serializeJSON(requestBody);
+    // const serliazedPayload = serializeJSON(requestBody);
     const response = await getBffClient(oc).get<
       ApiResponse<SwapEstimateResponse>
     >(this.routes.getSwapEstimate, {
-      data: serliazedPayload,
+      method:'GET',
+      data: requestBody,
+      baseURL: oc.env.bffBaseUrl,
     });
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
