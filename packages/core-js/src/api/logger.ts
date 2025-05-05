@@ -105,7 +105,7 @@ function logError(error: AxiosError): void {
 }
 
 function generateCurl(config: any, token?: string): string {
-  const method = config.method?.toUpperCase() || 'GET';
+  const method = config.method?.toUpperCase();
   let url = `${config.baseURL || ''}${config.url || ''}`;
 
   if (config.params && Object.keys(config.params).length > 0) {

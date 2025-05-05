@@ -262,24 +262,26 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
-    const response = await getBffClient(oc).request<
+    const response = await getBffClient(oc).get<
       ApiResponse<SwapEstimateResponse>
-    >({
-      method: 'GET',
-      url: this.routes.getSwapEstimate,
-      data: requestBody
+    >(this.routes.getSwapEstimate, {
+      method:'GET',
+      data: requestBody,
     });
-  
+
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
     }
-  
+
     if (!response.data.data) {
       throw new Error('Response data is missing');
     }
-  
+
     return response.data.data;
   }
 }
+
+
+//////// axios : method : GET baseurl : staging : url : /api/oc/v1/wallets : data: request body
 
 export default BffClientRepository;
