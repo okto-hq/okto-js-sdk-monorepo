@@ -4,7 +4,7 @@ import { convertKeysToCamelCase } from '@/utils/convertToCamelCase.js';
 import axios, { AxiosError } from 'axios';
 import { BaseError } from 'viem';
 import { createLoggingInterceptor } from './logger.js';
-import { url } from 'inspector';
+// import { url } from 'inspector';
 
 function getGatewayClient(oc: OktoClient) {
   const client = axios.create({
@@ -73,7 +73,7 @@ function getBffClient(oc: OktoClient) {
         config.headers.delete('Skip-Authorization');
         return config;
       }
-      console.log('karan is here in config',config.method,config,url,config.baseURL);
+      console.log('karan is here in config',config.method,config,config.baseURL);
       config.headers.setAuthorization(
         `Bearer ${await oc.getAuthorizationToken()}`,
       );
