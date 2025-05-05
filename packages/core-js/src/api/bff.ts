@@ -23,6 +23,7 @@ import type {
   SwapEstimateResponse,
 } from '@/types/bff/swap.js';
 import { serializeJSON } from '@/utils/serialize.js';
+import axios from 'axios';
 
 class BffClientRepository {
   private static routes = {
@@ -263,13 +264,17 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
-    const response = await getBffClient(oc).request<
+    const response = await axios.request<
       ApiResponse<SwapEstimateResponse>
     >({
       method: 'GET',
       url: this.routes.getSwapEstimate,
       data: requestBody,
       baseURL: oc.env.bffBaseUrl,
+      headers:{
+        'Authorization': `Bearer ${await oc.getAuthorizationToken()}`,
+        'Content-Type': 'application/json',
+      }
     });
   
     if (response.data.status === 'error') {
