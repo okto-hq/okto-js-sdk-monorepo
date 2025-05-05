@@ -22,6 +22,7 @@ import type {
   SwapEstimateRequest,
   SwapEstimateResponse,
 } from '@/types/bff/swap.js';
+import { serializeJSON } from '@/utils/serialize.js';
 
 class BffClientRepository {
   private static routes = {
@@ -262,13 +263,12 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
+    const serliazedPayload = serializeJSON(requestBody);
     const response = await getBffClient(oc).get<
       ApiResponse<SwapEstimateResponse>
     >(this.routes.getSwapEstimate, {
-      method:'GET',
-      data: requestBody,
+      data: serliazedPayload,
     });
-
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
     }
@@ -281,7 +281,5 @@ class BffClientRepository {
   }
 }
 
-
-//////// axios : method : GET baseurl : staging : url : /api/oc/v1/wallets : data: request body
 
 export default BffClientRepository;
