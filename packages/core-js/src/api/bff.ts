@@ -264,29 +264,39 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
-    const response = await axios.request<
-      ApiResponse<SwapEstimateResponse>
-    >({
-      method: 'GET',
-      url: this.routes.getSwapEstimate,
-      data: requestBody,
-      baseURL: oc.env.bffBaseUrl,
-      headers:{
-        'Authorization': `Bearer ${await oc.getAuthorizationToken()}`,
-        'Content-Type': 'application/json',
-      }
+
+    const axiosInstance = axios.create({
+      transformRequest: [(data, headers) => {
+        return JSON.stringify(data);
+      }]
     });
-  
-    if (response.data.status === 'error') {
-      throw new Error('Failed to estimate order');
+
+    axiosInstance.interceptors.request.use(request => {
+      console.log('Request:', request.method, request.url, request.data);
+      return request;
+    });
+
+  const response = await axiosInstance.request<ApiResponse<SwapEstimateResponse>>({
+    method: 'GET',
+    url: this.routes.getSwapEstimate,
+    data: requestBody,
+    baseURL: oc.env.bffBaseUrl,
+    headers: {
+      'Authorization': `Bearer ${await oc.getAuthorizationToken()}`,
+      'Content-Type': 'application/json',
     }
-  
-    if (!response.data.data) {
-      throw new Error('Response data is missing');
-    }
-  
-    return response.data.data;
+  });
+
+  if (response.data.status === 'error') {
+    throw new Error('Failed to estimate order');
   }
+
+  if (!response.data.data) {
+    throw new Error('Response data is missing');
+  }
+
+  return response.data.data;
+}
 }
   
 
