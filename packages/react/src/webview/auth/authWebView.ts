@@ -34,7 +34,7 @@ export class OktoAuthWebView {
     this.authRequestHandler = authRequestHandler;
   }
 
-  public open(options: WebViewOptions = {}): Promise<void> {
+  public open(options: WebViewOptions = {}): Promise<string | unknown> {
     return new Promise((resolve, reject) => {
       const {
         url = `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,
@@ -50,16 +50,32 @@ export class OktoAuthWebView {
         width,
         height,
         onSuccess: (data) => {
-          onSuccess?.(data);
-          resolve();
+          try {
+            const successResponse = {
+              message: 'Authentication successful',
+              data,
+            };
+            onSuccess?.(successResponse);
+            resolve(successResponse);
+          } catch (error) {
+            console.error('Error in onSuccess callback:', error);
+            reject(error);
+          }
         },
-        onError: (error) => { 
-          onError?.(error);
-          reject(error);
+        onError: (error) => {
+          const errorResponse = {
+            message: 'Authentication failed',
+            error,
+          };
+          onError?.(new Error(errorResponse.message));
+          reject(errorResponse);
         },
         onClose: () => {
+          const closeResponse = {
+            message: 'Authentication canceled by the user',
+          };
           onClose?.();
-          reject(new Error('Authentication canceled'));
+          reject(new Error(closeResponse.message));
         },
         modalStyle: {
           backgroundColor: 'rgba(0,0,0,0.7)',
@@ -76,8 +92,12 @@ export class OktoAuthWebView {
 
       if (!isOpened) {
         const error = new Error('WebView failed to open. Are popups blocked?');
-        onError?.(error);
-        return reject(error);
+        const errorResponse = {
+          message: 'WebView failed to open',
+          error,
+        };
+        onError?.(new Error(errorResponse.message));
+        return reject(errorResponse);
       }
 
       const messageListener = (event: MessageEvent) => {

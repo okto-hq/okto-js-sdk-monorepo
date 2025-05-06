@@ -45,7 +45,9 @@ class OktoClient extends OktoCoreClient {
     this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
   }
 
-  public authenticateWithWebView(options: WebViewOptions = {}): Promise<void> {
+  public authenticateWithWebView(
+    options: WebViewOptions = {},
+  ): Promise<string | unknown> {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
     }
