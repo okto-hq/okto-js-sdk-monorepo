@@ -73,7 +73,7 @@ export class WebViewManager {
    * @param options The options for the web view.
    * @returns
    */
-  public openWebView(options: WebViewOptions = {}): boolean {
+  public openWebView(options: WebViewOptions = {}) {
     const {
       url = DEFAULT_WEBVIEW_URL as string,
       width = undefined,

@@ -1,5 +1,5 @@
 import { DEFAULT_WEBVIEW_URL } from '../constants.js';
-import type { WebViewResponseOptions } from '../types.js';
+import type { WebViewOptions } from '../types.js';
 import type { WebViewManager } from '../webViewManager.js';
 import type { AuthRequestHandler } from './authRequestHandler.js';
 
@@ -12,7 +12,7 @@ import type { AuthRequestHandler } from './authRequestHandler.js';
  * @close webview
  * @param {WebViewManager} webViewManager - The WebViewManager instance used to manage the WebView.
  * @param {AuthRequestHandler} authRequestHandler - The AuthRequestHandler instance used to handle authentication requests.
- * @param {WebViewResponseOptions} options - Options for customizing the WebView onSuccess, onError and onClose.
+ * @param {WebViewOptions} options - Options for customizing the WebView onSuccess, onError and onClose.
  */
 export class OktoAuthWebView {
   private webViewManager: WebViewManager;
@@ -27,7 +27,7 @@ export class OktoAuthWebView {
   }
 
   public open(
-    options: WebViewResponseOptions = {},
+    options: WebViewOptions = {},
   ): Promise<string | { message: string }> {
     return new Promise((resolve, reject) => {
       const { onError, onClose, onSuccess } = options;
@@ -69,26 +69,26 @@ export class OktoAuthWebView {
         height: 800,
         onSuccess: (data) => {
           try {
-            cleanup();
             const successResponse = {
               message: 'Authentication successful',
               data,
             };
             onSuccess?.(successResponse);
+            cleanup();
             resolve(successResponse);
           } catch (error) {
-            cleanup();
             console.error('Error in onSuccess callback:', error);
+            cleanup();
             reject(error);
           }
         },
         onError: (error) => {
-          cleanup();
           const errorResponse = {
             message: 'Authentication failed',
             error,
           };
           onError?.(new Error(errorResponse.message));
+          cleanup();
           reject(errorResponse);
         },
         onClose: () => {

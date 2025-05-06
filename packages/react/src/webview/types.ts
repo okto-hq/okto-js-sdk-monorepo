@@ -1,3 +1,5 @@
+import type { Address } from '@okto_web3/core-js-sdk/types';
+
 /**
  * @WebViewOptions
  * @description Interface for configuring the webview.
@@ -29,7 +31,7 @@ export interface WebViewOptions {
  * @property {function} onClose - Callback function for closing the response.
  */
 export interface WebViewResponseOptions {
-  onSuccess?: (data: unknown) => void;
+  onSuccess?: (data: unknown) => Address;
   onError?: (error: Error) => void;
   onClose?: () => void;
 }

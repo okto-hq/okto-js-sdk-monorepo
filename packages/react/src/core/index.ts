@@ -51,7 +51,11 @@ class OktoClient extends OktoCoreClient {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
     }
-    return this.authWebView.open(options);
+    return this.authWebView.open({
+      onSuccess(data) {
+        options.onSuccess?.(data);
+      },
+    });
   }
 
   /**
