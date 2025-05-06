@@ -57,12 +57,12 @@ class OktoClient extends OktoCoreClient {
   /**
    * Overrides the `loginUsingOAuth` method to handle OAuth login functionality.
    * Stores the session configuration in local storage and updates the session state.
-   * 
+   *
    * @param data - The authentication data required for OAuth login.
    * @param onSuccess - Optional callback function to execute upon successful login.
    *                     Receives the session configuration as a parameter.
    * @returns A promise that resolves to an `Address`, `RpcError`, or `undefined`.
-   * 
+   *
    * @deprecated This method is deprecated and may be removed in future versions.
    *             Consider using the updated authentication methods provided by the SDK.
    */

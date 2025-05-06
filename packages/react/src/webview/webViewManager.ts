@@ -79,10 +79,12 @@ export class WebViewManager {
       width = undefined,
       height = undefined,
       onClose,
+      onSuccess,
+      onError,
       modalStyle = {},
       iframeStyle = {},
     } = options;
-
+  
     if (this.debug) {
       console.log('[WebViewManager] Opening web view with options:', {
         url,
@@ -92,11 +94,11 @@ export class WebViewManager {
         iframeStyle,
       });
     }
-
+  
     try {
       const urlObj = new URL(url);
       this.currentTargetOrigin = urlObj.origin;
-
+  
       if (!this.allowedOrigins?.includes(this.currentTargetOrigin)) {
         if (this.debug) {
           console.error('[WebViewManager] Origin not allowed');
@@ -109,45 +111,70 @@ export class WebViewManager {
       }
       return false;
     }
-
+  
     this.webModal = document.createElement('div');
     Object.assign(this.webModal.style, DEFAULT_MODAL_STYLE, modalStyle, {
       opacity: '0',
       transition: 'opacity 0.5s ease',
     });
-
+  
     const iframeContainer = document.createElement('div');
     iframeContainer.style.position = 'relative';
-    iframeContainer.style.width = `${width}px`;
-    iframeContainer.style.height = `${height}px`;
-
+    iframeContainer.style.width = width ? `${width}px` : '100%';
+    iframeContainer.style.height = height ? `${height}px` : '100%';
+  
     this.webFrame = document.createElement('iframe');
     Object.assign(this.webFrame.style, DEFAULT_IFRAME_STYLE, iframeStyle);
     this.webFrame.src = url;
-
+  
     iframeContainer.appendChild(this.webFrame);
     this.webModal.appendChild(iframeContainer);
     document.body.appendChild(this.webModal);
-
-    // Trigger animation
+  
+    // Animate in
     requestAnimationFrame(() => {
       this.webModal!.style.opacity = '1';
     });
-
+  
     const closeHandler = () => {
       this.webModal!.style.opacity = '0';
       setTimeout(() => {
         this.closeWebView();
         onClose?.();
-      }, 300); // Match the transition duration
+      }, 300);
     };
-
+  
+    // Modal click-to-close
     this.webModal.addEventListener('click', (e) => {
       if (e.target === this.webModal) closeHandler();
     });
-
+  
+    // Attach postMessage listener for onSuccess and onError
+    const messageHandler = (event: MessageEvent) => {
+      if (event.origin !== this.currentTargetOrigin) return;
+  
+      const { channel, data } = event.data ?? {};
+  
+      if (this.debug) {
+        console.log('[WebViewManager] Received message:', event.data);
+      }
+  
+      if (channel === CHANNELS.RESPONSE) {
+        if (data?.status === 'success') {
+          onSuccess?.(data);
+          window.removeEventListener('message', messageHandler);
+        } else if (data?.status === 'error') {
+          onError?.(data);
+          window.removeEventListener('message', messageHandler);
+        }
+      }
+    };
+  
+    window.addEventListener('message', messageHandler);
+  
     return true;
   }
+  
 
   /**
    * @description
