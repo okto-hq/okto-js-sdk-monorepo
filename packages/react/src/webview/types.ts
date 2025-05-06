@@ -22,6 +22,19 @@ export interface WebViewOptions {
 }
 
 /**
+ * @WebViewResponseOptions
+ * @description Interface for responses sent from the webview to the main application.
+ * @property {function} onSuccess - Callback function for successful response.
+ * @property {function} onError - Callback function for error response.
+ * @property {function} onClose - Callback function for closing the response.
+ */
+export interface WebViewResponseOptions {
+  onSuccess?: (data: unknown) => void;
+  onError?: (error: Error) => void;
+  onClose?: () => void;
+}
+
+/**
  * @WebViewMessage
  * @description Interface for messages sent between the webview and the main application.
  * @property {string} id - Unique identifier for the message.
@@ -53,14 +66,14 @@ export interface WebViewRequest {
 /**
  * @WebViewRequestHandler
  * @description Type definition for a function that handles requests from the webview.
- * @param {any} data - The data received from the webview.
- * @returns {void} - No return value.
- * @example
- * const myRequestHandler: WebViewRequestHandler = async (data) => {
- *  return { success: true, message: 'Request handled successfully' };
- * };
+ * @param {object} data - The structured data received from the webview.
+ * @returns {Promise<unknown> | void} - A promise or nothing.
  */
-export type WebViewRequestHandler = (data: any) => Promise<any> | void;
+export type WebViewRequestHandler = (data: {
+  id?: string;
+  method?: string;
+  data?: { [key: string]: unknown };
+}) => Promise<unknown> | void;
 
 /**
  * @WhatsAppOtpResponse

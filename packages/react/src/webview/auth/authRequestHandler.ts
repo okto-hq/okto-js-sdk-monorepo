@@ -22,7 +22,6 @@ export class AuthRequestHandler {
     data?: { [key: string]: unknown } | undefined;
   }) => {
     console.log('Received request:', actualData);
-    // if (!actualData?.data?.type) return;
 
     if (typeof actualData !== 'object' || actualData === null) {
       throw new Error('Invalid request data');

@@ -18,7 +18,7 @@ import {
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
 import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
-import type { WebViewOptions } from 'src/webview/types.js';
+import type { WebViewResponseOptions } from 'src/webview/types.js';
 import { WebViewManager } from '../webview/webViewManager.js';
 
 class OktoClient extends OktoCoreClient {
@@ -46,14 +46,26 @@ class OktoClient extends OktoCoreClient {
   }
 
   public authenticateWithWebView(
-    options: WebViewOptions = {},
-  ): Promise<string | unknown> {
+    options: WebViewResponseOptions = {},
+  ): Promise<string | { message: string }> {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
     }
     return this.authWebView.open(options);
   }
 
+  /**
+   * Overrides the `loginUsingOAuth` method to handle OAuth login functionality.
+   * Stores the session configuration in local storage and updates the session state.
+   * 
+   * @param data - The authentication data required for OAuth login.
+   * @param onSuccess - Optional callback function to execute upon successful login.
+   *                     Receives the session configuration as a parameter.
+   * @returns A promise that resolves to an `Address`, `RpcError`, or `undefined`.
+   * 
+   * @deprecated This method is deprecated and may be removed in future versions.
+   *             Consider using the updated authentication methods provided by the SDK.
+   */
   override loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
