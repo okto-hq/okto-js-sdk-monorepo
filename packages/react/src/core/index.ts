@@ -55,6 +55,12 @@ class OktoClient extends OktoCoreClient {
       onSuccess(data) {
         options.onSuccess?.(data);
       },
+      onClose() {
+        options.onClose?.();
+      },
+      onError(error) {
+        options.onError?.(error);
+      },
     });
   }
 
