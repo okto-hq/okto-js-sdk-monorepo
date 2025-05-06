@@ -265,7 +265,7 @@ class BffClientRepository {
     const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
     >(this.routes.getSwapEstimate, {
-      data: requestBody,
+      requestBody,
     });
 
     if (response.data.status === 'error') {
