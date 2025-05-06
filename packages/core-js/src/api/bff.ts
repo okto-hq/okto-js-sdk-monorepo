@@ -35,11 +35,11 @@ class BffClientRepository {
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
     getEntities: '/api/oc/v1/entities',
-    getSwapEstimate: '/api/oc/v1/estimate',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
+    swapEstimate: '/api/oc/v1/estimate',
   };
 
   /**
@@ -262,11 +262,9 @@ class BffClientRepository {
     oc: OktoClient,
     requestBody: SwapEstimateRequest,
   ): Promise<SwapEstimateResponse> {
-    const response = await getBffClient(oc).get<
+    const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
-    >(this.routes.getSwapEstimate, {
-      data: requestBody,
-    });
+    >(this.routes.swapEstimate, requestBody);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
