@@ -264,9 +264,7 @@ class BffClientRepository {
   ): Promise<SwapEstimateResponse> {
     const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
-    >(this.routes.getSwapEstimate, {
-      requestBody,
-    });
+    >(this.routes.getSwapEstimate, requestBody);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
