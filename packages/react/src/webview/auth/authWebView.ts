@@ -42,12 +42,21 @@ export class OktoAuthWebView {
         height = 800,
         onError,
         onClose,
+        onSuccess,
       } = options;
 
       const isOpened = this.webViewManager.openWebView({
         url,
         width,
         height,
+        onSuccess: (data) => {
+          onSuccess?.(data);
+          resolve();
+        },
+        onError: (error) => { 
+          onError?.(error);
+          reject(error);
+        },
         onClose: () => {
           onClose?.();
           reject(new Error('Authentication canceled'));

@@ -41,20 +41,23 @@ export class AuthRequestHandler {
       const response = await this.oktoClient?.loginUsingSocial('google');
       console.log('Google login response:', response);
       if (response) {
+        this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
+          success: true,
+          message: 'Google login successful',
+          token: response,
+        });
+        this.webViewManager.closeWebView();
+        return response;
+      } else {
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
           (actualData as { data?: { [key: string]: unknown } }).data,
           `error occurred while logging in with google: ${response}`,
         );
-        return;
-      } else {
-        this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
-          success: true,
-          message: 'Google login successful',
-          token: response,
-        });
-        return;
+        throw new Error(
+          `error occurred while logging in with google: ${response}`,
+        );
       }
     }
 
