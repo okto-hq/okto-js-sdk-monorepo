@@ -170,6 +170,8 @@ class OktoClient {
     }
     validateAuthData(data);
 
+    console.log('KARAN :: [OktoClient] Login using OAuth:', data);
+
     const clientPrivateKey = this._clientConfig.clientPrivKey;
     const clientSWA = this._clientConfig.clientSWA;
     const session = SessionKey.create();
@@ -341,6 +343,7 @@ class OktoClient {
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);
+      console.log('KARAN :: ID Token:', idToken);
       if (!idToken) {
         throw new Error('No ID token received from authentication');
       }
@@ -350,7 +353,8 @@ class OktoClient {
         idToken,
         provider: provider,
       };
-
+      
+      console.log('KARAN:: Auth Data:', authData);
       // Perform OAuth login with the received token
       return await this.loginUsingOAuth(authData);
     } catch (error) {
