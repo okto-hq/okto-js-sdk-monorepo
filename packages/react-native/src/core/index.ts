@@ -66,13 +66,14 @@ class OktoClient extends OktoCoreClient {
 
   override async loginUsingSocial(
     provider: SocialAuthType,
+    options?: { redirectUrl?: string },
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = 'oktosdk://auth';
+    const redirectUrl = options?.redirectUrl || 'oktosdk://auth' ;
     const state = {
       client_url: redirectUrl,
       platform: Platform.OS,
     };
-
+    
     // Clean up any existing sessions
     try {
       WebBrowser.maybeCompleteAuthSession();
