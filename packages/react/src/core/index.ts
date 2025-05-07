@@ -18,7 +18,10 @@ import {
 import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
 import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
-import type { WebViewResponseOptions } from 'src/webview/types.js';
+import type {
+  WebViewOptions,
+  WebViewResponseOptions,
+} from 'src/webview/types.js';
 import { WebViewManager } from '../webview/webViewManager.js';
 
 class OktoClient extends OktoCoreClient {
@@ -39,8 +42,11 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
-  private initializeWebView(debugMode?: boolean): void {
-    this.webViewManager = new WebViewManager(debugMode);
+  private initializeWebView(
+    debugMode?: boolean,
+    options?: WebViewOptions,
+  ): void {
+    this.webViewManager = new WebViewManager(debugMode, options);
     const authHandler = new AuthRequestHandler(this.webViewManager, this);
     this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
   }
@@ -50,6 +56,12 @@ class OktoClient extends OktoCoreClient {
   ): Promise<string | { message: string }> {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
+    } else {
+      this.webViewManager?.setOnCloseCallback(options.onClose ?? (() => {}));
+      this.webViewManager?.setOnErrorCallback(options.onError ?? (() => {}));
+      this.webViewManager?.setOnSuccessCallback(
+        options.onSuccess ?? (() => {}),
+      );
     }
     return this.authWebView.open({
       onSuccess(data) {

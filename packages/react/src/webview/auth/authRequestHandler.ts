@@ -36,27 +36,57 @@ export class AuthRequestHandler {
       (actualData as { data?: { provider?: string } }).data?.provider ===
       'google'
     ) {
-      console.log('Google login initiated');
-      const response = await this.oktoClient?.loginUsingSocial('google');
-      console.log('Google login response:', response);
-      if (response) {
-        this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
-          success: true,
-          message: 'Google login successful',
-          token: response,
-        });
-        this.webViewManager.closeWebView();
-        return response;
-      } else {
+      try {
+        const response = await this.oktoClient?.loginUsingSocial('google');
+        console.log('Google login response:', response);
+        if (response) {
+          this.webViewManager.sendResponse(
+            baseResponse.id,
+            baseResponse.method,
+            {
+              success: true,
+              message: 'Google login successful',
+              token: response,
+            },
+          );
+          this.webViewManager.closeWebView();
+          this.webViewManager.triggerSuccess(`${response}`);
+          console.log('Google login successful:', response);
+          return response;
+        } else {
+          this.webViewManager.sendErrorResponse(
+            baseResponse.id,
+            baseResponse.method,
+            (actualData as { data?: { [key: string]: unknown } }).data,
+            `error occurred while logging in with google: ${response}`,
+          );
+          this.webViewManager?.triggerError?.(
+            new Error(
+              `error occurred while logging in with google: ${response}`,
+            ),
+          );
+          setTimeout(() => {
+            this.webViewManager.closeWebView();
+          }, 1000);
+          throw new Error(
+            `error occurred while logging in with google: ${response}`,
+          );
+        }
+      } catch (error) {
+        console.error('Error during Google login:', error);
         this.webViewManager.sendErrorResponse(
           baseResponse.id,
           baseResponse.method,
           (actualData as { data?: { [key: string]: unknown } }).data,
-          `error occurred while logging in with google: ${response}`,
+          error instanceof Error ? error.message : 'Unknown error',
         );
-        throw new Error(
-          `error occurred while logging in with google: ${response}`,
+        this.webViewManager?.triggerError?.(
+          error instanceof Error ? error : new Error('Unknown error'),
         );
+        setTimeout(() => {
+          this.webViewManager.closeWebView();
+        }, 1000);
+        throw error;
       }
     }
 
@@ -73,7 +103,6 @@ export class AuthRequestHandler {
         break;
 
       case 'verify_otp': {
-        console.log('Verifying OTP:', actualData.data.otp);
         const response = await this.handleVerifyOtp(
           actualData.data.provider == 'email'
             ? (actualData.data.email as string)
@@ -84,7 +113,8 @@ export class AuthRequestHandler {
           baseResponse,
           actualData.data,
         );
-        console.log('OTP verification response Srijan:', response);
+        console.log('OTP verification response:', response);
+        this.webViewManager.triggerSuccess(`${response}`);
         return response;
       }
 
@@ -152,6 +182,9 @@ export class AuthRequestHandler {
           data,
           'Failed to send OTP: Token missing in response',
         );
+        this.webViewManager?.triggerError?.(
+          new Error('Failed to send OTP: Token missing in response'),
+        );
       }
     } catch (error) {
       console.error('Error while sending OTP:', error);
@@ -161,6 +194,11 @@ export class AuthRequestHandler {
         data,
         error as string,
       );
+      if (error instanceof Error) {
+        this.webViewManager?.triggerError?.(error);
+      } else {
+        this.webViewManager?.triggerError?.(new Error('Unknown error'));
+      }
     }
   }
 
@@ -217,13 +255,17 @@ export class AuthRequestHandler {
       }
     } catch (error) {
       console.error('Error during OTP verification:', error);
-
       this.webViewManager.sendErrorResponse(
         baseResponse.id,
         baseResponse.method,
         data,
         error instanceof Error ? error.message : 'Unknown error',
       );
+      if (error instanceof Error) {
+        this.webViewManager?.triggerError?.(error);
+      } else {
+        console.error('Unknown error type:', error);
+      }
     }
   }
 
@@ -268,6 +310,9 @@ export class AuthRequestHandler {
           data,
           'Failed to resend OTP: Token missing in response',
         );
+        this.webViewManager?.triggerError?.(
+          new Error('Failed to resend OTP: Token missing in response'),
+        );
       }
     } catch (error) {
       console.error('Error while resending OTP:', error);
@@ -278,6 +323,11 @@ export class AuthRequestHandler {
         data,
         error instanceof Error ? error.message : 'Unknown error',
       );
+      if (error instanceof Error) {
+        this.webViewManager?.triggerError?.(error);
+      } else {
+        console.error('Unknown error type:', error);
+      }
     }
   }
 
@@ -313,6 +363,11 @@ export class AuthRequestHandler {
         data,
         error instanceof Error ? error.message : 'Unknown error',
       );
+      if (error instanceof Error) {
+        this.webViewManager?.triggerError?.(error);
+      } else {
+        this.webViewManager?.triggerError?.(new Error('Unknown error'));
+      }
     }
   }
 }

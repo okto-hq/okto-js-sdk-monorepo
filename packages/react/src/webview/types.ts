@@ -16,7 +16,7 @@ export interface WebViewOptions {
   url?: string;
   width?: number;
   height?: number;
-  onSuccess?: (user: unknown) => void;
+  onSuccess?: (user: string) => void;
   onError?: (error: Error) => void;
   onClose?: () => void;
   modalStyle?: Partial<CSSStyleDeclaration>;
@@ -31,7 +31,7 @@ export interface WebViewOptions {
  * @property {function} onClose - Callback function for closing the response.
  */
 export interface WebViewResponseOptions {
-  onSuccess?: (data: unknown) => Address;
+  onSuccess?: (data: string) => Address | void;
   onError?: (error: Error) => void;
   onClose?: () => void;
 }

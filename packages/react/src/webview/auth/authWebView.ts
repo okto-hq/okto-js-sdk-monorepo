@@ -31,6 +31,41 @@ export class OktoAuthWebView {
   ): Promise<string | { message: string; data?: string }> {
     return new Promise((resolve, reject) => {
       const { onSuccess, onError, onClose } = options;
+      const cleanup = () => {
+        window.removeEventListener('message', messageListener);
+      };
+
+      const handleSuccess = (data: string) => {
+        try {
+          onSuccess?.(data);
+        } catch (err) {
+          console.error('onSuccess callback failed:', err);
+        }
+        cleanup();
+        resolve(data);
+      };
+
+      const handleError = (err: Error) => {
+        const payload = { message: 'Authentication failed', error: err };
+        try {
+          onError?.(new Error(payload.message));
+        } catch (callbackErr) {
+          console.error('onError callback failed:', callbackErr);
+        }
+        cleanup();
+        reject(payload);
+      };
+
+      const handleClose = () => {
+        const payload = { message: 'Authentication canceled by the user' };
+        try {
+          onClose?.();
+        } catch (err) {
+          console.error('onClose callback failed:', err);
+        }
+        cleanup();
+        reject(payload);
+      };
 
       const messageListener = async (event: MessageEvent) => {
         if (!this.webViewManager['allowedOrigins']?.includes(event.origin)) {
@@ -53,23 +88,14 @@ export class OktoAuthWebView {
 
           const response =
             await this.authRequestHandler.handleRequest(actualData);
-
           if (response && typeof response === 'string') {
-            const successPayload = {
-              message: 'Authentication successful',
-              data: response,
-            };
-            onSuccess?.(successPayload);
-            cleanup();
-            resolve(successPayload);
+            this.webViewManager.triggerSuccess(response);
+            handleSuccess(response);
           }
         } catch (err) {
-          console.error('WebView event processing failed:', err);
+          this.webViewManager.triggerError(err as Error);
+          handleError(err as Error);
         }
-      };
-
-      const cleanup = () => {
-        window.removeEventListener('message', messageListener);
       };
 
       window.addEventListener('message', messageListener);
@@ -79,43 +105,10 @@ export class OktoAuthWebView {
         width: 500,
         height: 800,
         onSuccess: (data) => {
-          const successPayload = {
-            message: 'Authentication successful',
-            data: typeof data === 'string' ? data : undefined,
-          };
-          try {
-            onSuccess?.(successPayload);
-            resolve(successPayload);
-          } catch (error) {
-            console.error('onSuccess callback failed:', error);
-            reject(error);
-          } finally {
-            cleanup();
-          }
+          if (typeof data === 'string') handleSuccess(data);
         },
-        onError: (error) => {
-          const errorPayload = {
-            message: 'Authentication failed',
-            error,
-          };
-          try {
-            onError?.(new Error(errorPayload.message));
-          } finally {
-            cleanup();
-            reject(errorPayload);
-          }
-        },
-        onClose: () => {
-          const closePayload = {
-            message: 'Authentication canceled by the user',
-          };
-          try {
-            onClose?.();
-          } finally {
-            cleanup();
-            reject(new Error(closePayload.message));
-          }
-        },
+        onError: handleError,
+        onClose: handleClose,
         modalStyle: {
           backgroundColor: 'rgba(0,0,0,0.7)',
         },
@@ -130,14 +123,8 @@ export class OktoAuthWebView {
       });
 
       if (!isOpened) {
-        cleanup();
         const error = new Error('WebView failed to open. Are popups blocked?');
-        const errorPayload = {
-          message: 'WebView failed to open',
-          error,
-        };
-        onError?.(new Error(errorPayload.message));
-        reject(errorPayload);
+        handleError(error);
       }
     });
   }
