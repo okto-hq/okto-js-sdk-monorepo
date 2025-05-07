@@ -117,7 +117,6 @@ export class AuthWebViewRequestHandler {
     const { provider } = request.data;
 
     if (provider === 'google') {
-      console.log(`Using redirect URL for Google login: ${this.redirectUrl}`);
       await this.oktoClient.loginUsingSocial(
         provider,
         {
@@ -126,7 +125,7 @@ export class AuthWebViewRequestHandler {
         },
         createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
         (session: SessionConfig) => {
-          console.log('Email login successful, session established:', session);
+          console.log('Google login successful, session established:', session);
           setStorage('okto_session', JSON.stringify(session));
         },
       );
