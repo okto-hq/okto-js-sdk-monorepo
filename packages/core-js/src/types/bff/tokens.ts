@@ -54,7 +54,7 @@ export type TokenEntity = {
     age?: number;
     priority?: number;
     fdv?: number;
-    priceChange24h?: number;
+    priceChange_24h?: number;
     priceVolData?: Record<string, unknown>;
     tokenRank?: number;
     category?: string[];
