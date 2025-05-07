@@ -126,6 +126,13 @@ export class AuthWebViewRequestHandler {
           platform: Platform.OS,
         },
         createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+        (session: SessionConfig) => {
+          console.log(
+            'Email login successful, session established:',
+            session,
+          );
+          setStorage('okto_session', JSON.stringify(session));
+        },
       );
       console.log('Google login successful, closing WebView');
       setTimeout(() => {
