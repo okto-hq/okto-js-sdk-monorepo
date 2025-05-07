@@ -28,11 +28,11 @@ export class OktoAuthWebView {
 
   public open(
     options: WebViewOptions = {},
-  ): Promise<string | { message: string }> {
+  ): Promise<string | { message: string; data?: string }> {
     return new Promise((resolve, reject) => {
-      const { onError, onClose, onSuccess } = options;
+      const { onSuccess, onError, onClose } = options;
 
-      const messageListener = (event: MessageEvent) => {
+      const messageListener = async (event: MessageEvent) => {
         if (!this.webViewManager['allowedOrigins']?.includes(event.origin)) {
           console.warn('Received message from untrusted origin:', event.origin);
           return;
@@ -51,9 +51,20 @@ export class OktoAuthWebView {
                 : rawData.eventData
               : rawData;
 
-          this.authRequestHandler.handleRequest(actualData);
-        } catch (e) {
-          console.error('Failed to process WebView event:', e);
+          const response =
+            await this.authRequestHandler.handleRequest(actualData);
+
+          if (response && typeof response === 'string') {
+            const successPayload = {
+              message: 'Authentication successful',
+              data: response,
+            };
+            onSuccess?.(successPayload);
+            cleanup();
+            resolve(successPayload);
+          }
+        } catch (err) {
+          console.error('WebView event processing failed:', err);
         }
       };
 
@@ -68,36 +79,42 @@ export class OktoAuthWebView {
         width: 500,
         height: 800,
         onSuccess: (data) => {
+          const successPayload = {
+            message: 'Authentication successful',
+            data: typeof data === 'string' ? data : undefined,
+          };
           try {
-            const successResponse = {
-              message: 'Authentication successful',
-              data,
-            };
-            onSuccess?.(successResponse);
-            cleanup();
-            resolve(successResponse);
+            onSuccess?.(successPayload);
+            resolve(successPayload);
           } catch (error) {
-            console.error('Error in onSuccess callback:', error);
-            cleanup();
+            console.error('onSuccess callback failed:', error);
             reject(error);
+          } finally {
+            cleanup();
           }
         },
         onError: (error) => {
-          const errorResponse = {
+          const errorPayload = {
             message: 'Authentication failed',
             error,
           };
-          onError?.(new Error(errorResponse.message));
-          cleanup();
-          reject(errorResponse);
+          try {
+            onError?.(new Error(errorPayload.message));
+          } finally {
+            cleanup();
+            reject(errorPayload);
+          }
         },
         onClose: () => {
-          cleanup();
-          const closeResponse = {
+          const closePayload = {
             message: 'Authentication canceled by the user',
           };
-          onClose?.();
-          reject(new Error(closeResponse.message));
+          try {
+            onClose?.();
+          } finally {
+            cleanup();
+            reject(new Error(closePayload.message));
+          }
         },
         modalStyle: {
           backgroundColor: 'rgba(0,0,0,0.7)',
@@ -115,12 +132,12 @@ export class OktoAuthWebView {
       if (!isOpened) {
         cleanup();
         const error = new Error('WebView failed to open. Are popups blocked?');
-        const errorResponse = {
+        const errorPayload = {
           message: 'WebView failed to open',
           error,
         };
-        onError?.(new Error(errorResponse.message));
-        return reject(errorResponse);
+        onError?.(new Error(errorPayload.message));
+        reject(errorPayload);
       }
     });
   }
