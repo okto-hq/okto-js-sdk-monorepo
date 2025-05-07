@@ -354,7 +354,11 @@ class OktoClient {
       };
 
       // Perform OAuth login with the received token
-      return await this.loginUsingOAuth(authData,onSuccess, overrideSessionConfig);
+      return await this.loginUsingOAuth(
+        authData,
+        onSuccess,
+        overrideSessionConfig,
+      );
     } catch (error) {
       console.error('Error during social authentication:', error);
       if (error instanceof RpcError) {
