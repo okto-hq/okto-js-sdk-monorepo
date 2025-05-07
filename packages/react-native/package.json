@@ -76,6 +76,14 @@
     "expo-web-browser": ">=12.0.0",
     "uuid": ">=11.0.0"
   },
+  "peerDependenciesMeta": {
+    "expo-clipboard": {
+      "optional": true
+    },
+    "expo-web-browser": {
+      "optional": true
+    }
+  },
   "keywords": [],
   "author": "Sparsh Agarwal <sparsh.a@coindcx.com>",
   "files": [
