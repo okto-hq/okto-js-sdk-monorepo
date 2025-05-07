@@ -25,15 +25,22 @@ export class AuthWebViewRequestHandler {
   private authPromiseResolverRef: { current: AuthPromiseResolver } = {
     current: null,
   };
+  private redirectUrl: string;
 
   constructor(
     bridge: WebViewBridge,
     navigationCallback: () => void,
     oktoClient: OktoClient,
+    redirectUrl: string,
   ) {
+    if (!redirectUrl) {
+      throw new Error('redirectUrl is required for AuthWebViewRequestHandler');
+    }
+
     this.bridge = bridge;
     this.navigationCallback = navigationCallback;
     this.oktoClient = oktoClient;
+    this.redirectUrl = redirectUrl;
     this.initialize();
   }
 
@@ -105,19 +112,50 @@ export class AuthWebViewRequestHandler {
     }
   };
 
-  // Handle Google provider directly with no OTP flow
+  //  Google login handler that uses the redirectUrl
   private handleGoogleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
+
     if (provider === 'google') {
-      const redirectUrl = 'oktosdk://auth';
-      await this.oktoClient.loginUsingSocial(
-        provider,
-        {
-          client_url: redirectUrl,
-          platform: Platform.OS,
-        },
-        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
-      );
+      console.log(`Using redirect URL for Google login: ${this.redirectUrl}`);
+
+      try {
+        await this.oktoClient.loginUsingSocial(
+          provider,
+          {
+            client_url: this.redirectUrl,
+            platform: Platform.OS,
+          },
+          createExpoBrowserHandler(
+            this.redirectUrl,
+            this.authPromiseResolverRef,
+          ),
+        );
+
+        // Send success response back to WebView
+        this.bridge.sendResponse({
+          id: request.id,
+          method: request.method,
+          data: {
+            provider,
+            status: 'auth-initiated',
+            message: 'Google authentication initiated',
+          },
+        });
+      } catch (error) {
+        console.error('Google login error:', error);
+        this.bridge.sendResponse({
+          id: request.id,
+          method: request.method,
+          data: {
+            provider,
+          },
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to authenticate with Google',
+        });
+      }
       return;
     }
   };

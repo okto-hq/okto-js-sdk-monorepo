@@ -23,6 +23,7 @@ interface NavigationProps {
     params: {
       url: string;
       clientConfig: OktoClientConfig;
+      redirectUrl: string;
       onWebViewClose: () => void;
     },
   ) => void;
@@ -66,9 +67,13 @@ class OktoClient extends OktoCoreClient {
 
   override async loginUsingSocial(
     provider: SocialAuthType,
-    options?: { redirectUrl?: string },
+    options: { redirectUrl: string },
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = options?.redirectUrl || 'oktosdk://auth';
+    if (!options?.redirectUrl) {
+      throw new Error('[OktoClient] redirectUrl is required for social login');
+    }
+
+    const redirectUrl = options.redirectUrl;
     const state = {
       client_url: redirectUrl,
       platform: Platform.OS,
@@ -91,6 +96,12 @@ class OktoClient extends OktoCoreClient {
     } catch (error) {
       console.error('[OktoClient] Social login error:', error);
       throw error;
+    } finally {
+      try {
+        await WebBrowser.coolDownAsync();
+      } catch (error) {
+        console.error('[OktoClient] Error cooling down browser:', error);
+      }
     }
   }
 
@@ -99,10 +110,20 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(url: string, navigation: NavigationProps): void {
+  public openWebView(
+    url: string,
+    navigation: NavigationProps,
+    redirectUrl: string,
+  ): void {
+    if (!redirectUrl) {
+      throw new Error(
+        '[OktoClient] redirectUrl is required for WebView authentication',
+      );
+    }
     navigation.navigate('WebViewScreen', {
       url,
       clientConfig: this.config,
+      redirectUrl,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
         console.log('Client SWA After Login', newClient.clientSWA);

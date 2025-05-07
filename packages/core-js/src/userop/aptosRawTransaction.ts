@@ -13,7 +13,10 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { AptosRawTransaction, AptosRawTransactionIntentParams } from './types.js';
+import type {
+  AptosRawTransaction,
+  AptosRawTransactionIntentParams,
+} from './types.js';
 import {
   AptosRawTransactionIntentParamsSchema,
   validateSchema,

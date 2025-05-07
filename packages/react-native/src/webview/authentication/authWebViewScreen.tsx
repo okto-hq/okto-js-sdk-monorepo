@@ -25,7 +25,8 @@ type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'> & {
  */
 export const WebViewScreen = ({ route, navigation }: Props) => {
   // Extract parameters passed through navigation
-  const { url, title, clientConfig } = route.params;
+  const { url, title, clientConfig, redirectUrl, onWebViewClose } =
+    route.params;
 
   // Create refs
   const webViewRef = useRef<WebView>(null);
@@ -50,16 +51,28 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
    * Used by request handlers to close WebView when appropriate
    */
   const navigateBack = () => {
-    if (route.params.onWebViewClose) {
-      route.params.onWebViewClose();
+    if (onWebViewClose) {
+      onWebViewClose();
     }
 
     navigation.goBack();
   };
 
+  useEffect(() => {
+    if (!redirectUrl) {
+      console.error('Missing required redirectUrl parameter');
+      navigateBack();
+    }
+  }, [redirectUrl]);
+
   // Initialize the authentication request handler with necessary dependencies
   const requestHandler = useRef(
-    new AuthWebViewRequestHandler(bridge, navigateBack, oktoClient),
+    new AuthWebViewRequestHandler(
+      bridge,
+      navigateBack,
+      oktoClient,
+      redirectUrl,
+    ),
   ).current;
 
   // Update navigation title if provided in route params
@@ -76,6 +89,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       currentValue: webViewRef.current,
     });
     console.log('Request handler:', requestHandler);
+    console.log('Using redirect URL:', redirectUrl);
   }, []);
 
   // Handle hardware back button presses
