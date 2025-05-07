@@ -65,31 +65,31 @@ class Account {
    * @param {boolean} usePaymaster Whether to include paymaster details in the payload (optional).
    * @returns {Promise<OrderEstimateResponse>} The estimated order response.
    */
-//   public static async estimate(
-//     oc: OktoClient,
-//     recipientWalletAddress: string,
-//     caip2Id: string,
-//     tokenAddress: string,
-//     amount: string,
-//   ): Promise<OrderEstimateResponse> {
-//     // Generate the payload using the private method.
-//     const payload = await this._generateEstimateOrderPayload(
-//       oc,
-//       recipientWalletAddress,
-//       caip2Id,
-//       tokenAddress,
-//       amount,
-//     );
+  //   public static async estimate(
+  //     oc: OktoClient,
+  //     recipientWalletAddress: string,
+  //     caip2Id: string,
+  //     tokenAddress: string,
+  //     amount: string,
+  //   ): Promise<OrderEstimateResponse> {
+  //     // Generate the payload using the private method.
+  //     const payload = await this._generateEstimateOrderPayload(
+  //       oc,
+  //       recipientWalletAddress,
+  //       caip2Id,
+  //       tokenAddress,
+  //       amount,
+  //     );
 
-//     try {
-//       const estimateRes = await BffClientRepository.estimateOrder(oc, payload);
+  //     try {
+  //       const estimateRes = await BffClientRepository.estimateOrder(oc, payload);
 
-//       return estimateRes;
-//     } catch (error) {
-//       console.error('Error generating estimate order response:', error);
-//       throw error;
-//     }
-//   }
+  //       return estimateRes;
+  //     } catch (error) {
+  //       console.error('Error generating estimate order response:', error);
+  //       throw error;
+  //     }
+  //   }
 }
 
 export default Account;
