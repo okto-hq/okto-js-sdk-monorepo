@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "0.5.2-dev.27",
+  "version": "0.5.2-dev.28",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -17,7 +17,8 @@
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "check-types": "tsc --noEmit",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+    "postinstall": "npx expo-module postinstall"
   },
   "exports": {
     ".": {
@@ -33,7 +34,8 @@
   },
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
-    "@okto_web3/core-js-sdk": "workspace:*"
+    "@okto_web3/core-js-sdk": "workspace:*",
+    "expo-modules-core": "^1.5.12"
   },
   "devDependencies": {
     "@okto_web3/eslint-config": "workspace:*",
@@ -49,7 +51,9 @@
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "@react-navigation/stack": "^7.2.10",
+    "expo": "^50.0.0",
     "expo-clipboard": "^7.0.1",
+    "expo-modules-autolinking": "^1.5.1",
     "expo-web-browser": "^14.0.2",
     "react-native-get-random-values": "^1.11.0",
     "react-native-mmkv": "^3.2.0",
@@ -65,13 +69,15 @@
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-native": ">=0.70.0",
+    "expo": ">=48.0.0",
+    "expo-modules-core": ">=1.0.0",
     "react-native-get-random-values": ">=1.8.0",
     "react-native-mmkv": ">=2.0.0",
     "react-native-safe-area-context": ">=4.0.0",
     "react-native-webview": ">=11.0.0",
-    "@react-navigation/native": ">=7.0.0",
-    "@react-navigation/native-stack": ">=7.0.0",
-    "@react-navigation/stack": ">=7.0.0",
+    "@react-navigation/native": ">=6.0.0",
+    "@react-navigation/native-stack": ">=6.0.0",
+    "@react-navigation/stack": ">=6.0.0",
     "expo-clipboard": ">=4.0.0",
     "expo-web-browser": ">=12.0.0",
     "uuid": ">=11.0.0"
