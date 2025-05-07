@@ -9,6 +9,7 @@ export interface EnvConfig {
   jobManagerAddress: Address;
   entryPointAddress: Address;
   chainId: number;
+  authPageUrl: string;
 }
 
 export interface ClientConfig {

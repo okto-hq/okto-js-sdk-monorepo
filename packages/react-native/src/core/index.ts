@@ -54,6 +54,16 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  private getAuthPageUrl(): string {
+    const { env } = this;
+    if (!env.authPageUrl) {
+      throw new Error(
+        '[OktoClient] Authentication page URL is not configured for this environment',
+      );
+    }
+    return env.authPageUrl;
+  }
+
   override loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -110,18 +120,16 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(
-    url: string,
-    navigation: NavigationProps,
-    redirectUrl: string,
-  ): void {
+  public openWebView(navigation: NavigationProps, redirectUrl: string): void {
     if (!redirectUrl) {
       throw new Error(
         '[OktoClient] redirectUrl is required for WebView authentication',
       );
     }
+
+    const authUrl = this.getAuthPageUrl();
     navigation.navigate('WebViewScreen', {
-      url,
+      url: authUrl,
       clientConfig: this.config,
       redirectUrl,
       onWebViewClose: () => {
