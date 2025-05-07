@@ -330,6 +330,8 @@ class OktoClient {
     provider: SocialAuthType,
     state: Record<string, string>,
     overrideOpenWindow: (url: string) => Promise<string>,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
   ): Promise<Address | RpcError | undefined> {
     if (this.isLoggedIn()) {
       throw new BaseError('User is already logged in. Please log out first.');
@@ -352,7 +354,7 @@ class OktoClient {
       };
 
       // Perform OAuth login with the received token
-      return await this.loginUsingOAuth(authData);
+      return await this.loginUsingOAuth(authData,onSuccess, overrideSessionConfig);
     } catch (error) {
       console.error('Error during social authentication:', error);
       if (error instanceof RpcError) {
