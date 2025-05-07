@@ -105,18 +105,35 @@ function logError(error: AxiosError): void {
 }
 
 function generateCurl(config: any, token?: string): string {
-  const method = config.method?.toUpperCase() || 'GET';
-  const url = `${config.baseURL || ''}${config.url || ''}`;
+  const method = config.method?.toUpperCase();
+  let url = `${config.baseURL || ''}${config.url || ''}`;
+
+  if (config.params && Object.keys(config.params).length > 0) {
+    const queryParams = new URLSearchParams();
+
+    Object.entries(config.params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        queryParams.append(key, JSON.stringify(value));
+      } else {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    url += `?${queryParams.toString()}`;
+  }
+
   const headers = Object.entries(config.headers || {})
-    .filter(([key, value]) => value) // Filter out empty headers
+    .filter(([key, value]) => value)
     .map(([key, value]) => `-H "${key}: ${value}"`)
     .join(' ');
+
   const data =
     config.data && typeof config.data === 'object'
       ? `--data '${JSON.stringify(config.data)}'`
       : config.data
         ? `--data '${config.data}'`
         : '';
+
   const authHeader = token ? `-H "Authorization: Bearer ${token}"` : '';
 
   const curlCommand =
