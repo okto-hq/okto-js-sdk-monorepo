@@ -47,6 +47,7 @@ export function createExpoBrowserHandler(
             );
         }
       }, 300000); // 5 minute timeout
+      console.log("karan is here",redirectUrl)
 
       // Open auth URL in the Expo WebBrowser
       WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
@@ -67,8 +68,10 @@ export function createExpoBrowserHandler(
                   const urlObj = new URL(result.url);
                   const idToken = urlObj.searchParams.get('id_token');
                   if (idToken) {
+                    console.log("karan is here in idtoken ",idToken)
                     authPromiseResolverRef.current.resolve(idToken);
                     authPromiseResolverRef.current = null;
+                    console.log("karan is here in return")
                     return;
                   }
                 }

@@ -115,6 +115,7 @@ export class AuthWebViewRequestHandler {
   //  Google login handler that uses the redirectUrl
   private handleGoogleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
+    console.log('Handling Google login request:', this.redirectUrl);
 
     if (provider === 'google') {
       console.log(`Using redirect URL for Google login: ${this.redirectUrl}`);
@@ -126,7 +127,10 @@ export class AuthWebViewRequestHandler {
         },
         createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
       );
-      return;
+      console.log('Google login successful, closing WebView');
+      setTimeout(() => {
+        this.navigationCallback();
+      }, 1000);
     }
   };
 
