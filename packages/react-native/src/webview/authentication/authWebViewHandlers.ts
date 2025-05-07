@@ -118,44 +118,14 @@ export class AuthWebViewRequestHandler {
 
     if (provider === 'google') {
       console.log(`Using redirect URL for Google login: ${this.redirectUrl}`);
-
-      try {
-        await this.oktoClient.loginUsingSocial(
-          provider,
-          {
-            client_url: this.redirectUrl,
-            platform: Platform.OS,
-          },
-          createExpoBrowserHandler(
-            this.redirectUrl,
-            this.authPromiseResolverRef,
-          ),
-        );
-
-        // Send success response back to WebView
-        this.bridge.sendResponse({
-          id: request.id,
-          method: request.method,
-          data: {
-            provider,
-            status: 'auth-initiated',
-            message: 'Google authentication initiated',
-          },
-        });
-      } catch (error) {
-        console.error('Google login error:', error);
-        this.bridge.sendResponse({
-          id: request.id,
-          method: request.method,
-          data: {
-            provider,
-          },
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to authenticate with Google',
-        });
-      }
+      await this.oktoClient.loginUsingSocial(
+        provider,
+        {
+          client_url: this.redirectUrl,
+          platform: Platform.OS,
+        },
+        createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+      );
       return;
     }
   };

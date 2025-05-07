@@ -89,7 +89,7 @@ class OktoClient extends OktoCoreClient {
       platform: Platform.OS,
     };
 
-    console.log('KARAN :: [OktoClient] Social login state:', state)
+    console.log('KARAN :: [OktoClient] Social login state:', state);
     console.log('KARAN :: [OktoClient] Social login provider:', provider);
     console.log('KARAN :: [OktoClient] Social login redirectUrl:', redirectUrl);
     // Clean up any existing sessions

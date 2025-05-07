@@ -353,7 +353,7 @@ class OktoClient {
         idToken,
         provider: provider,
       };
-      
+
       console.log('KARAN:: Auth Data:', authData);
       // Perform OAuth login with the received token
       return await this.loginUsingOAuth(authData);
