@@ -70,19 +70,14 @@ export async function nftCreateCollection(
     );
   }
 
-  const nftData = {
+  const nftData = JSON.stringify({
     attributes: data.data.attributes || '',
     symbol: data.data.symbol || '',
     type: data.data.type || '',
     description: data.data.description || '',
-  };
+  });
 
-  const nftDataEncoded = encodeAbiParameters(
-    parseAbiParameters(
-      '(string attributes, string symbol, string type, string description)',
-    ),
-    [nftData],
-  );
+  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, uint256, bytes'),
