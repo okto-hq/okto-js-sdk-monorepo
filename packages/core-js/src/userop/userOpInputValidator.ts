@@ -85,23 +85,13 @@ export const NftMintParamsSchema = z
       .string({
         required_error: 'CAIP2 ID is required',
       })
-      .min(1, 'CAIP2 ID cannot be blank')
-      .refine(
-        (val) => val.trim() === val,
-        'CAIP2 ID cannot have leading or trailing spaces',
-      )
-      .refine(
-        (val) => val.toLowerCase().startsWith('aptos:'),
-        'NFT Minting is only supported on Aptos chain',
-      ),
+      .min(1, 'CAIP2 ID cannot be blank'),
     nftName: z
       .string({
         required_error: 'NFT name is required',
       })
       .min(1, 'NFT name cannot be empty'),
-    collectionAddress: isHexString(
-      'Invalid collection address format',
-    ).optional(),
+    collectionAddress: z.string().optional(),
     uri: z
       .string({
         required_error: 'URI is required',
@@ -109,19 +99,13 @@ export const NftMintParamsSchema = z
       .min(1, 'URI cannot be empty'),
     data: z
       .object({
-        recipientWalletAddress: z
-          .string()
-          .min(1, 'Recipient wallet address cannot be empty')
-          .optional(),
-        description: z
-          .string()
-          .min(1, 'Description cannot be empty')
-          .optional(),
+        recipientWalletAddress: z.string().optional(),
+        description: z.string().optional(),
         properties: z
           .array(
             z.object({
-              name: z.string().min(1, 'Property name cannot be empty'),
-              type: z.number(),
+              name: z.string(),
+              type: z.number().int(),
               value: z.string(),
             }),
           )
@@ -129,19 +113,7 @@ export const NftMintParamsSchema = z
       })
       .strict(),
   })
-  .strict()
-  .refine(
-    (data) => {
-      const isEVMorSolana = !data.caip2Id.toLowerCase().startsWith('aptos:');
-      return (
-        !isEVMorSolana || (isEVMorSolana && !!data.data.recipientWalletAddress)
-      );
-    },
-    {
-      message: 'Recipient wallet address is required for EVM and Solana chains',
-      path: ['data', 'recipientWalletAddress'],
-    },
-  );
+  .strict();
 
 export const AptosRawTransactionIntentParamsSchema = z
   .object({
