@@ -26,7 +26,8 @@ import {
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, data with attributes, symbol, type, description).
+ * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, and optional data with attributes, symbol, type, description).
+ * @param feePayerAddress - Optional fee payer address.
  * @returns The User Operation (UserOp) for the NFT collection creation.
  */
 export async function nftCreateCollection(
@@ -69,18 +70,19 @@ export async function nftCreateCollection(
     );
   }
 
+  // Create default values for optional fields if not provided
+  const nftData = {
+    attributes: data.data.attributes || '',
+    symbol: data.data.symbol || '',
+    type: data.data.type || '',
+    description: data.data.description || '',
+  };
+
   const nftDataEncoded = encodeAbiParameters(
     parseAbiParameters(
       '(string attributes, string symbol, string type, string description)',
     ),
-    [
-      {
-        attributes: data.data.attributes,
-        symbol: data.data.symbol,
-        type: data.data.type,
-        description: data.data.description,
-      },
-    ],
+    [nftData],
   );
 
   const calldata = encodeAbiParameters(

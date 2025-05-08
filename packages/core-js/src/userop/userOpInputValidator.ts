@@ -15,6 +15,10 @@ export const NftCreateCollectionParamsSchema = z
       .refine(
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
+      )
+      .refine(
+        (val) => val.toLowerCase().startsWith('aptos:'),
+        'NFT Collection creation is only supported on Aptos chain',
       ),
     name: z
       .string({
@@ -30,19 +34,9 @@ export const NftCreateCollectionParamsSchema = z
     data: z
       .object({
         attributes: z.string().optional(),
-        symbol: z
-          .string({
-            required_error: 'Symbol is required',
-          })
-          .min(1, 'Symbol cannot be empty'),
-        type: z.enum(['ERC721', 'ERC1155'], {
-          required_error: 'Type must be either ERC721 or ERC1155',
-        }),
-        description: z
-          .string({
-            required_error: 'Description is required',
-          })
-          .min(1, 'Description cannot be empty'),
+        symbol: z.string().optional(),
+        type: z.string().optional(),
+        description: z.string().optional(),
       })
       .strict(),
   })
@@ -95,13 +89,19 @@ export const NftMintParamsSchema = z
       .refine(
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
+      )
+      .refine(
+        (val) => val.toLowerCase().startsWith('aptos:'),
+        'NFT Minting is only supported on Aptos chain',
       ),
     nftName: z
       .string({
         required_error: 'NFT name is required',
       })
       .min(1, 'NFT name cannot be empty'),
-    collectionAddress: isHexString('Invalid collection address format'),
+    collectionAddress: isHexString(
+      'Invalid collection address format',
+    ).optional(),
     uri: z
       .string({
         required_error: 'URI is required',
@@ -110,30 +110,38 @@ export const NftMintParamsSchema = z
     data: z
       .object({
         recipientWalletAddress: z
-          .string({
-            required_error: 'Recipient wallet address is required',
-          })
-          .min(1, 'Recipient wallet address cannot be empty'),
+          .string()
+          .min(1, 'Recipient wallet address cannot be empty')
+          .optional(),
         description: z
-          .string({
-            required_error: 'Description is required',
-          })
-          .min(1, 'Description cannot be empty'),
-        properties: z.array(
-          z.object({
-            name: z
-              .string({
-                required_error: 'Property name is required',
-              })
-              .min(1, 'Property name cannot be empty'),
-            valueType: z.string(),
-            value: z.string(),
-          }),
-        ),
+          .string()
+          .min(1, 'Description cannot be empty')
+          .optional(),
+        properties: z
+          .array(
+            z.object({
+              name: z.string().min(1, 'Property name cannot be empty'),
+              type: z.number(),
+              value: z.string(),
+            }),
+          )
+          .optional(),
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (data) => {
+      const isEVMorSolana = !data.caip2Id.toLowerCase().startsWith('aptos:');
+      return (
+        !isEVMorSolana || (isEVMorSolana && !!data.data.recipientWalletAddress)
+      );
+    },
+    {
+      message: 'Recipient wallet address is required for EVM and Solana chains',
+      path: ['data', 'recipientWalletAddress'],
+    },
+  );
 
 export const AptosRawTransactionIntentParamsSchema = z
   .object({
