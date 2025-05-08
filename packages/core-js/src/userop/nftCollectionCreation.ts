@@ -18,6 +18,7 @@ import {
   validateSchema,
 } from './userOpInputValidator.js';
 
+
 /**
  * Creates a user operation for NFT collection creation.
  *
@@ -70,20 +71,16 @@ export async function nftCreateCollection(
     );
   }
 
-  // Create default values for optional fields if not provided
-  const nftData = {
+  // Convert the NFT data to a JSON string
+  const nftData = JSON.stringify({
     attributes: data.data.attributes || '',
     symbol: data.data.symbol || '',
     type: data.data.type || '',
     description: data.data.description || '',
-  };
+  });
 
-  const nftDataEncoded = encodeAbiParameters(
-    parseAbiParameters(
-      '(string attributes, string symbol, string type, string description)',
-    ),
-    [nftData],
-  );
+  // Encode the JSON string to hex
+  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, uint256, bytes'),
