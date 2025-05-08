@@ -70,7 +70,6 @@ export async function nftCreateCollection(
     );
   }
 
-  // Create default values for optional fields if not provided
   const nftData = {
     attributes: data.data.attributes || '',
     symbol: data.data.symbol || '',
