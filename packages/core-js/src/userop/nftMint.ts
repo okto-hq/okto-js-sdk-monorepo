@@ -73,18 +73,13 @@ export async function nftMint(
     value: prop.value,
   }));
 
-  const nftDataEncoded = encodeAbiParameters(
-    parseAbiParameters(
-      '(string recipientWalletAddress, string description, (string name, string valueType, string value)[] properties)',
-    ),
-    [
-      {
-        recipientWalletAddress: data.data.recipientWalletAddress || '',
-        description: data.data.description || '',
-        properties: formattedProperties,
-      },
-    ],
-  );
+  const nftData = JSON.stringify({
+    recipientWalletAddress: data.data.recipientWalletAddress || '',
+    description: data.data.description || '',
+    properties: formattedProperties,
+  });
+
+  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, uint256, bytes'),
