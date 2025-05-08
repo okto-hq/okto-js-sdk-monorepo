@@ -369,6 +369,30 @@ class OktoClient {
   }
 
   /**
+   * Logs in a user using JWT authentication.
+   * @param jwtToken - The JWT token for authentication.
+   * @param onSuccess - Callback function executed on successful login.
+   * @param overrideSessionConfig - Optional session configuration to override the current session.
+   * @returns {Promise<Address | RpcError | undefined>} - A promise that resolves to the user's address, an RpcError, or undefined.
+   */
+  public async loginUsingJWTAuthentication(
+    jwtToken: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    if (this.isLoggedIn()) {
+      throw new BaseError('User is already logged in. Please log out first.');
+    }
+
+    const authData: AuthData = {
+      idToken: jwtToken,
+      provider: 'client_jwt',
+    };
+
+    return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
+  }
+
+  /**
    * Verifies if the user is logged in.
    * If user is not logged in, it clears the auth options.
    *
