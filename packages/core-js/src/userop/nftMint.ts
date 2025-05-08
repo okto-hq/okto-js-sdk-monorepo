@@ -65,17 +65,14 @@ export async function nftMint(
     });
   }
 
-  // Default values for properties
   const properties = data.data.properties || [];
 
-  // Prepare property objects with the correct structure
   const formattedProperties = properties.map((prop) => ({
     name: prop.name,
-    valueType: String(prop.type), // Convert type to string since our API expects valueType as string
+    valueType: String(prop.type),
     value: prop.value,
   }));
 
-  // Encode the NFT mint data into bytes
   const nftDataEncoded = encodeAbiParameters(
     parseAbiParameters(
       '(string recipientWalletAddress, string description, (string name, string valueType, string value)[] properties)',
