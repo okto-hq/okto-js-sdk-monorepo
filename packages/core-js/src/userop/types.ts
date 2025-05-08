@@ -52,10 +52,10 @@ export interface NftCreateCollectionParams {
   name: string;
   uri: string;
   data: {
-    attributes: string;
-    symbol: string;
-    type: string;
-    description: string;
+    attributes?: string;
+    symbol?: string;
+    type?: string;
+    description?: string;
   };
 }
 
@@ -77,14 +77,14 @@ export interface NftCreateCollectionParams {
 export interface NftMintParams {
   caip2Id: string;
   nftName: string;
-  collectionAddress: string;
+  collectionAddress?: string;
   uri: string;
   data: {
-    recipientWalletAddress: string;
-    description: string;
-    properties: Array<{
+    recipientWalletAddress?: string;
+    description?: string;
+    properties?: Array<{
       name: string;
-      valueType: string;
+      type: number;
       value: string;
     }>;
   };
