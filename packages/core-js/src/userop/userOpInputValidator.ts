@@ -132,7 +132,6 @@ export const NftMintParamsSchema = z
   .strict()
   .refine(
     (data) => {
-      // Check if recipientWalletAddress is present for EVM or Solana chains
       const isEVMorSolana = !data.caip2Id.toLowerCase().startsWith('aptos:');
       return (
         !isEVMorSolana || (isEVMorSolana && !!data.data.recipientWalletAddress)
