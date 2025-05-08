@@ -18,7 +18,6 @@ import {
   validateSchema,
 } from './userOpInputValidator.js';
 
-
 /**
  * Creates a user operation for NFT collection creation.
  *
