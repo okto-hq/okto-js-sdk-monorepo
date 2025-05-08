@@ -127,10 +127,7 @@ export class AuthWebViewRequestHandler {
         },
         createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
         (session: SessionConfig) => {
-          console.log(
-            'Email login successful, session established:',
-            session,
-          );
+          console.log('Email login successful, session established:', session);
           setStorage('okto_session', JSON.stringify(session));
         },
       );
