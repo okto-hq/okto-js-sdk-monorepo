@@ -89,7 +89,6 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       currentValue: webViewRef.current,
     });
     console.log('Request handler:', requestHandler);
-    console.log('Using redirect URL:', redirectUrl);
   }, []);
 
   // Handle hardware back button presses
