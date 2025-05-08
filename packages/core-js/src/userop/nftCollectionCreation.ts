@@ -120,7 +120,7 @@ export async function nftCreateCollection(
               caip2Id: data.caip2Id,
               name: data.name,
               uri: data.uri,
-              data: toHex(nftDataEncoded),
+              data: nftDataEncoded,
             },
           ]),
           Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
