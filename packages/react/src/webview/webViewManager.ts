@@ -444,7 +444,8 @@ export class WebViewManager {
    * @example
    * webViewManager.closeWebView();
    */
-  public closeWebView(): void {
+  public closeWebView(options: { triggerCallback?: boolean } = {}): void {
+    const { triggerCallback = true } = options;
     if (this.webModal) {
       // fade-out animation
       this.webModal.style.opacity = '0';
@@ -459,7 +460,7 @@ export class WebViewManager {
         this.currentTargetOrigin = null;
         this.clearPopupCheck();
       }, 300);
-      if (this.onCloseCallback) {
+      if (triggerCallback && this.onCloseCallback) {
         this.onCloseCallback();
       }
     }
