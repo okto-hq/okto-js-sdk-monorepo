@@ -71,10 +71,10 @@ export async function nftCreateCollection(
   }
 
   const nftData = JSON.stringify({
-    attributes: data.data.attributes || '',
-    symbol: data.data.symbol || '',
     type: data.data.type || '',
+    attributes: data.data.attributes || '',
     description: data.data.description || '',
+    symbol: data.data.symbol || '',
   });
 
   const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
