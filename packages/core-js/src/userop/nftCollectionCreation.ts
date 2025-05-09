@@ -72,10 +72,10 @@ export async function nftCreateCollection(
 
   // Convert the NFT data to a JSON string
   const nftData = JSON.stringify({
-    attributes: data.data.attributes || '',
-    symbol: data.data.symbol || '',
     type: data.data.type || '',
+    attributes: data.data.attributes || '',
     description: data.data.description || '',
+    symbol: data.data.symbol || '',
   });
 
   // Encode the JSON string to hex
@@ -99,8 +99,8 @@ export async function nftCreateCollection(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled:  false,
-                sponsorshipEnabled: false,
+                gsnEnabled: currentChain.gsnEnabled ?? false,
+                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
               },
             ],
           ),
