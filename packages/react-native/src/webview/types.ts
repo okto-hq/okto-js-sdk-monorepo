@@ -48,6 +48,7 @@ export type WebViewParamList = {
     url: string;
     title?: string;
     provider?: AuthProvider;
+    redirectUrl: string;
     initialData?: Record<string, string | number | boolean>;
     onAuthComplete?: (data: Record<string, string | number | boolean>) => void;
     clientConfig: {

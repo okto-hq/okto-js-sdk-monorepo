@@ -16,8 +16,8 @@ export function useOktoWebView() {
    * @param url The URL to open in the WebView
    */
   const openWebView = useCallback(
-    (url: string) => {
-      oktoClient.openWebView(url, navigation);
+    (redirectUrl: string) => {
+      oktoClient.openWebView(navigation, redirectUrl);
     },
     [oktoClient, navigation],
   );

@@ -13,13 +13,13 @@ export class Constants {
     '0x0000000000000000000000000000000000000000';
 
   static readonly GAS_LIMITS = {
-    CALL_GAS_LIMIT: BigInt(300_000),
-    VERIFICATION_GAS_LIMIT: BigInt(200_000),
-    PRE_VERIFICATION_GAS: BigInt(50_000),
-    MAX_FEE_PER_GAS: BigInt(2_000_000_000),
-    MAX_PRIORITY_FEE_PER_GAS: BigInt(2_000_000_000),
-    PAYMASTER_POST_OP_GAS_LIMIT: BigInt(100_000),
-    PAYMASTER_VERIFICATION_GAS_LIMIT: BigInt(100_000),
+    CALL_GAS_LIMIT: BigInt(600_000),
+    VERIFICATION_GAS_LIMIT: BigInt(400_000),
+    PRE_VERIFICATION_GAS: BigInt(100_000),
+    MAX_FEE_PER_GAS: BigInt(4_000_000_000),
+    MAX_PRIORITY_FEE_PER_GAS: BigInt(4_000_000_000),
+    PAYMASTER_POST_OP_GAS_LIMIT: BigInt(200_000),
+    PAYMASTER_VERIFICATION_GAS_LIMIT: BigInt(200_000),
   };
 
   static readonly INTENT_TYPE = {
@@ -37,6 +37,7 @@ export class Constants {
       ENTRYPOINT_CONTRACT_ADDRESS:
         '0xec3F5f7a3f0e43e61D8711A90B8c8Fc59B9a88ba' as Hex,
       CHAIN_ID: 124736089,
+      AUTH_PAGE_URL: 'https://onboarding.oktostage.com/',
     },
     SANDBOX: {
       PAYMASTER_ADDRESS: '0x74324fA6Fa67b833dfdea4C1b3A9898574d076e3' as Hex,
@@ -44,6 +45,7 @@ export class Constants {
       ENTRYPOINT_CONTRACT_ADDRESS:
         '0xCa5b1b0d3893b5152014fD5B519FF50f7C40f9da' as Hex,
       CHAIN_ID: 1802466136,
+      AUTH_PAGE_URL: 'https://sandbox-onboarding.okto.tech/',
     },
     // PRODUCTION: {
     //   PAYMASTER_ADDRESS: '0x0871051BfF8C7041c985dEddFA8eF63d23AD3Fa0' as Hex,

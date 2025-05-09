@@ -15,6 +15,10 @@ export const NftCreateCollectionParamsSchema = z
       .refine(
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
+      )
+      .refine(
+        (val) => val.toLowerCase().startsWith('aptos:'),
+        'NFT Collection creation is only supported on Aptos chain',
       ),
     name: z
       .string({
@@ -30,19 +34,9 @@ export const NftCreateCollectionParamsSchema = z
     data: z
       .object({
         attributes: z.string().optional(),
-        symbol: z
-          .string({
-            required_error: 'Symbol is required',
-          })
-          .min(1, 'Symbol cannot be empty'),
-        type: z.enum(['ERC721', 'ERC1155'], {
-          required_error: 'Type must be either ERC721 or ERC1155',
-        }),
-        description: z
-          .string({
-            required_error: 'Description is required',
-          })
-          .min(1, 'Description cannot be empty'),
+        symbol: z.string().optional(),
+        type: z.string().optional(),
+        description: z.string().optional(),
       })
       .strict(),
   })
@@ -91,17 +85,13 @@ export const NftMintParamsSchema = z
       .string({
         required_error: 'CAIP2 ID is required',
       })
-      .min(1, 'CAIP2 ID cannot be blank')
-      .refine(
-        (val) => val.trim() === val,
-        'CAIP2 ID cannot have leading or trailing spaces',
-      ),
+      .min(1, 'CAIP2 ID cannot be blank'),
     nftName: z
       .string({
         required_error: 'NFT name is required',
       })
       .min(1, 'NFT name cannot be empty'),
-    collectionAddress: isHexString('Invalid collection address format'),
+    collectionAddress: z.string().optional(),
     uri: z
       .string({
         required_error: 'URI is required',
@@ -109,27 +99,17 @@ export const NftMintParamsSchema = z
       .min(1, 'URI cannot be empty'),
     data: z
       .object({
-        recipientWalletAddress: z
-          .string({
-            required_error: 'Recipient wallet address is required',
-          })
-          .min(1, 'Recipient wallet address cannot be empty'),
-        description: z
-          .string({
-            required_error: 'Description is required',
-          })
-          .min(1, 'Description cannot be empty'),
-        properties: z.array(
-          z.object({
-            name: z
-              .string({
-                required_error: 'Property name is required',
-              })
-              .min(1, 'Property name cannot be empty'),
-            valueType: z.string(),
-            value: z.string(),
-          }),
-        ),
+        recipientWalletAddress: z.string().optional(),
+        description: z.string().optional(),
+        properties: z
+          .array(
+            z.object({
+              name: z.string(),
+              type: z.number().int(),
+              value: z.string(),
+            }),
+          )
+          .optional(),
       })
       .strict(),
   })

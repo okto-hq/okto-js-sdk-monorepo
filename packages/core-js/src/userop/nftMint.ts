@@ -23,7 +23,8 @@ import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for minting an NFT (caip2Id, nftName, collectionAddress, uri, and additional data).
+ * @param data - The parameters for minting an NFT (caip2Id, nftName, optional collectionAddress, uri, and optional data).
+ * @param feePayerAddress - Optional fee payer address.
  * @returns The User Operation (UserOp) for the NFT minting.
  */
 export async function nftMint(
@@ -64,23 +65,21 @@ export async function nftMint(
     });
   }
 
-  // Encode the NFT mint data into bytes
-  const nftDataEncoded = encodeAbiParameters(
-    parseAbiParameters(
-      '(string recipientWalletAddress, string description, (string name, string valueType, string value)[] properties)',
-    ),
-    [
-      {
-        recipientWalletAddress: data.data.recipientWalletAddress,
-        description: data.data.description,
-        properties: data.data.properties.map((prop) => ({
-          name: prop.name,
-          valueType: prop.valueType,
-          value: prop.value,
-        })),
-      },
-    ],
-  );
+  const properties = data.data.properties || [];
+
+  const formattedProperties = properties.map((prop) => ({
+    name: prop.name,
+    valueType: String(prop.type),
+    value: prop.value,
+  }));
+
+  const nftData = JSON.stringify({
+    recipientWalletAddress: data.data.recipientWalletAddress || '',
+    description: data.data.description || '',
+    properties: formattedProperties,
+  });
+
+  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, uint256, bytes'),
@@ -116,7 +115,7 @@ export async function nftMint(
             {
               caip2Id: data.caip2Id,
               nftName: data.nftName,
-              collectionAddress: data.collectionAddress,
+              collectionAddress: data.collectionAddress || '',
               uri: data.uri,
               data: nftDataEncoded,
             },
