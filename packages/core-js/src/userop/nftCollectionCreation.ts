@@ -99,8 +99,8 @@ export async function nftCreateCollection(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: currentChain.gsnEnabled ?? false,
-                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
+                gsnEnabled:  false,
+                sponsorshipEnabled: false,
               },
             ],
           ),
