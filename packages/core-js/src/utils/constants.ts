@@ -28,6 +28,7 @@ export class Constants {
     NFT_CREATE_COLLECTION: 'NFT_CREATE_COLLECTION',
     RAW_TRANSACTION: 'RAW_TRANSACTION',
     NFT_MINT: 'NFT_MINT',
+    SWAP: 'SWAP',
   };
 
   static readonly ENV_CONFIG = {
