@@ -134,8 +134,8 @@ export async function nftCreateCollection(
     callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+    maxFeePerGas: "0x240acc8c00",
+    maxPriorityFeePerGas: "0x240acc8c00",
     paymasterPostOpGasLimit: toHex(
       Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
     ),
