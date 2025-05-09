@@ -51,7 +51,7 @@ export class AuthRequestHandler {
           );
           this.webViewManager.triggerSuccess(`${response}`);
           console.log('Google login successful:', response);
-          this.webViewManager.closeWebView({triggerCallback: false});
+          this.webViewManager.closeWebView({ triggerCallback: false });
           return response;
         } else {
           this.webViewManager.sendErrorResponse(
@@ -245,7 +245,7 @@ export class AuthRequestHandler {
         );
 
         setTimeout(() => {
-          this.webViewManager.closeWebView({triggerCallback: false});
+          this.webViewManager.closeWebView({ triggerCallback: false });
         }, 1000);
 
         console.log('Login successful:', response);
