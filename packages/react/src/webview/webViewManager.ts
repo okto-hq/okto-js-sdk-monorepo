@@ -43,13 +43,24 @@ export class WebViewManager {
     (data: unknown) => Promise<unknown>
   >();
 
+  private onCloseCallback?: () => void;
+  private onErrorCallback?: (error: Error) => void;
+  private onSuccessCallback?: (data: string) => void;
+
   private webModal: HTMLDivElement | null = null;
   private webFrame: HTMLIFrameElement | null = null;
   private currentTargetOrigin: string | null = null;
 
-  constructor(debug: boolean = false, allowedOrigins?: string[]) {
+  constructor(
+    debug: boolean = false,
+    options: WebViewOptions = {},
+    allowedOrigins?: string[],
+  ) {
     this.debug = debug;
     this.allowedOrigins = allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
+    this.onCloseCallback = options.onClose;
+    this.onSuccessCallback = options.onSuccess;
+    this.onErrorCallback = options.onError;
   }
 
   /**
@@ -73,12 +84,14 @@ export class WebViewManager {
    * @param options The options for the web view.
    * @returns
    */
-  public openWebView(options: WebViewOptions = {}): boolean {
+  public openWebView(options: WebViewOptions = {}) {
     const {
       url = DEFAULT_WEBVIEW_URL as string,
       width = undefined,
       height = undefined,
       onClose,
+      onSuccess,
+      onError,
       modalStyle = {},
       iframeStyle = {},
     } = options;
@@ -118,8 +131,8 @@ export class WebViewManager {
 
     const iframeContainer = document.createElement('div');
     iframeContainer.style.position = 'relative';
-    iframeContainer.style.width = `${width}px`;
-    iframeContainer.style.height = `${height}px`;
+    iframeContainer.style.width = width ? `${width}px` : '100%';
+    iframeContainer.style.height = height ? `${height}px` : '100%';
 
     this.webFrame = document.createElement('iframe');
     Object.assign(this.webFrame.style, DEFAULT_IFRAME_STYLE, iframeStyle);
@@ -129,7 +142,7 @@ export class WebViewManager {
     this.webModal.appendChild(iframeContainer);
     document.body.appendChild(this.webModal);
 
-    // Trigger animation
+    // Animate in
     requestAnimationFrame(() => {
       this.webModal!.style.opacity = '1';
     });
@@ -139,12 +152,36 @@ export class WebViewManager {
       setTimeout(() => {
         this.closeWebView();
         onClose?.();
-      }, 300); // Match the transition duration
+      }, 300);
     };
 
+    // Modal click-to-close
     this.webModal.addEventListener('click', (e) => {
       if (e.target === this.webModal) closeHandler();
     });
+
+    // Attach postMessage listener for onSuccess and onError
+    const messageHandler = (event: MessageEvent) => {
+      if (event.origin !== this.currentTargetOrigin) return;
+
+      const { channel, data } = event.data ?? {};
+
+      if (this.debug) {
+        console.log('[WebViewManager] Received message:', event.data);
+      }
+
+      if (channel === CHANNELS.RESPONSE) {
+        if (data?.status === 'success') {
+          onSuccess?.(data);
+          window.removeEventListener('message', messageHandler);
+        } else if (data?.status === 'error') {
+          onError?.(data);
+          window.removeEventListener('message', messageHandler);
+        }
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
 
     return true;
   }
@@ -407,7 +444,8 @@ export class WebViewManager {
    * @example
    * webViewManager.closeWebView();
    */
-  public closeWebView(): void {
+  public closeWebView(options: { triggerCallback?: boolean } = {}): void {
+    const { triggerCallback = true } = options;
     if (this.webModal) {
       // fade-out animation
       this.webModal.style.opacity = '0';
@@ -422,7 +460,77 @@ export class WebViewManager {
         this.currentTargetOrigin = null;
         this.clearPopupCheck();
       }, 300);
+      if (triggerCallback && this.onCloseCallback) {
+        this.onCloseCallback();
+      }
     }
+  }
+  /**
+   * @description
+   * Sets the callback function to be called when the web view is closed.
+   * @param callback The callback function to set.
+   * @returns void
+   * @example
+   * webViewManager.setOnCloseCallback(() => {
+   *   console.log('Web view closed');
+   * });
+   */
+  public setOnCloseCallback(callback: () => void) {
+    this.onCloseCallback = callback;
+  }
+
+  /**
+   * @description
+   * Sets the callback function to be called when an error occurs in the web view.
+   * @param callback The callback function to set.
+   * @returns void
+   * @example
+   * webViewManager.setOnErrorCallback((error) => {
+   *   console.error('Web view error:', error);
+   * });
+   */
+  public setOnErrorCallback(callback: (error: Error) => void): void {
+    this.onErrorCallback = callback;
+  }
+
+  /**
+   * @description
+   * Sets the callback function to be called when the web view is successful.
+   * @param callback The callback function to set.
+   * @returns void
+   * @example
+   * webViewManager.setOnSuccessCallback((data) => {
+   *   console.log('Web view success:', data);
+   * });
+   */
+  public setOnSuccessCallback(callback: (data: string) => void): void {
+    this.onSuccessCallback = callback;
+  }
+
+  /**
+   * @description
+   * Triggers an error in the web view.
+   * This method is used to handle errors that occur during the web view's lifecycle.
+   * @param error The error to trigger.
+   * @returns void
+   * @example
+   * webViewManager.triggerError(new Error('An error occurred'));
+   */
+  public triggerError(error: Error): void {
+    this.onErrorCallback?.(error);
+  }
+
+  /**
+   * @description
+   * Triggers a success in the web view.
+   * This method is used to handle successful events that occur during the web view's lifecycle.
+   * @param data The data to trigger.
+   * @returns void
+   * @example
+   * webViewManager.triggerSuccess('Success message');
+   */
+  public triggerSuccess(data: string): void {
+    this.onSuccessCallback?.(data);
   }
 
   /**

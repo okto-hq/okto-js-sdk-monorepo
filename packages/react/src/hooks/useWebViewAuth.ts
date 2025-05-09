@@ -11,12 +11,32 @@ export function useOktoWebView() {
     async (options: WebViewOptions = {}) => {
       if (!authWebView) {
         throw new Error('AuthWebView is not initialized.');
+      } else {
+        client['webViewManager']?.setOnCloseCallback(
+          options.onClose ?? (() => {}),
+        );
+        client['webViewManager']?.setOnErrorCallback(
+          options.onError ?? (() => {}),
+        );
+        client['webViewManager']?.setOnSuccessCallback(
+          options.onSuccess ?? (() => {}),
+        );
       }
 
       setModalOpen(true);
 
       try {
-        const result = await authWebView.open(options);
+        const result = await authWebView.open({
+          onSuccess(data) {
+            options.onSuccess?.(data);
+          },
+          onClose() {
+            options.onClose?.();
+          },
+          onError(error) {
+            options.onError?.(error);
+          },
+        });
         setModalOpen(false);
         return result;
       } catch (error) {
