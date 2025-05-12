@@ -8,6 +8,7 @@ export const stagingEnvConfig: EnvConfig = {
   jobManagerAddress: Constants.ENV_CONFIG.STAGING.JOB_MANAGER_ADDRESS,
   entryPointAddress: Constants.ENV_CONFIG.STAGING.ENTRYPOINT_CONTRACT_ADDRESS,
   chainId: Constants.ENV_CONFIG.STAGING.CHAIN_ID,
+  authPageUrl: Constants.ENV_CONFIG.STAGING.AUTH_PAGE_URL,
 };
 
 export const sandboxEnvConfig: EnvConfig = {
@@ -17,6 +18,7 @@ export const sandboxEnvConfig: EnvConfig = {
   jobManagerAddress: Constants.ENV_CONFIG.SANDBOX.JOB_MANAGER_ADDRESS,
   entryPointAddress: Constants.ENV_CONFIG.SANDBOX.ENTRYPOINT_CONTRACT_ADDRESS,
   chainId: Constants.ENV_CONFIG.SANDBOX.CHAIN_ID,
+  authPageUrl: Constants.ENV_CONFIG.SANDBOX.AUTH_PAGE_URL,
 };
 
 // export const productionEnvConfig: EnvConfig = {
