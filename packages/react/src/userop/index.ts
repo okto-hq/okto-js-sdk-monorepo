@@ -5,6 +5,7 @@ import {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  swapToken,
 } from '@okto_web3/core-js-sdk/userop';
 
 export {
@@ -14,4 +15,5 @@ export {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  swapToken,
 };
