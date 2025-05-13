@@ -1,6 +1,6 @@
 // WebViewRequestHandler.ts
 import { WebViewBridge } from '../webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from '../types.js';
+import type { UIConfig, WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
@@ -15,7 +15,7 @@ import * as Clipboard from 'expo-clipboard';
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
  *
  * This class processes authentication-related requests coming from the WebView,
- * such as OTP generation, verification, and other authentication flows using
+ * such as OTP generation, verification, UI configuration, and other authentication flows using
  * the Okto SDK.
  */
 export class AuthWebViewRequestHandler {
@@ -26,12 +26,14 @@ export class AuthWebViewRequestHandler {
     current: null,
   };
   private redirectUrl: string;
+  private uiConfig: UIConfig;
 
   constructor(
     bridge: WebViewBridge,
     navigationCallback: () => void,
     oktoClient: OktoClient,
     redirectUrl: string,
+    uiConfig?: UIConfig,
   ) {
     if (!redirectUrl) {
       throw new Error('redirectUrl is required for AuthWebViewRequestHandler');
@@ -41,6 +43,7 @@ export class AuthWebViewRequestHandler {
     this.navigationCallback = navigationCallback;
     this.oktoClient = oktoClient;
     this.redirectUrl = redirectUrl;
+    this.uiConfig = uiConfig || this.getDefaultUIConfig();
     this.initialize();
   }
 
@@ -80,6 +83,54 @@ export class AuthWebViewRequestHandler {
   };
 
   /**
+   * Get default UI configuration
+   *
+   * Provides fallback configuration if none was provided during initialization
+   * @returns Default UI configuration object
+   */
+  private getDefaultUIConfig(): UIConfig {
+    return {
+      version: '1.0.0',
+      appearance: {
+        themeName: 'light' as 'light' | 'dark',
+        theme: {
+          '--okto-body-background': '#ffffff',
+          '--okto-body-color-tertiary': '#adb5bd',
+          '--okto-accent-color': '#5166ee',
+          '--okto-button-font-weight': 500,
+          '--okto-border-color': 'rgba(22, 22, 22, 0.12)',
+          '--okto-stroke-divider': 'rgba(22, 22, 22, 0.06)',
+          '--okto-font-family':
+            '"Inter", sans-serif, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          '--okto-rounded-sm': '0.25rem',
+          '--okto-rounded-md': '0.5rem',
+          '--okto-rounded-lg': '0.75rem',
+          '--okto-rounded-xl': '1rem',
+          '--okto-rounded-full': '9999px',
+          '--okto-success-color': '#28a745',
+          '--okto-warning-color': '#ffc107',
+          '--okto-error-color': '#f75757',
+          '--okto-text-primary': '#161616',
+          '--okto-text-secondary': '#707070',
+          '--okto-background-surface': '#f8f8f8',
+        },
+      },
+      vendor: {
+        name: 'Okto wallet',
+        logo: '/okto.svg',
+      },
+      loginOptions: {
+        socialLogins: [{ type: 'google', position: 1 }],
+        otpLoginOptions: [
+          { type: 'email', position: 1 },
+          { type: 'whatsapp', position: 2 },
+        ],
+        externalWallets: [],
+      },
+    };
+  }
+
+  /**
    * Handle login-specific requests
    *
    * Further routes login requests based on the type field and provider
@@ -102,6 +153,9 @@ export class AuthWebViewRequestHandler {
         break;
       case 'paste_otp':
         await this.handlePasteOTP(request);
+        break;
+      case 'ui_config':
+        await this.handleUIConfigRequest(request);
         break;
       case 'close_webview':
         await this.handleCloseWebView(request);
@@ -133,6 +187,40 @@ export class AuthWebViewRequestHandler {
       setTimeout(() => {
         this.navigationCallback();
       }, 1000);
+    }
+  };
+
+  /**
+   * Handle UI configuration requests from WebView
+   *
+   * Sends the current UI configuration back to the WebView
+   * @param request UI configuration request
+   */
+  private handleUIConfigRequest = async (request: WebViewRequest) => {
+    try {
+      console.log('Handling UI config request:', request);
+      const response: WebViewResponse = {
+        id: request.id,
+        method: request.method,
+        data: {
+          type: 'ui_config',
+          config: this.uiConfig,
+        },
+      };
+
+      console.log('Sending UI config response:', response);
+      this.bridge.sendResponse(response);
+    } catch (error) {
+      console.error('Error handling UI config request:', error);
+      this.bridge.sendResponse({
+        id: request.id,
+        method: request.method,
+        data: {},
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to get UI configuration',
+      });
     }
   };
 
@@ -413,7 +501,6 @@ export class AuthWebViewRequestHandler {
     }
   };
 
-  //TODO: check this implementation once
   private async getOTPFromClipboard(): Promise<string | null> {
     try {
       const content = await Clipboard.getStringAsync();

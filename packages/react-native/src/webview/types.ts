@@ -1,3 +1,4 @@
+// types.ts
 export type MessageMethod = 'okto_sdk_login';
 
 export type AuthProvider = 'whatsapp' | 'google' | 'telegram' | 'email';
@@ -7,6 +8,7 @@ export type LoginRequestType =
   | 'verify_otp'
   | 'resend_otp'
   | 'paste_otp'
+  | 'ui_config'
   | 'close_webview';
 
 export interface WebViewRequest {
@@ -38,7 +40,13 @@ export interface WebViewResponse {
     token?: string;
     message?: string;
     type?: LoginRequestType;
-    [key: string]: string | AuthProvider | LoginRequestType | undefined;
+    config?: UIConfig;
+    [key: string]:
+      | string
+      | AuthProvider
+      | LoginRequestType
+      | UIConfig
+      | undefined;
   };
   error?: string;
 }
@@ -56,8 +64,62 @@ export type WebViewParamList = {
       clientPrivateKey: string;
       clientSWA: string;
     };
+    uiConfig?: UIConfig; // Added for UI configuration
   };
 };
+
+// Define UI Configuration types
+export interface UIConfigTheme {
+  '--okto-body-background': string;
+  '--okto-body-color-tertiary': string;
+  '--okto-accent-color': string;
+  '--okto-button-font-weight': number;
+  '--okto-border-color': string;
+  '--okto-stroke-divider': string;
+  '--okto-font-family': string;
+  '--okto-rounded-sm': string;
+  '--okto-rounded-md': string;
+  '--okto-rounded-lg': string;
+  '--okto-rounded-xl': string;
+  '--okto-rounded-full': string;
+  '--okto-success-color': string;
+  '--okto-warning-color': string;
+  '--okto-error-color': string;
+  '--okto-text-primary': string;
+  '--okto-text-secondary': string;
+  '--okto-background-surface': string;
+}
+
+export interface UIConfig {
+  version: string;
+  appearance: {
+    themeName: 'light' | 'dark';
+    theme: UIConfigTheme;
+  };
+  vendor: {
+    name: string;
+    logo: string;
+  };
+  loginOptions: {
+    socialLogins: Array<{
+      type: string;
+      position: number;
+    }>;
+    otpLoginOptions: Array<{
+      type: string;
+      position: number;
+    }>;
+    externalWallets: Array<{
+      type: string;
+      position: number;
+      metadata?: {
+        iconUrl?: string;
+        installed?: boolean;
+        [key: string]: unknown;
+      };
+    }>;
+  };
+}
 
 export interface AuthResult {
   success: boolean;

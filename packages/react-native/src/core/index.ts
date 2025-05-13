@@ -16,6 +16,7 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
+import type { UIConfig } from 'src/webview/types.js';
 
 interface NavigationProps {
   navigate: (
@@ -25,6 +26,7 @@ interface NavigationProps {
       clientConfig: OktoClientConfig;
       redirectUrl: string;
       onWebViewClose: () => void;
+      uiConfig?: UIConfig;
     },
   ) => void;
 }
@@ -34,10 +36,12 @@ class OktoClient extends OktoCoreClient {
   private authPromiseResolverRef: { current: AuthPromiseResolver } = {
     current: null,
   };
+  private uiConfig?: UIConfig;
 
-  constructor(config: OktoClientConfig) {
+  constructor(config: OktoClientConfig, uiConfig?: UIConfig) {
     super(config);
     this.config = config;
+    this.uiConfig = uiConfig;
     this.initializeSession();
   }
 
@@ -120,20 +124,35 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(navigation: NavigationProps, redirectUrl: string): void {
+  public setUIConfig(uiConfig: UIConfig): void {
+    this.uiConfig = uiConfig;
+  }
+
+  public getUIConfig(): UIConfig | undefined {
+    return this.uiConfig;
+  }
+
+  public openWebView(
+    navigation: NavigationProps,
+    redirectUrl: string,
+    uiConfig?: UIConfig,
+  ): void {
     if (!redirectUrl) {
       throw new Error(
         '[OktoClient] redirectUrl is required for WebView authentication',
       );
     }
 
+    const UIConfig = uiConfig || this.uiConfig;
+
     const authUrl = this.getAuthPageUrl();
     navigation.navigate('WebViewScreen', {
       url: authUrl,
       clientConfig: this.config,
       redirectUrl,
+      uiConfig: UIConfig,
       onWebViewClose: () => {
-        const newClient = new OktoClient(this.config);
+        const newClient = new OktoClient(this.config, UIConfig);
         console.log('Client SWA After Login', newClient.clientSWA);
         this.initializeSession();
       },
