@@ -23,6 +23,7 @@ interface NavigationProps {
     params: {
       url: string;
       clientConfig: OktoClientConfig;
+      redirectUrl: string;
       onWebViewClose: () => void;
     },
   ) => void;
@@ -53,6 +54,16 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  private getAuthPageUrl(): string {
+    const { env } = this;
+    if (!env.authPageUrl) {
+      throw new Error(
+        '[OktoClient] Authentication page URL is not configured for this environment',
+      );
+    }
+    return env.authPageUrl;
+  }
+
   override loginUsingOAuth(
     data: AuthData,
     onSuccess?: (session: SessionConfig) => void,
@@ -66,8 +77,13 @@ class OktoClient extends OktoCoreClient {
 
   override async loginUsingSocial(
     provider: SocialAuthType,
+    options: { redirectUrl: string },
   ): Promise<Address | RpcError | undefined> {
-    const redirectUrl = 'oktosdk://auth';
+    if (!options?.redirectUrl) {
+      throw new Error('[OktoClient] redirectUrl is required for social login');
+    }
+
+    const redirectUrl = options.redirectUrl;
     const state = {
       client_url: redirectUrl,
       platform: Platform.OS,
@@ -90,6 +106,12 @@ class OktoClient extends OktoCoreClient {
     } catch (error) {
       console.error('[OktoClient] Social login error:', error);
       throw error;
+    } finally {
+      try {
+        await WebBrowser.coolDownAsync();
+      } catch (error) {
+        console.error('[OktoClient] Error cooling down browser:', error);
+      }
     }
   }
 
@@ -98,10 +120,18 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(url: string, navigation: NavigationProps): void {
+  public openWebView(navigation: NavigationProps, redirectUrl: string): void {
+    if (!redirectUrl) {
+      throw new Error(
+        '[OktoClient] redirectUrl is required for WebView authentication',
+      );
+    }
+
+    const authUrl = this.getAuthPageUrl();
     navigation.navigate('WebViewScreen', {
-      url,
+      url: authUrl,
       clientConfig: this.config,
+      redirectUrl,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
         console.log('Client SWA After Login', newClient.clientSWA);
