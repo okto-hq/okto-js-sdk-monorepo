@@ -64,7 +64,6 @@ class OktoClient extends OktoCoreClient {
       );
     }
     const authUrl = this.getAuthPageUrl();
-    console.debug('Opening auth page URL:', authUrl);
     return this.authWebView.open({
       url: authUrl,
       onSuccess(data) {
@@ -81,13 +80,11 @@ class OktoClient extends OktoCoreClient {
 
   private getAuthPageUrl(): string {
     const { env } = this;
-    console.log('Environment:', env);
     if (!env.authPageUrl) {
       throw new Error(
         '[OktoClient] Authentication page URL is not configured for this environment',
       );
     }
-    console.log('Auth page URL:', env.authPageUrl);
     return env.authPageUrl;
   }
 
