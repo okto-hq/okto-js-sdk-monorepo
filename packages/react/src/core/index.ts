@@ -78,7 +78,6 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
-
   private getAuthPageUrl(): string {
     const { env } = this;
     if (!env.authPageUrl) {
@@ -88,7 +87,6 @@ class OktoClient extends OktoCoreClient {
     }
     return env.authPageUrl;
   }
-
 
   /**
    * Overrides the `loginUsingOAuth` method to handle OAuth login functionality.
