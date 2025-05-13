@@ -99,9 +99,9 @@ export class OktoAuthWebView {
       };
 
       window.addEventListener('message', messageListener);
-
+      const webViewUrl = options.url;
       const isOpened = this.webViewManager.openWebView({
-        url: `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,
+        url: `${webViewUrl}?app=OKTO_WEB&origin=${window.location.origin}`,
         width: 500,
         height: 800,
         onSuccess: (data) => {

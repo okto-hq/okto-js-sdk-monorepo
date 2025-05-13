@@ -63,7 +63,9 @@ class OktoClient extends OktoCoreClient {
         options.onSuccess ?? (() => {}),
       );
     }
+    const authUrl = this.getAuthPageUrl();
     return this.authWebView.open({
+      url: authUrl,
       onSuccess(data) {
         options.onSuccess?.(data);
       },
@@ -75,6 +77,18 @@ class OktoClient extends OktoCoreClient {
       },
     });
   }
+
+
+  private getAuthPageUrl(): string {
+    const { env } = this;
+    if (!env.authPageUrl) {
+      throw new Error(
+        '[OktoClient] Authentication page URL is not configured for this environment',
+      );
+    }
+    return env.authPageUrl;
+  }
+
 
   /**
    * Overrides the `loginUsingOAuth` method to handle OAuth login functionality.
