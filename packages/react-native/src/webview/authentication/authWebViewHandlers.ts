@@ -198,7 +198,7 @@ export class AuthWebViewRequestHandler {
               metadata: {
                 iconUrl:
                   'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
-                installed: true,
+                isInstalled: true,
               },
             },
             {
@@ -207,7 +207,7 @@ export class AuthWebViewRequestHandler {
               metadata: {
                 iconUrl:
                   'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
-                installed: false,
+                isInstalled: false,
               },
             },
           ],
