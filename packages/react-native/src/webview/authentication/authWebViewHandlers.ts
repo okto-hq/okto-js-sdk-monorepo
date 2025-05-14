@@ -91,7 +91,6 @@ export class AuthWebViewRequestHandler {
   private handleLoginRequest = async (request: WebViewRequest) => {
     console.log('Handling login request:', request.data);
     const { type } = request.data;
-    console.log('KARAN :: Login request type:', type);
 
     // Route to specific handler based on login request type
     switch (type) {
@@ -145,14 +144,13 @@ export class AuthWebViewRequestHandler {
 
   /**
    * Handle UI configuration requests from WebView
-   * 
+   *
    * Sends the stored UI configuration to the WebView for rendering
    * @param request UI configuration request data
    */
   private handleUIConfigRequest = async (request: WebViewRequest) => {
     try {
       // Create default config if none provided
-      console.log("karan :: UI config request:", request.data);
       const defaultConfig: UIConfig = {
         version: '1.0.0',
         appearance: {
@@ -215,23 +213,9 @@ export class AuthWebViewRequestHandler {
           ],
         },
       };
-
-      console.log("KARAN :: this.uiConfig =", this.uiConfig);
       // Use provided config or default
       const configToSend = this.uiConfig || defaultConfig;
-      console.log('KARAN :: UI config to send:', configToSend.appearance?.theme);
-      if (configToSend.loginOptions?.externalWallets) {
-        console.log('KARAN :: UI config to send:', configToSend.loginOptions.externalWallets[0]);
-      }
 
-      if (configToSend.loginOptions?.socialLogins) {
-        console.log('KARAN :: UI config to send:', configToSend.loginOptions.socialLogins[0]);
-      }
-
-      if (configToSend.loginOptions?.otpLoginOptions) {
-        console.log('KARAN :: UI config to send:', configToSend.loginOptions.otpLoginOptions[0]);
-      }
-      
       // Prepare response with UI configuration
       const response: WebViewResponse = {
         id: request.id,
@@ -241,7 +225,10 @@ export class AuthWebViewRequestHandler {
           config: configToSend,
         },
       };
-      console.log('Sending UI config response:', JSON.stringify(response, null, 2));
+      console.log(
+        'Sending UI config response:',
+        JSON.stringify(response, null, 2),
+      );
       this.bridge.sendResponse(response);
     } catch (error) {
       console.error('Error sending UI config:', error);
