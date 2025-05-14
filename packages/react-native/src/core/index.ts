@@ -135,7 +135,7 @@ class OktoClient extends OktoCoreClient {
 
     const authUrl = this.getAuthPageUrl();
     navigation.navigate('WebViewScreen', {
-      url: "http://10.101.89.28:3000",
+      url: authUrl,
       clientConfig: this.config,
       redirectUrl,
       uiConfig,
