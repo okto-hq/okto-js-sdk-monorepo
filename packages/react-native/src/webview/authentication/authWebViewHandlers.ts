@@ -216,6 +216,7 @@ export class AuthWebViewRequestHandler {
         },
       };
 
+      console.log("KARAN :: this.uiConfig =", this.uiConfig);
       // Use provided config or default
       const configToSend = this.uiConfig || defaultConfig;
       console.log('KARAN :: UI config to send:', configToSend.appearance?.theme);
@@ -240,7 +241,7 @@ export class AuthWebViewRequestHandler {
           config: configToSend,
         },
       };
-      console.log('Sending UI config response:', response);
+      console.log('Sending UI config response:', JSON.stringify(response, null, 2));
       this.bridge.sendResponse(response);
     } catch (error) {
       console.error('Error sending UI config:', error);
