@@ -123,7 +123,6 @@ class OktoClient extends OktoCoreClient {
   }
 
   public openWebView(
-    authUrl: string,
     navigation: NavigationProps,
     redirectUrl: string,
     uiConfig?: UIConfig,
@@ -134,7 +133,7 @@ class OktoClient extends OktoCoreClient {
       );
     }
 
-    // const authUrl = this.getAuthPageUrl();
+    const authUrl = this.getAuthPageUrl();
     navigation.navigate('WebViewScreen', {
       url: authUrl,
       clientConfig: this.config,
