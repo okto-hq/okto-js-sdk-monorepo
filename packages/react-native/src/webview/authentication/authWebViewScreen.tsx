@@ -115,11 +115,10 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
         ref={webViewRef}
         source={{ uri: url }}
         onMessage={bridge.handleWebViewMessage}
-        onLoadStart={bridge.reinitializeBridge}
-        // onLoadEnd={() => {
-        //   // Re-initialize bridge connections after page load completes
-        //   bridge.reinitializeBridge();
-        // }}
+        onLoadEnd={() => {
+          // Re-initialize bridge connections after page load completes
+          bridge.reinitializeBridge();
+        }}
         injectedJavaScript={bridge.getInjectedJavaScript()}
         javaScriptEnabled={true}
         domStorageEnabled={true}
