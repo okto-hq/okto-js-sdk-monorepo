@@ -189,7 +189,7 @@ export class AuthWebViewRequestHandler {
           ],
           otpLoginOptions: [
             { type: 'email', position: 1 },
-            { type: 'phone', position: 2 },
+            { type: 'whatsapp', position: 2 },
           ],
           externalWallets: [
             {
