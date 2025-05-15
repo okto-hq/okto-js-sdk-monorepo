@@ -163,7 +163,7 @@ export class WebViewBridge {
 
   public reinitializeBridge(): void {
     console.log('Re-initializing bridge1 ');
-    this.getInjectedJavaScript();
+    // this.getInjectedJavaScript();
     if (!this.webViewRef.current) return;
     console.log('Re-initializing bridg2');
 
