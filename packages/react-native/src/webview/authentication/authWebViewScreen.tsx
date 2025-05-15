@@ -119,7 +119,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
           // Re-initialize bridge connections after page load completes
           bridge.reinitializeBridge();
         }}
-        injectedJavaScript={bridge.getInjectedJavaScript()}
+        injectedJavaScriptBeforeContentLoaded={bridge.getInjectedJavaScript()}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={['*']} // Consider restricting this in production
