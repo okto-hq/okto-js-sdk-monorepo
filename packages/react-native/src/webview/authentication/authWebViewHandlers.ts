@@ -90,10 +90,7 @@ export class AuthWebViewRequestHandler {
    * @param request Login request data from WebView
    */
   private handleLoginRequest = async (request: WebViewRequest) => {
-    console.log('Handling login request:', request.data);
     const { type } = request.data;
-    console.log('Login request type:', type);
-    console.log('Login request provider:', request.data.provider);
 
     // Route to specific handler based on login request type
     switch (type) {
@@ -216,11 +213,6 @@ export class AuthWebViewRequestHandler {
           ],
         },
       };
-      console.log('Default UI config:', defaultConfig);
-      console.log('Provided UI config:', this.uiConfig);
-      console.log('Request UI config:', request.data);
-      console.log('Request ID:', request.id);
-      console.log('Request method:', request.method);
       // Use provided config or default
       const configToSend = this.uiConfig || defaultConfig;
 
