@@ -1,6 +1,6 @@
 // WebViewRequestHandler.ts
 import { WebViewBridge } from '../webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from '../types.js';
+import type { UIConfig, WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
@@ -26,12 +26,14 @@ export class AuthWebViewRequestHandler {
     current: null,
   };
   private redirectUrl: string;
+  private uiConfig?: UIConfig;
 
   constructor(
     bridge: WebViewBridge,
     navigationCallback: () => void,
     oktoClient: OktoClient,
     redirectUrl: string,
+    uiConfig?: UIConfig,
   ) {
     if (!redirectUrl) {
       throw new Error('redirectUrl is required for AuthWebViewRequestHandler');
@@ -41,6 +43,7 @@ export class AuthWebViewRequestHandler {
     this.navigationCallback = navigationCallback;
     this.oktoClient = oktoClient;
     this.redirectUrl = redirectUrl;
+    this.uiConfig = uiConfig;
     this.initialize();
   }
 
@@ -57,6 +60,7 @@ export class AuthWebViewRequestHandler {
    */
   private handleRequest = async (request: WebViewRequest) => {
     try {
+      console.log('Received request from WebView:', request);
       // Route request based on method
       switch (request.method) {
         case 'okto_sdk_login':
@@ -86,11 +90,13 @@ export class AuthWebViewRequestHandler {
    * @param request Login request data from WebView
    */
   private handleLoginRequest = async (request: WebViewRequest) => {
-    console.log('Handling login request:', request.data);
     const { type } = request.data;
 
     // Route to specific handler based on login request type
     switch (type) {
+      case 'ui_config':
+        await this.handleUIConfigRequest(request);
+        break;
       case 'request_otp':
         await this.handleRequestOTP(request);
         break;
@@ -133,6 +139,108 @@ export class AuthWebViewRequestHandler {
       setTimeout(() => {
         this.navigationCallback();
       }, 1000);
+    }
+  };
+
+  /**
+   * Handle UI configuration requests from WebView
+   *
+   * Sends the stored UI configuration to the WebView for rendering
+   * @param request UI configuration request data
+   */
+  private handleUIConfigRequest = async (request: WebViewRequest) => {
+    try {
+      // Create default config if none provided
+      const defaultConfig: UIConfig = {
+        version: '1.0.0',
+        appearance: {
+          themeName: 'light',
+          theme: {
+            '--okto-body-background': '#ffffff',
+            '--okto-body-color-tertiary': '#adb5bd',
+            '--okto-accent-color': '#5166ee',
+            '--okto-button-font-weight': '500',
+            '--okto-border-color': 'rgba(22, 22, 22, 0.12)',
+            '--okto-stroke-divider': 'rgba(22, 22, 22, 0.06)',
+            '--okto-font-family':
+              "'Inter', sans-serif, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+            '--okto-rounded-sm': '0.25rem',
+            '--okto-rounded-md': '0.5rem',
+            '--okto-rounded-lg': '0.75rem',
+            '--okto-rounded-xl': '1rem',
+            '--okto-rounded-full': '9999px',
+            '--okto-success-color': '#28a745',
+            '--okto-warning-color': '#ffc107',
+            '--okto-error-color': '#f75757',
+            '--okto-text-primary': '#161616',
+            '--okto-text-secondary': '#707070',
+            '--okto-background-surface': '#f8f8f8',
+          },
+        },
+        vendor: {
+          name: 'Okto wallet',
+          logo: '/okto.svg',
+        },
+        loginOptions: {
+          socialLogins: [
+            { type: 'google', position: 1 },
+            { type: 'steam', position: 2 },
+            { type: 'twitter', position: 3 },
+          ],
+          otpLoginOptions: [
+            { type: 'email', position: 1 },
+            { type: 'whatsapp', position: 2 },
+          ],
+          externalWallets: [
+            {
+              type: 'metamask',
+              position: 1,
+              metadata: {
+                iconUrl:
+                  'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
+                isInstalled: true,
+              },
+            },
+            {
+              type: 'walletconnect',
+              position: 2,
+              metadata: {
+                iconUrl:
+                  'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
+                isInstalled: false,
+              },
+            },
+          ],
+        },
+      };
+      // Use provided config or default
+      const configToSend = this.uiConfig || defaultConfig;
+
+      // Prepare response with UI configuration
+      const response: WebViewResponse = {
+        id: request.id,
+        method: request.method,
+        data: {
+          type: 'ui_config',
+          config: configToSend,
+        },
+      };
+      console.log(
+        'Sending UI config response:',
+        JSON.stringify(response, null, 2),
+      );
+      this.bridge.sendResponse(response);
+    } catch (error) {
+      console.error('Error sending UI config:', error);
+      this.bridge.sendResponse({
+        id: request.id,
+        method: request.method,
+        data: {
+          type: 'ui_config',
+        },
+        error:
+          error instanceof Error ? error.message : 'Failed to send UI config',
+      });
     }
   };
 
