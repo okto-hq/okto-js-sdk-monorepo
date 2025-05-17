@@ -1,5 +1,12 @@
 # @okto_web3/react-native-sdk
 
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [049756f]
+  - @okto_web3/core-js-sdk@0.6.3
+
 ## 0.5.2
 
 ### Patch Changes
