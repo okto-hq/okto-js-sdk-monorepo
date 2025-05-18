@@ -56,21 +56,27 @@ export const NFTTransferIntentParamsSchema = z
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
+
     collectionAddress: isHexString('Invalid collection address format'),
+
     nftId: isTokenId(
       'Invalid NFT ID format – must be numeric or hexadecimal',
       true,
-    )
-      .transform((id) => Number(id))
-      .refine((n) => n >= 0, 'NFT ID cannot be negative'),
+    ).refine((val) => {
+      const num = Number(val);
+      return !isNaN(num) && num >= 0;
+    }, 'NFT ID cannot be negative'),
+
     recipientWalletAddress: z
       .string()
       .min(1, 'Recipient wallet address cannot be empty'),
+
     amount: z
       .number()
       .int('Amount must be an integer')
       .min(1, 'Minimum transfer amount is 1')
       .default(1),
+
     nftType: z.enum(['ERC721', 'ERC1155']),
   })
   .strict()
