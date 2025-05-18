@@ -29,7 +29,7 @@ export interface EstimationDetails {
   };
   fees: {
     transactionFees: {
-      [networkId: string]: string;
+      [caip2Id: string]: string;
     };
     approxTransactionFeesInUSDT: string;
   };
