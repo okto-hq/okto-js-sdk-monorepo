@@ -107,7 +107,6 @@ export interface NFTTransferEstimateDetails {
   };
 }
 
-
 /**
  * ========================
  * EVM Raw Transaction Estimate Types
@@ -234,7 +233,6 @@ export interface NftMintEstimateResponse {
   userOps: UserOp;
   details: NftMintEstimateDetails;
 }
-
 
 /**
  * ========================

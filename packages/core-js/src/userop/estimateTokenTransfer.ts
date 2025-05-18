@@ -84,7 +84,7 @@ export async function estimateTokenTransfer(
     },
     details: {
       recipientWalletAddress: data.recipient,
-      caip2Id : data.caip2Id,
+      caip2Id: data.caip2Id,
       tokenAddress: data.token,
       amount: data.amount.toString(),
     },
