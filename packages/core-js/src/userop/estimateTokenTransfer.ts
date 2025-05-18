@@ -69,15 +69,15 @@ export async function estimateTokenTransfer(
     });
   }
 
+  const paymasterData = await oc.paymasterData({
+    nonce: nonce,
+    validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+  });
+
   const requestBody: TokenTransferEstimateRequest = {
     type: Constants.INTENT_TYPE.TOKEN_TRANSFER,
     jobId: nonce,
-    paymasterDetails: {
-      validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS)
-        .getTime()
-        .toString(),
-      validAfter: Date.now().toString(),
-    },
+    paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,

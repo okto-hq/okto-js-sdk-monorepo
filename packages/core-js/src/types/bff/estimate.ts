@@ -14,10 +14,7 @@ export interface TokenTransferEstimateRequest {
   type: string;
   jobId: string;
   feePayerAddress?: Address;
-  paymasterDetails?: {
-    validUntil: string;
-    validAfter: string;
-  };
+  paymasterData: string;
   gasDetails: {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
@@ -38,12 +35,31 @@ export interface TokenTransferEstimateResponse {
 export interface TokenTransferEstimateDetails {
   estimation: {
     amount: string;
+    crossChainFee: string;
+    crossChainFeeCollector: string;
+    gasFeesInInputToken: string;
+    integratorFeesInInputToken: string;
+    outputAmount: string;
+    platformBaseFeesInInputToken: string;
+    recommendedSlippage: string;
+    routeId: string;
+    routeValidUntil: string;
+    sameChainFee: string;
+    sameChainFeeCollector: string;
+    slippageUsed: string;
+    totalFeesInInputToken: string;
   };
   fees: {
     transactionFees: {
       [networkId: string]: string;
     };
     approxTransactionFeesInUSDT: string;
+  };
+  swapFees: {
+    gasFeesInInputToken: string;
+    integratorFeesInInputToken: string;
+    platformBaseFeesInInputToken: string;
+    totalFeesInInputToken: string;
   };
 }
 
