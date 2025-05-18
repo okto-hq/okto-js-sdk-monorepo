@@ -83,7 +83,7 @@ export interface NFTTransferEstimateRequest {
     collectionAddress?: string;
     nftId?: string;
     recipientWalletAddress: string;
-    amount?: number | bigint;
+    amount?: string;
     nftType?: string;
   };
 }

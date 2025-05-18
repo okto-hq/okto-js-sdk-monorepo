@@ -83,7 +83,7 @@ export async function estimateNftTransfer(
       collectionAddress: data.collectionAddress || '',
       nftId: data.nftId || '',
       recipientWalletAddress: data.recipientWalletAddress,
-      amount: data.amount || 1,
+      amount: data.amount.toString() || '1',
       nftType: data.nftType || '',
     },
   };
