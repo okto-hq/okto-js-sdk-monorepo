@@ -134,19 +134,7 @@ export interface EvmRawTransactionEstimateRequest {
 
 export interface EvmRawTransactionEstimateResponse {
   userOps: UserOp;
-  details: RawTransactionEstimateDetails;
-}
-
-export interface RawTransactionEstimateDetails {
-  estimation: {
-    amount: string;
-  };
-  fees: {
-    transactionFees: {
-      [networkId: string]: string;
-    };
-    approxTransactionFeesInUSDT: string;
-  };
+  details: EstimationDetails;
 }
 
 /**
@@ -173,7 +161,7 @@ export interface AptosRawTransactionEstimateRequest {
 }
 
 export interface AptosRawTransactionEstimateResponse {
-  details: RawTransactionEstimateDetails;
+  details: EstimationDetails;
   userOps: UserOp;
 }
 

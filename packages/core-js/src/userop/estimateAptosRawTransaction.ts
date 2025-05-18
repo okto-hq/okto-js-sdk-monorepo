@@ -24,7 +24,7 @@ import {
 } from './userOpInputValidator.js';
 import type {
   AptosRawTransactionEstimateRequest,
-  RawTransactionEstimateDetails,
+  EstimationDetails,
 } from '@/types/bff/estimate.js';
 
 /**
@@ -43,7 +43,7 @@ export async function estimateAptosRawTransaction(
   oc: OktoClient,
   data: AptosRawTransactionIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: RawTransactionEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }

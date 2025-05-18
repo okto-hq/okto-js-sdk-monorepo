@@ -25,7 +25,7 @@ import {
 } from './userOpInputValidator.js';
 import type {
   EvmRawTransactionEstimateRequest,
-  RawTransactionEstimateDetails,
+  EstimationDetails,
 } from '@/types/bff/estimate.js';
 
 /**
@@ -44,7 +44,7 @@ export async function estimateEvmRawTransaction(
   oc: OktoClient,
   data: EVMRawTransactionIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: RawTransactionEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
