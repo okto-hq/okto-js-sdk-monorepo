@@ -24,9 +24,9 @@ export interface TokenTransferEstimateRequest {
   };
   details: {
     recipientWalletAddress: string;
-    networkId: string;
+    caip2Id: string;
     tokenAddress: string;
-    amount: bigint | number;
+    amount: string;
   };
 }
 
@@ -106,6 +106,7 @@ export interface NFTTransferEstimateDetails {
     };
   };
 }
+
 
 /**
  * ========================
@@ -233,6 +234,7 @@ export interface NftMintEstimateResponse {
   userOps: UserOp;
   details: NftMintEstimateDetails;
 }
+
 
 /**
  * ========================
