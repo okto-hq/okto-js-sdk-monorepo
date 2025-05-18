@@ -6,33 +6,11 @@ import type {
 
 /**
  * ========================
- * Token Transfer Estimate Types
+ * Estimate Details Type
  * ========================
  */
 
-export interface TokenTransferEstimateRequest {
-  type: string;
-  jobId: string;
-  feePayerAddress?: Address;
-  paymasterData: string;
-  gasDetails: {
-    maxFeePerGas: string;
-    maxPriorityFeePerGas: string;
-  };
-  details: {
-    recipientWalletAddress: string;
-    caip2Id: string;
-    tokenAddress: string;
-    amount: string;
-  };
-}
-
-export interface TokenTransferEstimateResponse {
-  details: TokenTransferEstimateDetails;
-  userOps: UserOp;
-}
-
-export interface TokenTransferEstimateDetails {
+export interface EstimationDetails {
   estimation: {
     amount: string;
     crossChainFee: string;
@@ -65,6 +43,34 @@ export interface TokenTransferEstimateDetails {
 
 /**
  * ========================
+ * Token Transfer Estimate Types
+ * ========================
+ */
+
+export interface TokenTransferEstimateRequest {
+  type: string;
+  jobId: string;
+  feePayerAddress?: Address;
+  paymasterData: string;
+  gasDetails: {
+    maxFeePerGas: string;
+    maxPriorityFeePerGas: string;
+  };
+  details: {
+    recipientWalletAddress: string;
+    caip2Id: string;
+    tokenAddress: string;
+    amount: string;
+  };
+}
+
+export interface TokenTransferEstimateResponse {
+  details: EstimationDetails;
+  userOps: UserOp;
+}
+
+/**
+ * ========================
  * NFT Transfer Estimate Types
  * ========================
  */
@@ -90,37 +96,7 @@ export interface NFTTransferEstimateRequest {
 
 export interface NFTTransferEstimateResponse {
   userOps: UserOp;
-  details: NFTTransferEstimateDetails;
-}
-
-export interface NFTTransferEstimateDetails {
-  estimation: {
-    amount?: string;
-  };
-  callData: {
-    transactionFees: Record<string, string>;
-    approxTransactionFeesInUSDT: string;
-    gsn: {
-      isRequired: boolean;
-      isPossible: boolean;
-      details: {
-        requiredNetworks: string[];
-        tokens: Array<{
-          networkId: string;
-          address: string;
-          amount: string;
-          amountInUSDT: string;
-        }>;
-      };
-    };
-    payload: {
-      networkId: string;
-      nftId: string;
-      recipientWalletAddress: string;
-      amount: string;
-      ercType: string;
-    };
-  };
+  details: EstimationDetails;
 }
 
 /**

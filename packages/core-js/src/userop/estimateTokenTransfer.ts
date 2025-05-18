@@ -19,7 +19,7 @@ import {
 } from './userOpInputValidator.js';
 import type { TokenTransferIntentParams } from './types.js';
 import type {
-  TokenTransferEstimateDetails,
+  EstimationDetails,
   TokenTransferEstimateRequest,
 } from '@/types/bff/estimate.js';
 
@@ -39,7 +39,7 @@ export async function estimateTokenTransfer(
   oc: OktoClient,
   data: TokenTransferIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: TokenTransferEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }

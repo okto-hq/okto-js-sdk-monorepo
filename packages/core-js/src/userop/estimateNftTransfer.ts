@@ -19,7 +19,7 @@ import {
 } from './userOpInputValidator.js';
 import type { NFTTransferIntentParams } from './types.js';
 import type {
-  NFTTransferEstimateDetails,
+  EstimationDetails,
   NFTTransferEstimateRequest,
 } from '@/types/bff/estimate.js';
 
@@ -39,7 +39,7 @@ export async function estimateNftTransfer(
   oc: OktoClient,
   data: NFTTransferIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: NFTTransferEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
