@@ -4,7 +4,13 @@ import {
   tokenTransfer,
   nftCreateCollection,
   nftMint,
-  // aptosRawTransaction,
+  aptosRawTransaction,
+  estimateTokenTransfer,
+  estimateNftTransfer,
+  estimateEvmRawTransaction,
+  estimateAptosRawTransaction,
+  estimateNftCreateCollection,
+  estimateNftMint,
 } from '@okto_web3/core-js-sdk/userop';
 
 export {
@@ -13,5 +19,11 @@ export {
   tokenTransfer,
   nftCreateCollection,
   nftMint,
-  // aptosRawTransaction,
+  aptosRawTransaction,
+  estimateTokenTransfer,
+  estimateNftTransfer,
+  estimateEvmRawTransaction,
+  estimateAptosRawTransaction,
+  estimateNftCreateCollection,
+  estimateNftMint,
 };
