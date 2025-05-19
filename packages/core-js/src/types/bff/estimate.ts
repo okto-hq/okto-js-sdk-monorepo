@@ -33,7 +33,7 @@ export interface EstimationDetails {
     };
     approxTransactionFeesInUSDT: string;
   };
-  swapFees: {
+  swapFees?: {
     gasFeesInInputToken: string;
     integratorFeesInInputToken: string;
     platformBaseFeesInInputToken: string;

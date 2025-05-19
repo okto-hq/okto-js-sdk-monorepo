@@ -6,18 +6,8 @@ import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
-import {
-  encodeAbiParameters,
-  encodeFunctionData,
-  parseAbiParameters,
-  stringToBytes,
-  toHex,
-} from 'viem';
-import { INTENT_ABI } from './abi.js';
-import type {
-  AptosRawTransaction,
-  AptosRawTransactionIntentParams,
-} from './types.js';
+import { toHex } from 'viem';
+import type { AptosRawTransactionIntentParams } from './types.js';
 import {
   AptosRawTransactionIntentParamsSchema,
   validateSchema,
@@ -103,95 +93,38 @@ export async function aptosRawTransactionWithEstimate(
   };
 
   // Get estimate from BFF API
-  const estimateResponse =
+  const aptosRawTransactionEstimate =
     await BffClientRepository.getAptosRawTransactionEstimate(oc, requestBody);
 
-  const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
-  const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
-
-  const transactionsBytes = data.transactions.map((transaction) => {
-    const aptosTransaction: AptosRawTransaction = {
-      function: transaction.function,
-      typeArguments: transaction.typeArguments || [],
-      functionArguments: transaction.functionArguments || [],
-    };
-    return toHex(stringToBytes(JSON.stringify(aptosTransaction)));
-  });
-
-  const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, uint256, bytes'),
-    [
-      Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
-      oc.env.jobManagerAddress,
-      Constants.USEROP_VALUE,
-      encodeFunctionData({
-        abi: INTENT_ABI,
-        functionName: Constants.FUNCTION_NAME,
-        args: [
-          toHex(nonceToBigInt(nonce), { size: 32 }),
-          oc.clientSWA,
-          oc.userSWA,
-          feePayerAddress,
-          encodeAbiParameters(
-            parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
-            [
-              {
-                gsnEnabled: currentChain.gsnEnabled ?? false,
-                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
-              },
-            ],
-          ),
-          encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
-            {
-              isRequired: false,
-              requiredNetworks: [],
-              tokens: [],
-            },
-          ]),
-          encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
-            {
-              caip2Id: data.caip2Id,
-              transactions: transactionsBytes,
-            },
-          ]),
-          Constants.INTENT_TYPE.RAW_TRANSACTION,
-        ],
-      }),
-    ],
-  );
+  // Use the jobId and userSWA from the estimate response
+  const jobId =
+    aptosRawTransactionEstimate.userOps.nonce ||
+    toHex(nonceToBigInt(nonce), { size: 32 });
+  const userSWA = aptosRawTransactionEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
-    sender: oc.userSWA,
-    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    sender: userSWA,
+    nonce: jobId,
     paymaster: oc.env.paymasterAddress,
-    callGasLimit:
-      estimateResponse.userOps.callGasLimit ||
-      toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
+    callGasLimit: aptosRawTransactionEstimate.userOps.callGasLimit,
     verificationGasLimit:
-      estimateResponse.userOps.verificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas:
-      estimateResponse.userOps.preVerificationGas ||
-      toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+      aptosRawTransactionEstimate.userOps.verificationGasLimit,
+    preVerificationGas: aptosRawTransactionEstimate.userOps.preVerificationGas,
+    maxFeePerGas:
+      aptosRawTransactionEstimate.userOps.maxFeePerGas || gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas:
+      aptosRawTransactionEstimate.userOps.maxPriorityFeePerGas ||
+      gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      estimateResponse.userOps.paymasterPostOpGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
+      aptosRawTransactionEstimate.userOps.paymasterPostOpGasLimit,
     paymasterVerificationGasLimit:
-      estimateResponse.userOps.paymasterVerificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: estimateResponse.userOps.callData || calldata,
-    paymasterData:
-      estimateResponse.userOps.paymasterData ||
-      (await oc.paymasterData({
-        nonce: nonce,
-        validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-      })),
+      aptosRawTransactionEstimate.userOps.paymasterVerificationGasLimit,
+    callData: aptosRawTransactionEstimate.userOps.callData,
+    paymasterData: aptosRawTransactionEstimate.userOps.paymasterData,
   };
 
   return {
     userOp,
-    details: estimateResponse.details,
+    details: aptosRawTransactionEstimate.details,
   };
 }
