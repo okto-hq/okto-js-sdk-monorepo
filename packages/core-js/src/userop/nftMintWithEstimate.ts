@@ -5,13 +5,7 @@ import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
-import {
-  encodeAbiParameters,
-  encodeFunctionData,
-  parseAbiParameters,
-  toHex,
-} from 'viem';
-import { INTENT_ABI } from './abi.js';
+import { toHex } from 'viem';
 import type { NftMintParams } from './types.js';
 import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
 import BffClientRepository from '@/api/bff.js';
@@ -40,7 +34,6 @@ export async function nftMintWithEstimate(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-
   validateSchema(NftMintParamsSchema, data);
 
   const nonce = generateUUID();
@@ -68,22 +61,6 @@ export async function nftMintWithEstimate(
     });
   }
 
-  const properties = data.data.properties || [];
-
-  const formattedProperties = properties.map((prop) => ({
-    name: prop.name,
-    valueType: String(prop.type),
-    value: prop.value,
-  }));
-
-  const nftData = JSON.stringify({
-    recipientWalletAddress: data.data.recipientWalletAddress || '',
-    description: data.data.description || '',
-    properties: formattedProperties,
-  });
-
-  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
-
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
@@ -92,12 +69,12 @@ export async function nftMintWithEstimate(
   const requestBody: NftMintEstimateRequest = {
     type: Constants.INTENT_TYPE.NFT_MINT,
     jobId: nonce,
+    paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress,
-    paymasterData,
+    feePayerAddress,
     details: {
       caip2Id: data.caip2Id,
       nftName: data.nftName,
@@ -117,78 +94,27 @@ export async function nftMintWithEstimate(
     requestBody,
   );
 
-  const jobParametersAbiType =
-    '(string caip2Id, string nftName, string collectionAddress, string uri, bytes data)';
-  const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
-
-  const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, uint256, bytes'),
-    [
-      Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
-      oc.env.jobManagerAddress,
-      Constants.USEROP_VALUE,
-      encodeFunctionData({
-        abi: INTENT_ABI,
-        functionName: Constants.FUNCTION_NAME,
-        args: [
-          toHex(nonceToBigInt(nonce), { size: 32 }),
-          oc.clientSWA,
-          oc.userSWA,
-          feePayerAddress,
-          encodeAbiParameters(
-            parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
-            [
-              {
-                gsnEnabled: currentChain.gsnEnabled ?? false,
-                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
-              },
-            ],
-          ),
-          encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
-            {
-              isRequired: false,
-              requiredNetworks: [],
-              tokens: [],
-            },
-          ]),
-          encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
-            {
-              caip2Id: data.caip2Id,
-              nftName: data.nftName,
-              collectionAddress: data.collectionAddress || '',
-              uri: data.uri,
-              data: nftDataEncoded,
-            },
-          ]),
-          Constants.INTENT_TYPE.NFT_MINT,
-        ],
-      }),
-    ],
-  );
+  // Use the jobId and userSWA from the estimate response
+  const jobId =
+    nftMintEstimate.userOps.nonce || toHex(nonceToBigInt(nonce), { size: 32 });
+  const userSWA = nftMintEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
-    sender: oc.userSWA,
-    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    sender: userSWA,
+    nonce: jobId,
     paymaster: oc.env.paymasterAddress,
-    callGasLimit:
-      nftMintEstimate.userOps.callGasLimit ||
-      toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
-    verificationGasLimit:
-      nftMintEstimate.userOps.verificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas:
-      nftMintEstimate.userOps.preVerificationGas ||
-      toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-    paymasterPostOpGasLimit:
-      nftMintEstimate.userOps.paymasterPostOpGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
+    callGasLimit: nftMintEstimate.userOps.callGasLimit,
+    verificationGasLimit: nftMintEstimate.userOps.verificationGasLimit,
+    preVerificationGas: nftMintEstimate.userOps.preVerificationGas,
+    maxFeePerGas: nftMintEstimate.userOps.maxFeePerGas || gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas:
+      nftMintEstimate.userOps.maxPriorityFeePerGas ||
+      gasPrice.maxPriorityFeePerGas,
+    paymasterPostOpGasLimit: nftMintEstimate.userOps.paymasterPostOpGasLimit,
     paymasterVerificationGasLimit:
-      nftMintEstimate.userOps.paymasterVerificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: nftMintEstimate.userOps.callData || calldata,
-    paymasterData: nftMintEstimate.userOps.paymasterData || paymasterData,
+      nftMintEstimate.userOps.paymasterVerificationGasLimit,
+    callData: nftMintEstimate.userOps.callData,
+    paymasterData: nftMintEstimate.userOps.paymasterData,
   };
 
   return {

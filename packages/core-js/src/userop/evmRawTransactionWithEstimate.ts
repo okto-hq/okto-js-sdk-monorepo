@@ -6,15 +6,7 @@ import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
-import {
-  encodeAbiParameters,
-  encodeFunctionData,
-  numberToHex,
-  parseAbiParameters,
-  stringToBytes,
-  toHex,
-} from 'viem';
-import { INTENT_ABI } from './abi.js';
+import { numberToHex, toHex } from 'viem';
 import type {
   EVMRawTransaction,
   EVMRawTransactionIntentParams,
@@ -111,86 +103,38 @@ export async function evmRawTransactionWithEstimate(
   };
 
   // Get estimate from BFF API
-  const transactionEstimate =
+  const evmRawTransactionEstimate =
     await BffClientRepository.getEvmRawTransactionEstimate(oc, requestBody);
 
-  const jobParametersAbiType = '(string caip2Id, bytes[] transactions)';
-  const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
-
-  const jobparam = encodeAbiParameters(
-    parseAbiParameters(jobParametersAbiType),
-    [
-      {
-        caip2Id: data.caip2Id,
-        transactions: [toHex(stringToBytes(JSON.stringify(transaction)))],
-      },
-    ],
-  );
-
-  const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, uint256, bytes'),
-    [
-      Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
-      oc.env.jobManagerAddress,
-      Constants.USEROP_VALUE,
-      encodeFunctionData({
-        abi: INTENT_ABI,
-        functionName: Constants.FUNCTION_NAME,
-        args: [
-          toHex(nonceToBigInt(nonce), { size: 32 }),
-          oc.clientSWA,
-          oc.userSWA,
-          feePayerAddress,
-          encodeAbiParameters(
-            parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
-            [
-              {
-                gsnEnabled: currentChain.gsnEnabled ?? false,
-                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
-              },
-            ],
-          ),
-          encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
-            {
-              isRequired: false,
-              requiredNetworks: [],
-              tokens: [],
-            },
-          ]),
-          jobparam,
-          Constants.INTENT_TYPE.RAW_TRANSACTION,
-        ],
-      }),
-    ],
-  );
+  // Use the jobId and userSWA from the estimate response
+  const jobId =
+    evmRawTransactionEstimate.userOps.nonce ||
+    toHex(nonceToBigInt(nonce), { size: 32 });
+  const userSWA = evmRawTransactionEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
-    sender: oc.userSWA,
-    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    sender: userSWA,
+    nonce: jobId,
     paymaster: oc.env.paymasterAddress,
-    callGasLimit:
-      transactionEstimate.userOps.callGasLimit ||
-      toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
+    callGasLimit: evmRawTransactionEstimate.userOps.callGasLimit,
     verificationGasLimit:
-      transactionEstimate.userOps.verificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas:
-      transactionEstimate.userOps.preVerificationGas ||
-      toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+      evmRawTransactionEstimate.userOps.verificationGasLimit,
+    preVerificationGas: evmRawTransactionEstimate.userOps.preVerificationGas,
+    maxFeePerGas:
+      evmRawTransactionEstimate.userOps.maxFeePerGas || gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas:
+      evmRawTransactionEstimate.userOps.maxPriorityFeePerGas ||
+      gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      transactionEstimate.userOps.paymasterPostOpGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
+      evmRawTransactionEstimate.userOps.paymasterPostOpGasLimit,
     paymasterVerificationGasLimit:
-      transactionEstimate.userOps.paymasterVerificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: transactionEstimate.userOps.callData || calldata,
-    paymasterData: transactionEstimate.userOps.paymasterData || paymasterData,
+      evmRawTransactionEstimate.userOps.paymasterVerificationGasLimit,
+    callData: evmRawTransactionEstimate.userOps.callData,
+    paymasterData: evmRawTransactionEstimate.userOps.paymasterData,
   };
 
   return {
     userOp,
-    details: transactionEstimate.details,
+    details: evmRawTransactionEstimate.details,
   };
 }
