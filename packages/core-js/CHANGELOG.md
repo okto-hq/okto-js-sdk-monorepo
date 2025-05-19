@@ -1,5 +1,11 @@
 # @okto_web3/core-js-sdk
 
+## 0.6.3
+
+### Patch Changes
+
+- 049756f: update constants
+
 ## 0.6.2
 
 ### Patch Changes
