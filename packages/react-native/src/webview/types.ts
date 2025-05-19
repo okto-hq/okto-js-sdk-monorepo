@@ -7,6 +7,7 @@ export type LoginRequestType =
   | 'verify_otp'
   | 'resend_otp'
   | 'paste_otp'
+  | 'ui_config'
   | 'close_webview';
 
 export interface WebViewRequest {
@@ -37,8 +38,14 @@ export interface WebViewResponse {
     otp?: string;
     token?: string;
     message?: string;
+    config?: UIConfig;
     type?: LoginRequestType;
-    [key: string]: string | AuthProvider | LoginRequestType | undefined;
+    [key: string]:
+      | string
+      | AuthProvider
+      | LoginRequestType
+      | UIConfig
+      | undefined;
   };
   error?: string;
 }
@@ -49,6 +56,7 @@ export type WebViewParamList = {
     title?: string;
     provider?: AuthProvider;
     redirectUrl: string;
+    uiConfig?: UIConfig;
     initialData?: Record<string, string | number | boolean>;
     onAuthComplete?: (data: Record<string, string | number | boolean>) => void;
     clientConfig: {
@@ -58,6 +66,33 @@ export type WebViewParamList = {
     };
   };
 };
+
+export interface UIConfig {
+  version: string;
+  appearance?: {
+    themeName?: string;
+    theme?: Record<string, string>;
+  };
+  vendor?: {
+    name?: string;
+    logo?: string;
+  };
+  loginOptions?: {
+    socialLogins?: Array<{
+      type: string;
+      position: number;
+    }>;
+    otpLoginOptions?: Array<{
+      type: string;
+      position: number;
+    }>;
+    externalWallets?: Array<{
+      type: string;
+      position: number;
+      metadata?: Record<string, unknown>;
+    }>;
+  };
+}
 
 export interface AuthResult {
   success: boolean;
