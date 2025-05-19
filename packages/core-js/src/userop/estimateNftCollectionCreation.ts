@@ -19,7 +19,7 @@ import {
 } from './userOpInputValidator.js';
 import BffClientRepository from '@/api/bff.js';
 import type {
-  NftCollectionEstimateDetails,
+  EstimationDetails,
   NftCreateCollectionEstimateRequest,
 } from '@/types/bff/estimate.js';
 
@@ -39,7 +39,7 @@ export async function estimateNftCreateCollection(
   oc: OktoClient,
   data: NftCreateCollectionParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: NftCollectionEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }

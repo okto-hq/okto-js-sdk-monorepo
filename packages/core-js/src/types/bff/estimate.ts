@@ -196,22 +196,9 @@ export interface NftMintEstimateRequest {
     };
   };
 }
-
-export interface NftMintEstimateDetails {
-  estimation: {
-    amount: string;
-  };
-  fees: {
-    transactionFees: {
-      [networkId: string]: string;
-    };
-    approxTransactionFeesInUSDT: string;
-  };
-}
-
 export interface NftMintEstimateResponse {
   userOps: UserOp;
-  details: NftMintEstimateDetails;
+  details: EstimationDetails;
 }
 
 /**
@@ -220,21 +207,9 @@ export interface NftMintEstimateResponse {
  * ========================
  */
 
-export interface NftCollectionEstimateDetails {
-  estimation: {
-    amount: string;
-  };
-  fees: {
-    transactionFees: {
-      [networkId: string]: string;
-    };
-    approxTransactionFeesInUSDT: string;
-  };
-}
-
 export interface NftCreateCollectionEstimateResponse {
   userOps: UserOp;
-  details: NftCollectionEstimateDetails;
+  details: EstimationDetails;
 }
 
 export interface NftCreateCollectionEstimateRequest {

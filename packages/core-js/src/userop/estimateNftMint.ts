@@ -16,7 +16,7 @@ import type { NftMintParams } from './types.js';
 import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
 import BffClientRepository from '@/api/bff.js';
 import type {
-  NftMintEstimateDetails,
+  EstimationDetails,
   NftMintEstimateRequest,
 } from '@/types/bff/estimate.js';
 
@@ -36,7 +36,7 @@ export async function estimateNftMint(
   oc: OktoClient,
   data: NftMintParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: NftMintEstimateDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
