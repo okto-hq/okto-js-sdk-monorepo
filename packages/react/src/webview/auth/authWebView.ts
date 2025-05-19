@@ -8,19 +8,11 @@ import type { AuthRequestHandler } from './authRequestHandler.js';
  * Handles the opening and management of a WebView for authentication purposes.
  * This class is responsible for opening the WebView, handling messages from it,
  * and managing the authentication flow.
- * It uses the WebViewManager to open and close the WebView and the AuthRequestHandler
- * to handle specific authentication requests.
- * It also provides options for customizing the WebView appearance and behavior.
- * The WebView is opened with a default URL that includes the app name and origin.
- * The WebView can be customized with options such as width, height, and event handlers.
- * The class listens for messages from the WebView and processes them using the AuthRequestHandler.
- * The WebView can be closed by calling the closeWebView method.
- * The class also provides a method to destroy the WebViewManager instance.
  * @open webview
  * @close webview
  * @param {WebViewManager} webViewManager - The WebViewManager instance used to manage the WebView.
  * @param {AuthRequestHandler} authRequestHandler - The AuthRequestHandler instance used to handle authentication requests.
- * @param {WebViewOptions} options - Options for customizing the WebView appearance and behavior.
+ * @param {WebViewOptions} options - Options for customizing the WebView onSuccess, onError and onClose.
  */
 export class OktoAuthWebView {
   private webViewManager: WebViewManager;
@@ -34,44 +26,48 @@ export class OktoAuthWebView {
     this.authRequestHandler = authRequestHandler;
   }
 
-  public open(options: WebViewOptions = {}): Promise<void> {
+  public open(
+    options: WebViewOptions = {},
+  ): Promise<string | { message: string; data?: string }> {
     return new Promise((resolve, reject) => {
-      const {
-        url = `${DEFAULT_WEBVIEW_URL}?app=OKTO_WEB&origin=${window.location.origin}`,
-        width = 500,
-        height = 800,
-        onError,
-        onClose,
-      } = options;
+      const { onSuccess, onError, onClose } = options;
+      const cleanup = () => {
+        window.removeEventListener('message', messageListener);
+      };
 
-      const isOpened = this.webViewManager.openWebView({
-        url,
-        width,
-        height,
-        onClose: () => {
+      const handleSuccess = (data: string) => {
+        try {
+          onSuccess?.(data);
+        } catch (err) {
+          console.error('onSuccess callback failed:', err);
+        }
+        cleanup();
+        resolve(data);
+      };
+
+      const handleError = (err: Error) => {
+        const payload = { message: 'Authentication failed', error: err };
+        try {
+          onError?.(new Error(payload.message));
+        } catch (callbackErr) {
+          console.error('onError callback failed:', callbackErr);
+        }
+        cleanup();
+        reject(payload);
+      };
+
+      const handleClose = () => {
+        const payload = { message: 'Authentication canceled by the user' };
+        try {
           onClose?.();
-          reject(new Error('Authentication canceled'));
-        },
-        modalStyle: {
-          backgroundColor: 'rgba(0,0,0,0.7)',
-        },
-        iframeStyle: {
-          background: window.matchMedia('(min-width: 500px)').matches
-            ? 'transparent'
-            : 'white',
-          boxShadow: window.matchMedia('(min-width: 500px)').matches
-            ? 'none'
-            : '0 0 20px rgba(0,0,0,0.3)',
-        },
-      });
+        } catch (err) {
+          console.error('onClose callback failed:', err);
+        }
+        cleanup();
+        reject(payload);
+      };
 
-      if (!isOpened) {
-        const error = new Error('WebView failed to open. Are popups blocked?');
-        onError?.(error);
-        return reject(error);
-      }
-
-      const messageListener = (event: MessageEvent) => {
+      const messageListener = async (event: MessageEvent) => {
         if (!this.webViewManager['allowedOrigins']?.includes(event.origin)) {
           console.warn('Received message from untrusted origin:', event.origin);
           return;
@@ -90,13 +86,46 @@ export class OktoAuthWebView {
                 : rawData.eventData
               : rawData;
 
-          return this.authRequestHandler.handleRequest(actualData);
-        } catch (e) {
-          console.error('Failed to process WebView event:', e);
+          const response =
+            await this.authRequestHandler.handleRequest(actualData);
+          if (response && typeof response === 'string') {
+            this.webViewManager.triggerSuccess(response);
+            handleSuccess(response);
+          }
+        } catch (err) {
+          this.webViewManager.triggerError(err as Error);
+          handleError(err as Error);
         }
       };
 
       window.addEventListener('message', messageListener);
+      const webViewUrl = options.url;
+      const isOpened = this.webViewManager.openWebView({
+        url: `${webViewUrl}?app=OKTO_WEB&origin=${window.location.origin}`,
+        width: 500,
+        height: 800,
+        onSuccess: (data) => {
+          if (typeof data === 'string') handleSuccess(data);
+        },
+        onError: handleError,
+        onClose: handleClose,
+        modalStyle: {
+          backgroundColor: 'rgba(0,0,0,0.7)',
+        },
+        iframeStyle: {
+          background: window.matchMedia('(min-width: 500px)').matches
+            ? 'transparent'
+            : 'white',
+          boxShadow: window.matchMedia('(min-width: 500px)').matches
+            ? 'none'
+            : '0 0 20px rgba(0,0,0,0.3)',
+        },
+      });
+
+      if (!isOpened) {
+        const error = new Error('WebView failed to open. Are popups blocked?');
+        handleError(error);
+      }
     });
   }
 }
