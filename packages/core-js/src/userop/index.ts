@@ -10,3 +10,4 @@ export { evmRawTransactionWithEstimate } from './evmRawTransactionWithEstimate.j
 export { aptosRawTransactionWithEstimate } from './aptosRawTransactionWithEstimate.js';
 export { nftMintWithEstimate } from './nftMintWithEstimate.js';
 export { nftCreateCollectionWithEstimate } from './nftCreateCollectionWithEstimate.js';
+export { swapToken } from './swapToken.js';
