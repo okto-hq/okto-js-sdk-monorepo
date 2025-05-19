@@ -40,7 +40,7 @@ import type {
  * @param feePayerAddress - Optional fee payer address, defaults to Constants.FEE_PAYER_ADDRESS.
  * @returns The User Operation (UserOp) for the transaction and transfer details.
  */
-export async function estimateEvmRawTransaction(
+export async function evmRawTransactionWithEstimate(
   oc: OktoClient,
   data: EVMRawTransactionIntentParams,
   feePayerAddress?: Address,

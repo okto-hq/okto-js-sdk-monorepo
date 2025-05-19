@@ -39,7 +39,7 @@ import type {
  * @param feePayerAddress - Optional fee payer address, defaults to Constants.FEE_PAYER_ADDRESS.
  * @returns The User Operation (UserOp) for the Aptos raw transaction and transaction details.
  */
-export async function estimateAptosRawTransaction(
+export async function aptosRawTransactionWithEstimate(
   oc: OktoClient,
   data: AptosRawTransactionIntentParams,
   feePayerAddress?: Address,

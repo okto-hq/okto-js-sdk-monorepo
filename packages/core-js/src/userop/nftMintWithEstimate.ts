@@ -12,38 +12,36 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NftCreateCollectionParams } from './types.js';
-import {
-  NftCreateCollectionParamsSchema,
-  validateSchema,
-} from './userOpInputValidator.js';
+import type { NftMintParams } from './types.js';
+import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
 import BffClientRepository from '@/api/bff.js';
 import type {
   EstimationDetails,
-  NftCreateCollectionEstimateRequest,
+  NftMintEstimateRequest,
 } from '@/types/bff/estimate.js';
 
 /**
- * Creates a user operation for NFT collection creation.
+ * Creates a user operation for minting an NFT.
  *
- * This function initiates the process of creating an NFT collection by encoding
+ * This function initiates the process of minting an NFT by encoding
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for creating the NFT collection (caip2Id, name, uri, and optional data with attributes, symbol, type, description).
+ * @param data - The parameters for minting an NFT (caip2Id, nftName, optional collectionAddress, uri, and optional data).
  * @param feePayerAddress - Optional fee payer address.
- * @returns The User Operation (UserOp) for the NFT collection creation and collection details.
+ * @returns The User Operation (UserOp) for the NFT minting and mint details.
  */
-export async function estimateNftCreateCollection(
+export async function nftMintWithEstimate(
   oc: OktoClient,
-  data: NftCreateCollectionParams,
+  data: NftMintParams,
   feePayerAddress?: Address,
 ): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  validateSchema(NftCreateCollectionParamsSchema, data);
+
+  validateSchema(NftMintParamsSchema, data);
 
   const nonce = generateUUID();
 
@@ -65,49 +63,62 @@ export async function estimateNftCreateCollection(
   }
 
   if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
-    throw new BaseError(
-      'NFT Collection creation is only supported on Aptos chain',
-      {
-        details: `Provided chain: ${currentChain.caipId}`,
-      },
-    );
+    throw new BaseError('NFT Minting is only supported on Aptos chain', {
+      details: `Provided chain: ${currentChain.caipId}`,
+    });
   }
+
+  const properties = data.data.properties || [];
+
+  const formattedProperties = properties.map((prop) => ({
+    name: prop.name,
+    valueType: String(prop.type),
+    value: prop.value,
+  }));
+
+  const nftData = JSON.stringify({
+    recipientWalletAddress: data.data.recipientWalletAddress || '',
+    description: data.data.description || '',
+    properties: formattedProperties,
+  });
+
+  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  // Prepare and send estimation request
-  const requestBody: NftCreateCollectionEstimateRequest = {
-    type: Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
+  const requestBody: NftMintEstimateRequest = {
+    type: Constants.INTENT_TYPE.NFT_MINT,
     jobId: nonce,
-    paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress,
-    details: data,
+    feePayerAddress: feePayerAddress,
+    paymasterData,
+    details: {
+      caip2Id: data.caip2Id,
+      nftName: data.nftName,
+      collectionAddress: data.collectionAddress,
+      uri: data.uri,
+      data: {
+        recipientWalletAddress: data.data.recipientWalletAddress,
+        description: data.data.description,
+        properties: data.data.properties || [],
+      },
+    },
   };
 
   // Get estimate from BFF API
-  const nftEstimate = await BffClientRepository.getNftCreateCollectionEstimate(
+  const nftMintEstimate = await BffClientRepository.getNftMintEstimate(
     oc,
     requestBody,
   );
 
-  const nftData = JSON.stringify({
-    type: data.data.type || '',
-    attributes: data.data.attributes || '',
-    description: data.data.description || '',
-    symbol: data.data.symbol || '',
-  });
-
-  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
-
   const jobParametersAbiType =
-    '(string caip2Id, string name, string uri, bytes data)';
+    '(string caip2Id, string nftName, string collectionAddress, string uri, bytes data)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
@@ -143,12 +154,13 @@ export async function estimateNftCreateCollection(
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
               caip2Id: data.caip2Id,
-              name: data.name,
+              nftName: data.nftName,
+              collectionAddress: data.collectionAddress || '',
               uri: data.uri,
               data: nftDataEncoded,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_CREATE_COLLECTION,
+          Constants.INTENT_TYPE.NFT_MINT,
         ],
       }),
     ],
@@ -159,33 +171,28 @@ export async function estimateNftCreateCollection(
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
     callGasLimit:
-      nftEstimate.userOps.callGasLimit ||
+      nftMintEstimate.userOps.callGasLimit ||
       toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit:
-      nftEstimate.userOps.verificationGasLimit ||
+      nftMintEstimate.userOps.verificationGasLimit ||
       toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas:
-      nftEstimate.userOps.preVerificationGas ||
+      nftMintEstimate.userOps.preVerificationGas ||
       toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
     maxFeePerGas: gasPrice.maxFeePerGas,
     maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      nftEstimate.userOps.paymasterPostOpGasLimit ||
+      nftMintEstimate.userOps.paymasterPostOpGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
     paymasterVerificationGasLimit:
-      nftEstimate.userOps.paymasterVerificationGasLimit ||
+      nftMintEstimate.userOps.paymasterVerificationGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: nftEstimate.userOps.callData || calldata,
-    paymasterData:
-      nftEstimate.userOps.paymasterData ||
-      (await oc.paymasterData({
-        nonce: nonce,
-        validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-      })),
+    callData: nftMintEstimate.userOps.callData || calldata,
+    paymasterData: nftMintEstimate.userOps.paymasterData || paymasterData,
   };
 
   return {
     userOp,
-    details: nftEstimate.details,
+    details: nftMintEstimate.details,
   };
 }

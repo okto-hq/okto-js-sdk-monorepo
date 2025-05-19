@@ -12,113 +12,90 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type { NftMintParams } from './types.js';
-import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
 import BffClientRepository from '@/api/bff.js';
+import {
+  NFTTransferIntentParamsSchema,
+  validateSchema,
+} from './userOpInputValidator.js';
+import type { NFTTransferIntentParams } from './types.js';
 import type {
   EstimationDetails,
-  NftMintEstimateRequest,
+  NFTTransferEstimateRequest,
 } from '@/types/bff/estimate.js';
 
 /**
- * Creates a user operation for minting an NFT.
+ * Creates a user operation for NFT transfer.
  *
- * This function initiates the process of minting an NFT by encoding
+ * This function initiates the process of transferring an NFT by encoding
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for minting an NFT (caip2Id, nftName, optional collectionAddress, uri, and optional data).
- * @param feePayerAddress - Optional fee payer address.
- * @returns The User Operation (UserOp) for the NFT minting and mint details.
+ * @param data - The parameters for NFT transfer.
+ * @param feePayerAddress - Optional fee payer address, defaults to Constants.FEE_PAYER_ADDRESS.
+ * @returns The User Operation (UserOp) for the NFT transfer and transfer details.
  */
-export async function estimateNftMint(
+export async function nftTransferWithEstimate(
   oc: OktoClient,
-  data: NftMintParams,
+  data: NFTTransferIntentParams,
   feePayerAddress?: Address,
 ): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(NftMintParamsSchema, data);
-
-  const nonce = generateUUID();
+  validateSchema(NFTTransferIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
   }
 
+  const nonce = generateUUID();
+
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
   const chains = await getChains(oc);
-  const currentChain = chains.find(
+  const chain = chains.find(
     (chain) => chain.caipId.toLowerCase() === data.caip2Id.toLowerCase(),
   );
 
-  if (!currentChain) {
+  if (!chain) {
     throw new BaseError(`Chain Not Supported`, {
       details: `${data.caip2Id} is not supported for this client`,
     });
   }
-
-  if (!currentChain.caipId.toLowerCase().startsWith('aptos:')) {
-    throw new BaseError('NFT Minting is only supported on Aptos chain', {
-      details: `Provided chain: ${currentChain.caipId}`,
-    });
-  }
-
-  const properties = data.data.properties || [];
-
-  const formattedProperties = properties.map((prop) => ({
-    name: prop.name,
-    valueType: String(prop.type),
-    value: prop.value,
-  }));
-
-  const nftData = JSON.stringify({
-    recipientWalletAddress: data.data.recipientWalletAddress || '',
-    description: data.data.description || '',
-    properties: formattedProperties,
-  });
-
-  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
 
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  const requestBody: NftMintEstimateRequest = {
-    type: Constants.INTENT_TYPE.NFT_MINT,
+  const requestBody: NFTTransferEstimateRequest = {
+    type: Constants.INTENT_TYPE.NFT_TRANSFER,
     jobId: nonce,
+    paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress,
-    paymasterData,
     details: {
       caip2Id: data.caip2Id,
-      nftName: data.nftName,
-      collectionAddress: data.collectionAddress,
-      uri: data.uri,
-      data: {
-        recipientWalletAddress: data.data.recipientWalletAddress,
-        description: data.data.description,
-        properties: data.data.properties || [],
-      },
+      collectionAddress: data.collectionAddress || '',
+      nftId: data.nftId || '',
+      recipientWalletAddress: data.recipientWalletAddress,
+      amount: data.amount.toString() || '1',
+      nftType: data.nftType || '',
     },
   };
 
   // Get estimate from BFF API
-  const nftMintEstimate = await BffClientRepository.getNftMintEstimate(
+  const nftTransferEstimate = await BffClientRepository.getNFTTransferEstimate(
     oc,
     requestBody,
   );
 
   const jobParametersAbiType =
-    '(string caip2Id, string nftName, string collectionAddress, string uri, bytes data)';
+    '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
@@ -139,8 +116,8 @@ export async function estimateNftMint(
             parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
             [
               {
-                gsnEnabled: currentChain.gsnEnabled ?? false,
-                sponsorshipEnabled: currentChain.sponsorshipEnabled ?? false,
+                gsnEnabled: chain.gsnEnabled ?? false,
+                sponsorshipEnabled: chain.sponsorshipEnabled ?? false,
               },
             ],
           ),
@@ -153,14 +130,15 @@ export async function estimateNftMint(
           ]),
           encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
             {
+              amount: BigInt(data.amount),
               caip2Id: data.caip2Id,
-              nftName: data.nftName,
-              collectionAddress: data.collectionAddress || '',
-              uri: data.uri,
-              data: nftDataEncoded,
+              recipientWalletAddress: data.recipientWalletAddress,
+              nftId: data.nftId,
+              collectionAddress: data.collectionAddress,
+              nftType: data.nftType,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_MINT,
+          Constants.INTENT_TYPE.NFT_TRANSFER,
         ],
       }),
     ],
@@ -171,28 +149,33 @@ export async function estimateNftMint(
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
     callGasLimit:
-      nftMintEstimate.userOps.callGasLimit ||
+      nftTransferEstimate.userOps.callGasLimit ||
       toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit:
-      nftMintEstimate.userOps.verificationGasLimit ||
+      nftTransferEstimate.userOps.verificationGasLimit ||
       toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas:
-      nftMintEstimate.userOps.preVerificationGas ||
+      nftTransferEstimate.userOps.preVerificationGas ||
       toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
     maxFeePerGas: gasPrice.maxFeePerGas,
     maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      nftMintEstimate.userOps.paymasterPostOpGasLimit ||
+      nftTransferEstimate.userOps.paymasterPostOpGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
     paymasterVerificationGasLimit:
-      nftMintEstimate.userOps.paymasterVerificationGasLimit ||
+      nftTransferEstimate.userOps.paymasterVerificationGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: nftMintEstimate.userOps.callData || calldata,
-    paymasterData: nftMintEstimate.userOps.paymasterData || paymasterData,
+    callData: nftTransferEstimate.userOps.callData || calldata,
+    paymasterData:
+      nftTransferEstimate.userOps.paymasterData ||
+      (await oc.paymasterData({
+        nonce: nonce,
+        validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+      })),
   };
 
   return {
     userOp,
-    details: nftMintEstimate.details,
+    details: nftTransferEstimate.details,
   };
 }

@@ -14,40 +14,44 @@ import {
 import { INTENT_ABI } from './abi.js';
 import BffClientRepository from '@/api/bff.js';
 import {
-  NFTTransferIntentParamsSchema,
+  TokenTransferIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import type { NFTTransferIntentParams } from './types.js';
+import type { TokenTransferIntentParams } from './types.js';
 import type {
   EstimationDetails,
-  NFTTransferEstimateRequest,
+  TokenTransferEstimateRequest,
 } from '@/types/bff/estimate.js';
 
 /**
- * Creates a user operation for NFT transfer.
+ * Creates a user operation for token transfer.
  *
- * This function initiates the process of transferring an NFT by encoding
+ * This function initiates the process of transferring tokens by encoding
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution.
  *
  * @param oc - The OktoClient instance used to interact with the blockchain.
- * @param data - The parameters for NFT transfer.
+ * @param data - The parameters for transferring tokens.
  * @param feePayerAddress - Optional fee payer address, defaults to Constants.FEE_PAYER_ADDRESS.
- * @returns The User Operation (UserOp) for the NFT transfer and transfer details.
+ * @returns The User Operation (UserOp) for the token transfer and transfer details.
  */
-export async function estimateNftTransfer(
+export async function tokenTransferWithEstimate(
   oc: OktoClient,
-  data: NFTTransferIntentParams,
+  data: TokenTransferIntentParams,
   feePayerAddress?: Address,
 ): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(NFTTransferIntentParamsSchema, data);
+  validateSchema(TokenTransferIntentParamsSchema, data);
 
   if (!feePayerAddress) {
     feePayerAddress = Constants.FEE_PAYER_ADDRESS;
+  }
+
+  if (data.recipient === oc.userSWA) {
+    throw new BaseError('Recipient address cannot be same as the user address');
   }
 
   const nonce = generateUUID();
@@ -70,8 +74,8 @@ export async function estimateNftTransfer(
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  const requestBody: NFTTransferEstimateRequest = {
-    type: Constants.INTENT_TYPE.NFT_TRANSFER,
+  const requestBody: TokenTransferEstimateRequest = {
+    type: Constants.INTENT_TYPE.TOKEN_TRANSFER,
     jobId: nonce,
     paymasterData,
     gasDetails: {
@@ -79,27 +83,25 @@ export async function estimateNftTransfer(
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
     details: {
+      recipientWalletAddress: data.recipient,
       caip2Id: data.caip2Id,
-      collectionAddress: data.collectionAddress || '',
-      nftId: data.nftId || '',
-      recipientWalletAddress: data.recipientWalletAddress,
-      amount: data.amount.toString() || '1',
-      nftType: data.nftType || '',
+      tokenAddress: data.token,
+      amount: data.amount.toString(),
     },
   };
 
   // Get estimate from BFF API
-  const nftTransferEstimate = await BffClientRepository.getNFTTransferEstimate(
+  const transferEstimate = await BffClientRepository.getTokenTransferEstimate(
     oc,
     requestBody,
   );
 
   const jobParametersAbiType =
-    '(string caip2Id, string nftId, string recipientWalletAddress, string collectionAddress, string nftType, uint amount)';
+    '(string caip2Id, string recipientWalletAddress, string tokenAddress, uint amount)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
 
   const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, uint256, bytes'),
+    parseAbiParameters('bytes4, address,uint256, bytes'),
     [
       Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
       oc.env.jobManagerAddress,
@@ -132,13 +134,11 @@ export async function estimateNftTransfer(
             {
               amount: BigInt(data.amount),
               caip2Id: data.caip2Id,
-              recipientWalletAddress: data.recipientWalletAddress,
-              nftId: data.nftId,
-              collectionAddress: data.collectionAddress,
-              nftType: data.nftType,
+              recipientWalletAddress: data.recipient,
+              tokenAddress: data.token,
             },
           ]),
-          Constants.INTENT_TYPE.NFT_TRANSFER,
+          Constants.INTENT_TYPE.TOKEN_TRANSFER,
         ],
       }),
     ],
@@ -149,25 +149,25 @@ export async function estimateNftTransfer(
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
     callGasLimit:
-      nftTransferEstimate.userOps.callGasLimit ||
+      transferEstimate.userOps.callGasLimit ||
       toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
     verificationGasLimit:
-      nftTransferEstimate.userOps.verificationGasLimit ||
+      transferEstimate.userOps.verificationGasLimit ||
       toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
     preVerificationGas:
-      nftTransferEstimate.userOps.preVerificationGas ||
+      transferEstimate.userOps.preVerificationGas ||
       toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
     maxFeePerGas: gasPrice.maxFeePerGas,
     maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterPostOpGasLimit:
-      nftTransferEstimate.userOps.paymasterPostOpGasLimit ||
+      transferEstimate.userOps.paymasterPostOpGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
     paymasterVerificationGasLimit:
-      nftTransferEstimate.userOps.paymasterVerificationGasLimit ||
+      transferEstimate.userOps.paymasterVerificationGasLimit ||
       toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: nftTransferEstimate.userOps.callData || calldata,
+    callData: transferEstimate.userOps.callData || calldata,
     paymasterData:
-      nftTransferEstimate.userOps.paymasterData ||
+      transferEstimate.userOps.paymasterData ||
       (await oc.paymasterData({
         nonce: nonce,
         validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
@@ -176,6 +176,6 @@ export async function estimateNftTransfer(
 
   return {
     userOp,
-    details: nftTransferEstimate.details,
+    details: transferEstimate.details,
   };
 }
