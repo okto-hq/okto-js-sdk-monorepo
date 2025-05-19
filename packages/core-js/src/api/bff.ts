@@ -227,14 +227,6 @@ class BffClientRepository {
    * @returns Promise with array of TokenEntity objects
    */
   public static async getTokensForSwap(
-  /**
-   * Gets an estimate for a token transfer operation
-   *
-   * @param oc - The OktoClient instance
-   * @param requestBody - The token transfer estimate request
-   * @returns Promise with the transfer estimate response
-   */
-  public static async getTokenTransferEstimate(
     oc: OktoClient,
     filters: TokenListingFilter,
   ): Promise<TokenEntity[]> {
@@ -287,6 +279,27 @@ class BffClientRepository {
     const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
     >(this.routes.swapEstimate, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate token transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets the NFT transfer estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The NFT transfer estimate request parameters.
+   * @returns The NFT transfer estimate response.
+   */
+  public static async getTokenTransferEstimate(
+    oc: OktoClient,
     requestBody: TokenTransferEstimateRequest,
   ): Promise<TokenTransferEstimateResponse> {
     const response = await getBffClient(oc).post<
@@ -294,7 +307,7 @@ class BffClientRepository {
     >(this.routes.estimateOrder, requestBody);
 
     if (response.data.status === 'error') {
-      throw new Error('Failed to estimate token transfer');
+      throw new Error('Failed to estimate NFT transfer');
     }
 
     if (!response.data.data) {
