@@ -70,11 +70,9 @@ export async function aptosRawTransactionWithEstimate(
   });
 
   const transactions = data.transactions.map((transaction) => ({
-    transactionData: {
-      function: transaction.function,
-      typeArguments: transaction.typeArguments || [],
-      functionArguments: transaction.functionArguments || [],
-    },
+    function: transaction.function,
+    typeArguments: transaction.typeArguments || [],
+    functionArguments: transaction.functionArguments || [],
   }));
 
   const requestBody: AptosRawTransactionEstimateRequest = {
