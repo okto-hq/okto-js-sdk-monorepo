@@ -1,6 +1,5 @@
 import type { Address, UserOp } from '@/types/core.js';
 import type {
-  AptosRawTransaction,
   AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
