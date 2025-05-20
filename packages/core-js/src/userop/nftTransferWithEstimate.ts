@@ -89,6 +89,20 @@ export async function nftTransferWithEstimate(
     requestBody,
   );
 
+  const details: EstimationDetails = {
+    ...nftTransferEstimate.details,
+    gsn: nftTransferEstimate.callData?.gsn
+      ? {
+          isPossible: nftTransferEstimate.callData.gsn.isPossible,
+          isRequired: nftTransferEstimate.callData.gsn.isRequired,
+          requiredNetworks: [
+            ...nftTransferEstimate.callData.gsn.requiredNetworks,
+          ],
+          tokens: [...nftTransferEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     nftTransferEstimate.userOps.nonce ||
@@ -117,6 +131,6 @@ export async function nftTransferWithEstimate(
 
   return {
     userOp,
-    details: nftTransferEstimate.details,
+    details: details,
   };
 }
