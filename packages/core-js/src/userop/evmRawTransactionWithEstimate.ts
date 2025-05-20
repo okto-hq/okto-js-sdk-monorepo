@@ -106,6 +106,20 @@ export async function evmRawTransactionWithEstimate(
   const evmRawTransactionEstimate =
     await BffClientRepository.getEvmRawTransactionEstimate(oc, requestBody);
 
+  const details: EstimationDetails = {
+    ...evmRawTransactionEstimate.details,
+    gsn: evmRawTransactionEstimate.callData?.gsn
+      ? {
+          isPossible: evmRawTransactionEstimate.callData.gsn.isPossible,
+          isRequired: evmRawTransactionEstimate.callData.gsn.isRequired,
+          requiredNetworks: [
+            ...evmRawTransactionEstimate.callData.gsn.requiredNetworks,
+          ],
+          tokens: [...evmRawTransactionEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     evmRawTransactionEstimate.userOps.nonce ||
@@ -135,6 +149,6 @@ export async function evmRawTransactionWithEstimate(
 
   return {
     userOp,
-    details: evmRawTransactionEstimate.details,
+    details: details,
   };
 }
