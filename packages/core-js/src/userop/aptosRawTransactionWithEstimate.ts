@@ -94,10 +94,19 @@ export async function aptosRawTransactionWithEstimate(
   const aptosRawTransactionEstimate =
     await BffClientRepository.getAptosRawTransactionEstimate(oc, requestBody);
 
-  if (aptosRawTransactionEstimate?.callData?.gsn) {
-    aptosRawTransactionEstimate.details.gsn =
-      aptosRawTransactionEstimate.callData.gsn;
-  }
+  const details: EstimationDetails = {
+    ...aptosRawTransactionEstimate.details,
+    gsn: aptosRawTransactionEstimate.callData?.gsn
+      ? {
+          isPossible: aptosRawTransactionEstimate.callData.gsn.isPossible,
+          isRequired: aptosRawTransactionEstimate.callData.gsn.isRequired,
+          requiredNetworks: [
+            ...aptosRawTransactionEstimate.callData.gsn.requiredNetworks,
+          ],
+          tokens: [...aptosRawTransactionEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
 
   // Use the jobId and userSWA from the estimate response
   const jobId =
@@ -128,6 +137,6 @@ export async function aptosRawTransactionWithEstimate(
 
   return {
     userOp,
-    details: aptosRawTransactionEstimate.details,
+    details: details,
   };
 }
