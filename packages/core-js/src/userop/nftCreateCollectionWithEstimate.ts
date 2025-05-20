@@ -89,6 +89,20 @@ export async function nftCreateCollectionWithEstimate(
   const nftCollectionCreationEstimate =
     await BffClientRepository.getNftCreateCollectionEstimate(oc, requestBody);
 
+  const details: EstimationDetails = {
+    ...nftCollectionCreationEstimate.details,
+    gsn: nftCollectionCreationEstimate.callData?.gsn
+      ? {
+          isPossible: nftCollectionCreationEstimate.callData.gsn.isPossible,
+          isRequired: nftCollectionCreationEstimate.callData.gsn.isRequired,
+          requiredNetworks: [
+            ...nftCollectionCreationEstimate.callData.gsn.requiredNetworks,
+          ],
+          tokens: [...nftCollectionCreationEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     nftCollectionCreationEstimate.userOps.nonce ||
@@ -120,6 +134,6 @@ export async function nftCreateCollectionWithEstimate(
 
   return {
     userOp,
-    details: nftCollectionCreationEstimate.details,
+    details: details,
   };
 }

@@ -89,10 +89,25 @@ export async function tokenTransferWithEstimate(
   const tokenTransferEstimate =
     await BffClientRepository.getTokenTransferEstimate(oc, requestBody);
 
+  const details: EstimationDetails = {
+    ...tokenTransferEstimate.details,
+    gsn: tokenTransferEstimate.callData?.gsn
+      ? {
+          isPossible: tokenTransferEstimate.callData.gsn.isPossible,
+          isRequired: tokenTransferEstimate.callData.gsn.isRequired,
+          requiredNetworks: [
+            ...tokenTransferEstimate.callData.gsn.requiredNetworks,
+          ],
+          tokens: [...tokenTransferEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     tokenTransferEstimate.userOps.nonce ||
     toHex(nonceToBigInt(nonce), { size: 32 });
+
   const userSWA = tokenTransferEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
@@ -117,6 +132,6 @@ export async function tokenTransferWithEstimate(
 
   return {
     userOp,
-    details: tokenTransferEstimate.details,
+    details: details,
   };
 }

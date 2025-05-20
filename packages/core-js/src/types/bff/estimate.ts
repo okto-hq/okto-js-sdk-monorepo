@@ -5,7 +5,6 @@ import type {
 } from '@/userop/types.js';
 import type { GSNToken } from './tokens.js';
 
-
 /**
  * ========================
  * Estimate Call Data Type

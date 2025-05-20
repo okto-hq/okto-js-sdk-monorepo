@@ -94,6 +94,18 @@ export async function nftMintWithEstimate(
     requestBody,
   );
 
+  const details: EstimationDetails = {
+    ...nftMintEstimate.details,
+    gsn: nftMintEstimate.callData?.gsn
+      ? {
+          isPossible: nftMintEstimate.callData.gsn.isPossible,
+          isRequired: nftMintEstimate.callData.gsn.isRequired,
+          requiredNetworks: [...nftMintEstimate.callData.gsn.requiredNetworks],
+          tokens: [...nftMintEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     nftMintEstimate.userOps.nonce || toHex(nonceToBigInt(nonce), { size: 32 });
@@ -119,6 +131,6 @@ export async function nftMintWithEstimate(
 
   return {
     userOp,
-    details: nftMintEstimate.details,
+    details: details,
   };
 }
