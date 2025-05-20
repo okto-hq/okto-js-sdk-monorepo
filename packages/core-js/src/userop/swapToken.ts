@@ -106,6 +106,18 @@ export async function swapToken(
     requestBody,
   );
 
+  const details: EstimationDetails = {
+    ...swapEstimate.details,
+    gsn: swapEstimate.callData?.gsn
+      ? {
+          isPossible: swapEstimate.callData.gsn.isPossible,
+          isRequired: swapEstimate.callData.gsn.isRequired,
+          requiredNetworks: [...swapEstimate.callData.gsn.requiredNetworks],
+          tokens: [...swapEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
+
   const jobParametersAbiType =
     '(string routeId, string fromChainCaip2Id, uint fromChainTokenAmount, string toChainCaip2Id, string minToTokenAmount, string fromChainTokenAddress, string toChainTokenAddress, string slippage, string sameChainFee, string sameChainFeeCollector, string crossChainFee, string crossChainFeeCollector, bytes advancedSettings)';
   const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
@@ -198,6 +210,6 @@ export async function swapToken(
 
   return {
     userOp,
-    details: swapEstimate.details,
+    details: details,
   };
 }
