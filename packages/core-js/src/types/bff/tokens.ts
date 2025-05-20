@@ -69,6 +69,16 @@ export type TokenEntity = {
 };
 
 /**
+ * Represents GSN Token data
+ */
+export interface GSNToken {
+  caip2Id: string;
+  address: string;
+  amount: string;
+  amountInUSDT: string;
+}
+
+/**
  * Parameters for token listing requests
  */
 export type TokenListingParams = {
