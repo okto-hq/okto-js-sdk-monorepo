@@ -12,17 +12,12 @@ import {
   toHex,
 } from 'viem';
 import { INTENT_ABI } from './abi.js';
-import type {
-  SwapDetails,
-  TokenSwapIntentParams,
-  SwapEstimateRequest,
-} from '@/types/bff/swap.js';
 import BffClientRepository from '@/api/bff.js';
 import {
   TokenSwapIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import type { EstimationDetails } from '@/types/index.js';
+import type { EstimationDetails, SwapEstimateRequest, TokenSwapIntentParams } from '@/types/index.js';
 
 /**
  * Creates a user operation for token swap.
@@ -40,7 +35,7 @@ export async function swapToken(
   oc: OktoClient,
   data: TokenSwapIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: SwapDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
