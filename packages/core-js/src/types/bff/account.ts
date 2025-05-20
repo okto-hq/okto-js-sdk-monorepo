@@ -151,7 +151,8 @@ export type INTENT_TYPE =
   | 'RAW_TRANSACTION'
   | 'NFT_MINT'
   | 'TOKEN_TRANSFER'
-  | 'NFT_TRANSFER';
+  | 'NFT_TRANSFER'
+  | 'NFT_CREATE_COLLECTION';
 
 export type STATUS_TYPE =
   | 'NOT_EXISTS'
