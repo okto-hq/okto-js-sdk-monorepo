@@ -227,13 +227,6 @@ class BffClientRepository {
    * @param requestBody - The token transfer estimate request
    * @returns Promise with the transfer estimate response
    */
-  public static async getTokenTransferEstimate(
-  /**
-   * Retrieves tokens for swap based on different listing criteria
-   * @param oc OktoClient instance
-   * @param options Listing options (discovery, network filter, or search)
-   * @returns Promise with array of TokenEntity objects
-   */
   public static async getTokensForSwap(
     oc: OktoClient,
     requestBody: TokenTransferEstimateRequest,
@@ -322,36 +315,6 @@ class BffClientRepository {
     const response = await getBffClient(oc).post<
       ApiResponse<AptosRawTransactionEstimateResponse>
     >(this.routes.estimateOrder, requestBody);
-    filters: TokenListingFilter,
-  ): Promise<TokenEntity[]> {
-    const params: TokenListingParams = {
-      identifier: '',
-    };
-
-    switch (filters.type) {
-      case 'discovery':
-        params.identifier = 'active_tradable_tokens_v1';
-        break;
-      case 'network_filter':
-        if (!filters.networks || filters.networks.length === 0) {
-          throw new Error('Networks must be provided for network filter type');
-        }
-        params.identifier = 'active_tradable_tokens_by_caip2_ids_v1';
-        params.caip2_ids = filters.networks;
-        break;
-      case 'search':
-        if (!filters.searchText) {
-          throw new Error('Search text must be provided for search type');
-        }
-        params.identifier = 'searchable_tokens_v1';
-        params.searchText = filters.searchText;
-        break;
-      default:
-        throw new Error('Invalid listing type specified');
-    }
-    const response = await getBffClient(oc).get<
-      ApiResponse<{ entities: TokenEntity[] }>
-    >(this.routes.getEntities, { params });
 
     if (response.data.status === 'error') {
       throw new Error(
