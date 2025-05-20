@@ -3,7 +3,14 @@ import type {
   AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
-import type { Token } from './tokens.js';
+
+
+export interface  GSNToken {
+	caip2Id :string;
+	address :string;   
+	amount:string;       
+	amountInUSDT :string;
+}
 
 export interface CallData {
   clientSWA: string;
@@ -12,7 +19,7 @@ export interface CallData {
     isPossible: boolean;
     isRequired: boolean;
     requiredNetworks: string[];
-    tokens: Token[];
+    tokens: GSNToken[];
   };
   intentType: string;
   jobId: string;
@@ -70,7 +77,7 @@ export interface EstimationDetails {
     isPossible: boolean;
     isRequired: boolean;
     requiredNetworks: string[];
-    tokens: Token[];
+    tokens: GSNToken[];
   };
 }
 
@@ -100,6 +107,7 @@ export interface TokenTransferEstimateRequest {
 export interface TokenTransferEstimateResponse {
   details: EstimationDetails;
   userOps: UserOp;
+  callData: CallData;
 }
 
 /**
@@ -130,6 +138,7 @@ export interface NFTTransferEstimateRequest {
 export interface NFTTransferEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -168,6 +177,7 @@ export interface EvmRawTransactionEstimateRequest {
 export interface EvmRawTransactionEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -228,6 +238,7 @@ export interface NftMintEstimateRequest {
 export interface NftMintEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -239,6 +250,7 @@ export interface NftMintEstimateResponse {
 export interface NftCreateCollectionEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 export interface NftCreateCollectionEstimateRequest {
