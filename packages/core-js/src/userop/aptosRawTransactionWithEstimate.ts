@@ -94,6 +94,11 @@ export async function aptosRawTransactionWithEstimate(
   const aptosRawTransactionEstimate =
     await BffClientRepository.getAptosRawTransactionEstimate(oc, requestBody);
 
+  if (aptosRawTransactionEstimate?.callData?.gsn) {
+    aptosRawTransactionEstimate.details.gsn =
+      aptosRawTransactionEstimate.callData.gsn;
+  }
+
   // Use the jobId and userSWA from the estimate response
   const jobId =
     aptosRawTransactionEstimate.userOps.nonce ||

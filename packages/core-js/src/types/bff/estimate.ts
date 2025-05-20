@@ -3,6 +3,33 @@ import type {
   AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
+import type { Token } from './tokens.js';
+
+export interface CallData {
+  clientSWA: string;
+  feePayerAddress: string;
+  gsn: {
+    isPossible: boolean;
+    isRequired: boolean;
+    requiredNetworks: string[];
+    tokens: Token[];
+  };
+  intentType: string;
+  jobId: string;
+  payload: {
+    caip2Id: string;
+    transactions: {
+      function: string;
+      functionArguments: string[];
+      typeArguments: string[];
+    }[];
+  };
+  policies: {
+    gsnEnabled: boolean;
+    sponsorshipEnabled: boolean;
+  };
+  userSWA: string;
+}
 
 /**
  * ========================
@@ -38,6 +65,12 @@ export interface EstimationDetails {
     integratorFeesInInputToken: string;
     platformBaseFeesInInputToken: string;
     totalFeesInInputToken: string;
+  };
+  gsn?: {
+    isPossible: boolean;
+    isRequired: boolean;
+    requiredNetworks: string[];
+    tokens: Token[];
   };
 }
 
@@ -158,6 +191,7 @@ export interface AptosRawTransactionEstimateRequest {
 export interface AptosRawTransactionEstimateResponse {
   details: EstimationDetails;
   userOps: UserOp;
+  callData: CallData;
 }
 
 /**
