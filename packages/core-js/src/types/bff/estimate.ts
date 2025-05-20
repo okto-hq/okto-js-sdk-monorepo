@@ -3,14 +3,13 @@ import type {
   AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
+import type { GSNToken } from './tokens.js';
 
-
-export interface  GSNToken {
-	caip2Id :string;
-	address :string;   
-	amount:string;       
-	amountInUSDT :string;
-}
+/**
+ * ========================
+ * Estimate Call Data Type
+ * ========================
+ */
 
 export interface CallData {
   clientSWA: string;
