@@ -1,6 +1,7 @@
 import type { Address, UserOp } from '@/types/core.js';
 import type {
   AptosRawTransaction,
+  AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
 
@@ -151,12 +152,7 @@ export interface AptosRawTransactionEstimateRequest {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
   };
-  details: {
-    caip2Id: string;
-    transactions: Array<{
-      transactionData: AptosRawTransaction;
-    }>;
-  };
+  details: AptosRawTransactionIntentParams;
   feePayerAddress?: Address;
 }
 
