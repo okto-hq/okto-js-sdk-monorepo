@@ -10,7 +10,12 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
-import type { Token } from '@/types/bff/tokens.js';
+import type {
+  Token,
+  TokenEntity,
+  TokenListingFilter,
+  TokenListingParams,
+} from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
 import type {
@@ -27,6 +32,10 @@ import type {
   NftCreateCollectionEstimateRequest,
   NftCreateCollectionEstimateResponse,
 } from '@/types/bff/estimate.js';
+import type {
+  SwapEstimateRequest,
+  SwapEstimateResponse,
+} from '@/types/bff/swap.js';
 
 class BffClientRepository {
   private static routes = {
@@ -34,15 +43,17 @@ class BffClientRepository {
     getWallets: '/api/oc/v1/wallets',
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
-    getPortfolio: '/api/oc/v1/aggregated-portfolio',
+    getPortfolio: '/api/oc/v2/aggregated-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
+    getEntities: '/api/oc/v1/entities',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
+    swapEstimate: '/api/oc/v1/estimate',
   };
 
   /**
@@ -178,9 +189,6 @@ class BffClientRepository {
   /**
    * Retrieves the list of orders for the authenticated user from the BFF service.
    */
-  /**
-   * Retrieves the list of orders for the authenticated user from the BFF service.
-   */
   public static async getOrders(
     oc: OktoClient,
     filters?: OrderFilterRequest,
@@ -220,6 +228,13 @@ class BffClientRepository {
    * @returns Promise with the transfer estimate response
    */
   public static async getTokenTransferEstimate(
+  /**
+   * Retrieves tokens for swap based on different listing criteria
+   * @param oc OktoClient instance
+   * @param options Listing options (discovery, network filter, or search)
+   * @returns Promise with array of TokenEntity objects
+   */
+  public static async getTokensForSwap(
     oc: OktoClient,
     requestBody: TokenTransferEstimateRequest,
   ): Promise<TokenTransferEstimateResponse> {
@@ -307,6 +322,57 @@ class BffClientRepository {
     const response = await getBffClient(oc).post<
       ApiResponse<AptosRawTransactionEstimateResponse>
     >(this.routes.estimateOrder, requestBody);
+    filters: TokenListingFilter,
+  ): Promise<TokenEntity[]> {
+    const params: TokenListingParams = {
+      identifier: '',
+    };
+
+    switch (filters.type) {
+      case 'discovery':
+        params.identifier = 'active_tradable_tokens_v1';
+        break;
+      case 'network_filter':
+        if (!filters.networks || filters.networks.length === 0) {
+          throw new Error('Networks must be provided for network filter type');
+        }
+        params.identifier = 'active_tradable_tokens_by_caip2_ids_v1';
+        params.caip2_ids = filters.networks;
+        break;
+      case 'search':
+        if (!filters.searchText) {
+          throw new Error('Search text must be provided for search type');
+        }
+        params.identifier = 'searchable_tokens_v1';
+        params.searchText = filters.searchText;
+        break;
+      default:
+        throw new Error('Invalid listing type specified');
+    }
+    const response = await getBffClient(oc).get<
+      ApiResponse<{ entities: TokenEntity[] }>
+    >(this.routes.getEntities, { params });
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to retrieve tokens: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data || !response.data.data.entities) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data.entities;
+  }
+
+  public static async getSwapEstimate(
+    oc: OktoClient,
+    requestBody: SwapEstimateRequest,
+  ): Promise<SwapEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<SwapEstimateResponse>
+    >(this.routes.swapEstimate, requestBody);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate Aptos raw transaction');
