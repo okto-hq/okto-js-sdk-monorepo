@@ -31,11 +31,9 @@ import type {
   NftMintEstimateResponse,
   NftCreateCollectionEstimateRequest,
   NftCreateCollectionEstimateResponse,
-} from '@/types/bff/estimate.js';
-import type {
   SwapEstimateRequest,
   SwapEstimateResponse,
-} from '@/types/bff/swap.js';
+} from '@/types/bff/estimate.js';
 
 class BffClientRepository {
   private static routes = {

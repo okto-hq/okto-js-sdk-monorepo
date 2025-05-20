@@ -1,6 +1,6 @@
 import type OktoClient from '@/core/index.js';
+import type { TokenSwapIntentParams } from '@/types/index.js';
 import { swapToken as useropgen } from '@/userop/swapToken.js';
-import type { TokenSwapIntentParams } from '@/types/bff/swap.js';
 
 /**
  * Swap tokens.
