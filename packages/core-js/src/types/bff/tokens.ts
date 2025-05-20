@@ -20,6 +20,18 @@ export type Token = {
 };
 
 /**
+ * Represents GSN Token data
+ */
+
+export interface  GSNToken {
+	caip2Id :string;
+	address :string;   
+	amount:string;       
+	amountInUSDT :string;
+}
+
+
+/**
  * Represents NFT data
  */
 

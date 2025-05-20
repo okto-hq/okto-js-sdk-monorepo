@@ -3,6 +3,40 @@ import type {
   AptosRawTransactionIntentParams,
   NftCreateCollectionParams,
 } from '@/userop/types.js';
+import type { GSNToken } from './tokens.js';
+
+
+/**
+ * ========================
+ * Estimate Call Data Type
+ * ========================
+ */
+
+export interface CallData {
+  clientSWA: string;
+  feePayerAddress: string;
+  gsn: {
+    isPossible: boolean;
+    isRequired: boolean;
+    requiredNetworks: string[];
+    tokens: GSNToken[];
+  };
+  intentType: string;
+  jobId: string;
+  payload: {
+    caip2Id: string;
+    transactions: {
+      function: string;
+      functionArguments: string[];
+      typeArguments: string[];
+    }[];
+  };
+  policies: {
+    gsnEnabled: boolean;
+    sponsorshipEnabled: boolean;
+  };
+  userSWA: string;
+}
 
 /**
  * ========================
@@ -39,6 +73,12 @@ export interface EstimationDetails {
     platformBaseFeesInInputToken: string;
     totalFeesInInputToken: string;
   };
+  gsn?: {
+    isPossible: boolean;
+    isRequired: boolean;
+    requiredNetworks: string[];
+    tokens: GSNToken[];
+  };
 }
 
 /**
@@ -67,6 +107,7 @@ export interface TokenTransferEstimateRequest {
 export interface TokenTransferEstimateResponse {
   details: EstimationDetails;
   userOps: UserOp;
+  callData: CallData;
 }
 
 /**
@@ -97,6 +138,7 @@ export interface NFTTransferEstimateRequest {
 export interface NFTTransferEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -135,6 +177,7 @@ export interface EvmRawTransactionEstimateRequest {
 export interface EvmRawTransactionEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -158,6 +201,7 @@ export interface AptosRawTransactionEstimateRequest {
 export interface AptosRawTransactionEstimateResponse {
   details: EstimationDetails;
   userOps: UserOp;
+  callData: CallData;
 }
 
 /**
@@ -194,6 +238,7 @@ export interface NftMintEstimateRequest {
 export interface NftMintEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 /**
@@ -205,6 +250,7 @@ export interface NftMintEstimateResponse {
 export interface NftCreateCollectionEstimateResponse {
   userOps: UserOp;
   details: EstimationDetails;
+  callData: CallData;
 }
 
 export interface NftCreateCollectionEstimateRequest {
