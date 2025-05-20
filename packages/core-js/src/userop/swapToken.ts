@@ -17,7 +17,11 @@ import {
   TokenSwapIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import type { EstimationDetails, SwapEstimateRequest, TokenSwapIntentParams } from '@/types/index.js';
+import type {
+  EstimationDetails,
+  SwapEstimateRequest,
+  TokenSwapIntentParams,
+} from '@/types/index.js';
 
 /**
  * Creates a user operation for token swap.
