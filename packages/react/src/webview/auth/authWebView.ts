@@ -1,5 +1,4 @@
-import { DEFAULT_WEBVIEW_URL } from '../constants.js';
-import type { WebViewOptions } from '../types.js';
+import type { AppearanceOptions, WebViewOptions } from '../types.js';
 import type { WebViewManager } from '../webViewManager.js';
 import type { AuthRequestHandler } from './authRequestHandler.js';
 
@@ -28,6 +27,7 @@ export class OktoAuthWebView {
 
   public open(
     options: WebViewOptions = {},
+    style?: AppearanceOptions,
   ): Promise<string | { message: string; data?: string }> {
     return new Promise((resolve, reject) => {
       const { onSuccess, onError, onClose } = options;
@@ -86,8 +86,10 @@ export class OktoAuthWebView {
                 : rawData.eventData
               : rawData;
 
-          const response =
-            await this.authRequestHandler.handleRequest(actualData);
+          const response = await this.authRequestHandler.handleRequest(
+            actualData,
+            style,
+          );
           if (response && typeof response === 'string') {
             this.webViewManager.triggerSuccess(response);
             handleSuccess(response);

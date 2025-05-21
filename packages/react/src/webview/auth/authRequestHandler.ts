@@ -1,5 +1,5 @@
 import type { WebViewManager } from '../webViewManager.js';
-import type { WebViewRequestHandler } from '../types.js';
+import type { AppearanceOptions, WebViewRequestHandler } from '../types.js';
 import type { OktoClient } from 'src/core/index.js';
 
 /**
@@ -18,9 +18,12 @@ export class AuthRequestHandler {
     this.webViewManager = webViewManager;
   }
 
-  public handleRequest: WebViewRequestHandler = async (actualData: {
-    data?: { [key: string]: unknown } | undefined;
-  }) => {
+  public handleRequest: WebViewRequestHandler = async (
+    actualData: {
+      data?: { [key: string]: unknown } | undefined;
+    },
+    style?: AppearanceOptions,
+  ) => {
     console.log('Received request:', actualData);
 
     if (typeof actualData !== 'object' || actualData === null) {
@@ -31,6 +34,16 @@ export class AuthRequestHandler {
       id: (actualData as { id?: string }).id || 'uuid-for-webview',
       method: (actualData as { method?: string }).method || 'okto_sdk_login',
     };
+
+    if (actualData.data?.type === 'ui_config') {
+      this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
+        type: 'ui_config',
+        config: {
+          ...style,
+        },
+      });
+      return;
+    }
 
     if (
       (actualData as { data?: { provider?: string } }).data?.provider ===
