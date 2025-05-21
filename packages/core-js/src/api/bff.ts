@@ -12,7 +12,11 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
-import type { Token } from '@/types/bff/tokens.js';
+import type {
+  SupportedRampTokensResponse,
+  Token,
+  TransactionTokenResponse,
+} from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
 
@@ -27,10 +31,12 @@ class BffClientRepository {
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
+    getSupportedRampTokens: '/api/v2/supported_ramp_tokens',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
+    generateTransactionToken: '/api/v2/transaction_token',
   };
 
   /**
@@ -219,6 +225,73 @@ class BffClientRepository {
     }
 
     return response.data.data;
+  }
+
+  /**
+   * Retrieves the list of supported ramp tokens from the BFF service.
+   * @param oc OktoClient instance
+   * @param countryCode Country code to filter tokens (e.g., 'IN')
+   * @param side Transaction side ('onramp' or 'offramp')
+   * @returns SupportedRampTokensResponse containing onramp and offramp tokens
+   */
+  public static async getSupportedRampTokens(
+    oc: OktoClient,
+    countryCode: string,
+    side: 'onramp' | 'offramp',
+  ): Promise<SupportedRampTokensResponse> {
+    const response = await getBffClient(oc).get<
+      ApiResponse<SupportedRampTokensResponse>
+    >(this.routes.getSupportedRampTokens, {
+      params: {
+        country_code: countryCode,
+        side,
+      },
+    });
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to retrieve supported ramp tokens: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Generates a transaction token used for ramp operations.
+   * @param oc OktoClient instance
+   * @returns The transaction token
+   */
+  public static async generateTransactionToken(
+    oc: OktoClient,
+  ): Promise<string> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<TransactionTokenResponse>
+    >(
+      this.routes.generateTransactionToken,
+      {},
+      {
+        headers: {
+          'x-source': 'okto_wallet_web',
+        },
+      },
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to generate transaction token: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data || !response.data.data.transactionToken) {
+      throw new Error('Transaction token is missing in the response');
+    }
+
+    return response.data.data.transactionToken;
   }
 }
 
