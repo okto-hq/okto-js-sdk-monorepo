@@ -51,7 +51,6 @@ class BffClientRepository {
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
-    swapEstimate: '/api/oc/v1/estimate',
   };
 
   /**
@@ -276,7 +275,7 @@ class BffClientRepository {
   ): Promise<SwapEstimateResponse> {
     const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
-    >(this.routes.swapEstimate, requestBody);
+    >(this.routes.estimateOrder, requestBody);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate token transfer');
