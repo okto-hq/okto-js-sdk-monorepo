@@ -39,7 +39,7 @@ export async function nftTransfer(
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(NFTTransferIntentParamsSchema as any, data);
+  validateSchema(NFTTransferIntentParamsSchema, data);
 
   if (data.recipientWalletAddress === oc.userSWA) {
     throw new BaseError(

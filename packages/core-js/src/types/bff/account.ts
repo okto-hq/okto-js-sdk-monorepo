@@ -1,3 +1,4 @@
+import type { AptosFunctionArgumentTypes } from '@/userop/types.js';
 import type { Hash } from '../core.js';
 
 /**
@@ -149,6 +150,7 @@ export type UserNFTBalance = {
  */
 export type INTENT_TYPE =
   | 'RAW_TRANSACTION'
+  | 'NFT_CREATE_COLLECTION'
   | 'NFT_MINT'
   | 'TOKEN_TRANSFER'
   | 'NFT_TRANSFER'
@@ -192,6 +194,27 @@ export type NftMintDetails = BaseDetails & {
   uri: string;
 };
 
+export interface AptosRawTransactionDetails extends BaseDetails {
+  transactions: Array<{
+    function: string;
+    typeArguments: string[];
+    functionArguments: AptosFunctionArgumentTypes[];
+  }>;
+  intent_type: 'RAW_TRANSACTION';
+}
+
+export interface NftCreateCollectionDetails extends BaseDetails {
+  name: string;
+  uri: string;
+  data: {
+    attributes?: string;
+    symbol?: string;
+    type?: string;
+    description?: string;
+  };
+  intent_type: 'NFT_CREATE_COLLECTION';
+}
+
 export type TokenTransferDetails = BaseDetails & {
   amount: string;
   caip2Id: string;
@@ -211,6 +234,8 @@ export type OrderDetails =
   | (RawTransactionDetails & { intent_type: 'RAW_TRANSACTION' })
   | (NftMintDetails & { intent_type: 'NFT_MINT' })
   | (TokenTransferDetails & { intent_type: 'TOKEN_TRANSFER' })
+  | (NftCreateCollectionDetails & { intent_type: 'NFT_CREATE_COLLECTION' })
+  | (AptosRawTransactionDetails & { intent_type: 'RAW_TRANSACTION' })
   | (NftTransferDetails & { intent_type: 'NFT_TRANSFER' });
 
 export type OrderFilterRequest = {

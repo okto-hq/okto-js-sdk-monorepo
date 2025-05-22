@@ -1,5 +1,3 @@
-import type { Network } from './common.js';
-
 /**
  * Represents Token data
  */
@@ -19,15 +17,14 @@ export type Token = {
 };
 
 /**
- * Represents NFT data
+ * Represents GSN Token data
  */
-export type NftCollection = {
-  nftCollectionId: string;
-  collectionAddress: string;
-  network: Network;
-  whitelisted: boolean | undefined;
-  ercType: 'ERC721' | 'ERC1155';
-};
+export interface GSNToken {
+  caip2Id: string;
+  address: string;
+  amount: string;
+  amountInUSDT: string;
+}
 
 /**
  * Represents Token data for SWAP

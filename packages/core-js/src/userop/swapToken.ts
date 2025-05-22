@@ -5,23 +5,17 @@ import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
 import { Constants } from '@/utils/index.js';
 import { generateUUID, nonceToBigInt } from '@/utils/nonce.js';
-import {
-  encodeAbiParameters,
-  encodeFunctionData,
-  parseAbiParameters,
-  toHex,
-} from 'viem';
-import { INTENT_ABI } from './abi.js';
-import type {
-  SwapDetails,
-  TokenSwapIntentParams,
-  SwapEstimateRequest,
-} from '@/types/bff/swap.js';
+import { toHex } from 'viem';
 import BffClientRepository from '@/api/bff.js';
 import {
   TokenSwapIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
+import type {
+  EstimationDetails,
+  SwapEstimateRequest,
+  TokenSwapIntentParams,
+} from '@/types/index.js';
 
 /**
  * Creates a user operation for token swap.
@@ -39,7 +33,7 @@ export async function swapToken(
   oc: OktoClient,
   data: TokenSwapIntentParams,
   feePayerAddress?: Address,
-): Promise<{ userOp: UserOp; details: SwapDetails }> {
+): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
@@ -110,98 +104,42 @@ export async function swapToken(
     requestBody,
   );
 
-  const jobParametersAbiType =
-    '(string routeId, string fromChainCaip2Id, uint fromChainTokenAmount, string toChainCaip2Id, string minToTokenAmount, string fromChainTokenAddress, string toChainTokenAddress, string slippage, string sameChainFee, string sameChainFeeCollector, string crossChainFee, string crossChainFeeCollector, bytes advancedSettings)';
-  const gsnDataAbiType = `(bool isRequired, string[] requiredNetworks, ${jobParametersAbiType}[] tokens)`;
+  const details: EstimationDetails = {
+    ...swapEstimate.details,
+    gsn: swapEstimate.callData?.gsn
+      ? {
+          isPossible: swapEstimate.callData.gsn.isPossible,
+          isRequired: swapEstimate.callData.gsn.isRequired,
+          requiredNetworks: [...swapEstimate.callData.gsn.requiredNetworks],
+          tokens: [...swapEstimate.callData.gsn.tokens],
+        }
+      : undefined,
+  };
 
-  const calldata = encodeAbiParameters(
-    parseAbiParameters('bytes4, address, uint256, bytes'),
-    [
-      Constants.EXECUTE_USEROP_FUNCTION_SELECTOR,
-      oc.env.jobManagerAddress,
-      Constants.USEROP_VALUE,
-      encodeFunctionData({
-        abi: INTENT_ABI,
-        functionName: Constants.FUNCTION_NAME,
-        args: [
-          toHex(nonceToBigInt(nonce), { size: 32 }),
-          oc.clientSWA,
-          oc.userSWA,
-          feePayerAddress,
-          encodeAbiParameters(
-            parseAbiParameters('(bool gsnEnabled, bool sponsorshipEnabled)'),
-            [
-              {
-                gsnEnabled: fromChain.gsnEnabled ?? false,
-                sponsorshipEnabled: fromChain.sponsorshipEnabled ?? false,
-              },
-            ],
-          ),
-          encodeAbiParameters(parseAbiParameters(gsnDataAbiType), [
-            {
-              isRequired: false,
-              requiredNetworks: [],
-              tokens: [],
-            },
-          ]),
-          encodeAbiParameters(parseAbiParameters(jobParametersAbiType), [
-            {
-              routeId: data.routeId || swapEstimate.details.estimation.routeId,
-              fromChainCaip2Id: data.fromChainCaip2Id,
-              fromChainTokenAmount: BigInt(data.fromChainTokenAmount),
-              toChainCaip2Id: data.toChainCaip2Id,
-              minToTokenAmount: data.minToTokenAmount || '',
-              fromChainTokenAddress: data.fromChainTokenAddress || '',
-              toChainTokenAddress: data.toChainTokenAddress || '',
-              slippage:
-                data.slippage || swapEstimate.details.estimation.slippageUsed,
-              sameChainFee: data.sameChainFee || '',
-              sameChainFeeCollector: data.sameChainFeeCollector || '',
-              crossChainFee: data.crossChainFee || '',
-              crossChainFeeCollector: data.crossChainFeeCollector || '',
-              advancedSettings: data.advancedSettings
-                ? toHex(JSON.stringify(data.advancedSettings))
-                : '0x',
-            },
-          ]),
-          Constants.INTENT_TYPE.SWAP,
-        ],
-      }),
-    ],
-  );
+  const jobId =
+    swapEstimate.userOps.nonce || toHex(nonceToBigInt(nonce), { size: 32 });
+  const userSWA = swapEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
-    sender: oc.userSWA,
-    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    sender: userSWA,
+    nonce: jobId,
     paymaster: oc.env.paymasterAddress,
-    callGasLimit:
-      swapEstimate.userOps.callGasLimit ||
-      toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
-    verificationGasLimit:
-      swapEstimate.userOps.verificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas:
-      swapEstimate.userOps.preVerificationGas ||
-      toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-    paymasterPostOpGasLimit:
-      swapEstimate.userOps.paymasterPostOpGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT),
+    callGasLimit: swapEstimate.userOps.callGasLimit,
+    verificationGasLimit: swapEstimate.userOps.verificationGasLimit,
+    preVerificationGas: swapEstimate.userOps.preVerificationGas,
+    maxFeePerGas: swapEstimate.userOps.maxFeePerGas || gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas:
+      swapEstimate.userOps.maxPriorityFeePerGas ||
+      gasPrice.maxPriorityFeePerGas,
+    paymasterPostOpGasLimit: swapEstimate.userOps.paymasterPostOpGasLimit,
     paymasterVerificationGasLimit:
-      swapEstimate.userOps.paymasterVerificationGasLimit ||
-      toHex(Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT),
-    callData: swapEstimate.userOps.callData || calldata,
-    paymasterData:
-      swapEstimate.userOps.paymasterData ||
-      (await oc.paymasterData({
-        nonce: nonce,
-        validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-      })),
+      swapEstimate.userOps.paymasterVerificationGasLimit,
+    callData: swapEstimate.userOps.callData,
+    paymasterData: swapEstimate.userOps.paymasterData,
   };
 
   return {
     userOp,
-    details: swapEstimate.details,
+    details: details,
   };
 }

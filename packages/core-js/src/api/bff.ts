@@ -19,9 +19,21 @@ import type {
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
 import type {
+  TokenTransferEstimateRequest,
+  TokenTransferEstimateResponse,
+  NFTTransferEstimateRequest,
+  NFTTransferEstimateResponse,
+  AptosRawTransactionEstimateRequest,
+  AptosRawTransactionEstimateResponse,
+  EvmRawTransactionEstimateResponse,
+  EvmRawTransactionEstimateRequest,
+  NftMintEstimateRequest,
+  NftMintEstimateResponse,
+  NftCreateCollectionEstimateRequest,
+  NftCreateCollectionEstimateResponse,
   SwapEstimateRequest,
   SwapEstimateResponse,
-} from '@/types/bff/swap.js';
+} from '@/types/bff/estimate.js';
 
 class BffClientRepository {
   private static routes = {
@@ -39,7 +51,6 @@ class BffClientRepository {
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
-    swapEstimate: '/api/oc/v1/estimate',
   };
 
   /**
@@ -264,10 +275,176 @@ class BffClientRepository {
   ): Promise<SwapEstimateResponse> {
     const response = await getBffClient(oc).post<
       ApiResponse<SwapEstimateResponse>
-    >(this.routes.swapEstimate, requestBody);
+    >(this.routes.estimateOrder, requestBody);
 
     if (response.data.status === 'error') {
-      throw new Error('Failed to estimate order');
+      throw new Error('Failed to estimate token transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets the NFT transfer estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The NFT transfer estimate request parameters.
+   * @returns The NFT transfer estimate response.
+   */
+  public static async getTokenTransferEstimate(
+    oc: OktoClient,
+    requestBody: TokenTransferEstimateRequest,
+  ): Promise<TokenTransferEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<TokenTransferEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets the NFT transfer estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The NFT transfer estimate request parameters.
+   * @returns The NFT transfer estimate response.
+   */
+  public static async getNFTTransferEstimate(
+    oc: OktoClient,
+    requestBody: NFTTransferEstimateRequest,
+  ): Promise<NFTTransferEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NFTTransferEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a EVM raw transaction estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The EVM raw transaction estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+  public static async getEvmRawTransactionEstimate(
+    oc: OktoClient,
+    requestBody: EvmRawTransactionEstimateRequest,
+  ): Promise<EvmRawTransactionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EvmRawTransactionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate raw transaction');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a Aptos raw transaction estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The Aptos raw transaction estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+
+  public static async getAptosRawTransactionEstimate(
+    oc: OktoClient,
+    requestBody: AptosRawTransactionEstimateRequest,
+  ): Promise<AptosRawTransactionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<AptosRawTransactionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate Aptos raw transaction');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a NFT Mint estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The NFT Mint estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+
+  public static async getNftMintEstimate(
+    oc: OktoClient,
+    requestBody: NftMintEstimateRequest,
+  ): Promise<NftMintEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NftMintEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT mint');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets an estimate for NFT collection creation.
+   *
+   * This function provides an estimation of fees and other details for creating
+   * an NFT collection on the blockchain.
+   *
+   * @param oc - The OktoClient instance used to interact with the blockchain.
+   * @param requestBody - The request containing NFT collection details and other parameters.
+   * @returns A promise resolving to the estimation response with details and userOp.
+   * @throws Error if the estimation fails or response data is missing.
+   */
+
+  public static async getNftCreateCollectionEstimate(
+    oc: OktoClient,
+    requestBody: NftCreateCollectionEstimateRequest,
+  ): Promise<NftCreateCollectionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NftCreateCollectionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT collection creation');
     }
 
     if (!response.data.data) {
