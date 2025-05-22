@@ -10,6 +10,7 @@ export interface EnvConfig {
   entryPointAddress: Address;
   chainId: number;
   authPageUrl: string;
+  onrampUrl: string;
 }
 
 export interface ClientConfig {

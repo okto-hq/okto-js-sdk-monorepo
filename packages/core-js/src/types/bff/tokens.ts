@@ -30,32 +30,3 @@ export type NftCollection = {
   whitelisted: boolean | undefined;
   ercType: 'ERC721' | 'ERC1155';
 };
-
-export type RampToken = {
-  name: string;
-  shortName: string;
-  logo: string;
-  tokenId: string;
-  tokenGroupId: string;
-  networkId: string;
-  rank: number;
-  networkName: string;
-  address: string;
-  chainId: string | number;
-  precision: number;
-};
-
-/**
- * Response structure for supported ramp tokens
- */
-export type SupportedRampTokensResponse = {
-  onrampTokens: RampToken[];
-  offrampTokens: RampToken[];
-};
-
-/**
- * Response structure for transaction token generation
- */
-export type TransactionTokenResponse = {
-  transactionToken: string;
-};

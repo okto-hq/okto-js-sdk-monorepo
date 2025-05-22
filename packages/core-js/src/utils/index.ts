@@ -6,4 +6,6 @@ export { generatePaymasterData as generatePaymasterAndData } from '../core/payma
 
 export * from './nonce.js';
 
+export * from './onRamp.js';
+
 export { Constants } from './constants.js';

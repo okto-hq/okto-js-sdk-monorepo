@@ -12,13 +12,13 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
-import type {
-  SupportedRampTokensResponse,
-  Token,
-  TransactionTokenResponse,
-} from '@/types/bff/tokens.js';
+import type { Token } from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
+import type {
+  SupportedRampTokensResponse,
+  TransactionTokenResponse,
+} from '@/types/onramp.js';
 
 class BffClientRepository {
   private static routes = {
