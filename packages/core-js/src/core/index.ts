@@ -195,15 +195,17 @@ class OktoClient {
         authPayload,
       );
 
-      // TODO: Update with SessionKey Object
-      this._sessionConfig = {
+      // Create session config
+      const sessionConfig: SessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
         sessionPubKey: session.uncompressedPublicKeyHexWith0x,
         userSWA: authRes.userSWA as Hex,
       };
 
+      this._sessionConfig = sessionConfig;
+
       await this.syncUserKeys();
-      onSuccess?.(this._sessionConfig);
+      onSuccess?.(sessionConfig);
 
       if (overrideSessionConfig) {
         this._sessionConfig = overrideSessionConfig;
@@ -259,7 +261,18 @@ class OktoClient {
         provider: 'okto',
       };
 
-      return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
+      // Create custom onSuccess callback to store email
+      const emailOnSuccess = (session: SessionConfig) => {
+        session.email = email;
+        this._sessionConfig = session;
+        onSuccess?.(session);
+      };
+
+      return this.loginUsingOAuth(
+        authData,
+        emailOnSuccess,
+        overrideSessionConfig,
+      );
     } catch (error) {
       console.error('Error logging in using email:', error);
       if (error instanceof RpcError) {
@@ -598,6 +611,9 @@ class OktoClient {
     tokenId: string,
     options: OnrampOptions = {},
   ): Promise<string> {
+    if (!options.email && this._sessionConfig?.email) {
+      options.email = this._sessionConfig.email;
+    }
     return this._onrampService.generateOnrampUrl(this, tokenId, options);
   }
 

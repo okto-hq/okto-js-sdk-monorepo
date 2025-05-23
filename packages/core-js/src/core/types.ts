@@ -23,6 +23,7 @@ export interface SessionConfig {
   sessionPubKey: string;
   sessionPrivKey: Hash;
   userSWA: Hex;
+  email?: string;
 }
 
 export interface AuthParams {
