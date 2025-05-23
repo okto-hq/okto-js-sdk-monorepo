@@ -3,7 +3,7 @@ import BffClientRepository from '@/api/bff.js';
 import type { AddFundsData } from '@/types/onramp.js';
 
 /**
- * Simple service to generate onramp URLs
+ * Service to generate onramp URLs
  */
 export class OnrampService {
   /**
@@ -13,7 +13,7 @@ export class OnrampService {
    * @param options - Optional configuration
    * @returns Promise<string> - The onramp URL
    */
-  public static async generateOnrampUrl(
+  public async generateOnrampUrl(
     oktoClient: OktoClient,
     tokenId: string,
     options: {
@@ -113,7 +113,7 @@ export class OnrampService {
   /**
    * Build the onramp URL with query parameters
    */
-  private static buildOnrampUrl(baseUrl: string, data: AddFundsData): string {
+  private buildOnrampUrl(baseUrl: string, data: AddFundsData): string {
     const url = new URL(`${baseUrl}/deposit/add-funds`);
 
     Object.entries(data).forEach(([key, value]) => {

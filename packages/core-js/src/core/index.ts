@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData, SocialAuthType } from '@/types/index.js';
+import type { AuthData, OnrampOptions, SocialAuthType } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -32,6 +32,7 @@ import type {
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
 import SocialAuthUrlGenerator from '@/authentication/social.js';
+import { OnrampService } from './onRamp.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -48,6 +49,7 @@ class OktoClient {
   private _whatsAppAuthentication: WhatsAppAuthentication;
   private _emailAuthentication: EmailAuthentication;
   private _socialAuthUrlGenerator: SocialAuthUrlGenerator;
+  private _onrampService: OnrampService;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -65,6 +67,7 @@ class OktoClient {
       config.clientPrivateKey,
     );
     this._socialAuthUrlGenerator = new SocialAuthUrlGenerator();
+    this._onrampService = new OnrampService();
   }
 
   get env(): EnvConfig {
@@ -589,6 +592,13 @@ class OktoClient {
       }
       throw error;
     }
+  }
+
+  public async generateOnrampUrl(
+    tokenId: string,
+    options: OnrampOptions = {},
+  ): Promise<string> {
+    return this._onrampService.generateOnrampUrl(this, tokenId, options);
   }
 
   public isLoggedIn(): boolean {

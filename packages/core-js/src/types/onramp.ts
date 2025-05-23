@@ -64,3 +64,11 @@ export type SupportedRampTokensResponse = {
 export type TransactionTokenResponse = {
   transactionToken: string;
 };
+
+export interface OnrampOptions {
+  email?: string;
+  countryCode?: string;
+  theme?: 'light' | 'dark';
+  appVersion?: string;
+  screenSource?: string;
+}
