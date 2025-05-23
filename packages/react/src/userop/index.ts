@@ -14,6 +14,15 @@ import {
   swapToken,
 } from '@okto_web3/core-js-sdk/userop';
 
+import type {
+  TokenTransferIntentParams,
+  NFTTransferIntentParams,
+  NftMintParams,
+  NftCreateCollectionParams,
+  EVMRawTransactionIntentParams,
+  AptosRawTransactionIntentParams,
+} from '@okto_web3/core-js-sdk/userop';
+
 export {
   evmRawTransaction,
   nftTransfer,
@@ -28,4 +37,13 @@ export {
   nftCreateCollectionWithEstimate,
   aptosRawTransaction,
   swapToken,
+};
+
+export type {
+  TokenTransferIntentParams,
+  NFTTransferIntentParams,
+  NftMintParams,
+  NftCreateCollectionParams,
+  EVMRawTransactionIntentParams,
+  AptosRawTransactionIntentParams,
 };
