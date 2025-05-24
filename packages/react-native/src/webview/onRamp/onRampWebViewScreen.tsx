@@ -95,6 +95,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
     if (bridgeRef.current) {
+      console.log('KARAN :: Received message from WebView:', event.nativeEvent.data);
       bridgeRef.current.handleMessage(event);
     }
   }, []);
@@ -115,7 +116,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   // Simplified injected JavaScript
   const injectedJavaScript = `
     (function() {
-      // Simple bridge setup for OnRamp
       window.ReactNativeWebView = window.ReactNativeWebView || {};
       
       window.sendToReactNative = function(message) {
@@ -124,7 +124,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
         }
       };
       
-      // Listen for events from OnRamp web
       window.addEventListener('message', function(event) {
         if (event.data && typeof event.data === 'object') {
           window.sendToReactNative(event.data);

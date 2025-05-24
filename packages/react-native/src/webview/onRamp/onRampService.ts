@@ -27,7 +27,7 @@ export class OnRampService {
 
   async getTransactionToken(): Promise<string> {
     try {
-      console.log('Generating transaction token...');
+      console.log('KARAN :: Generating transaction token...');
       return await generateTransactionToken(this.oktoClient);
     } catch (error) {
       console.error('Error getting transaction token:', error);
@@ -37,7 +37,7 @@ export class OnRampService {
 
   async getTokenData(): Promise<any> {
     try {
-      console.log('Fetching supported tokens for onramp...');
+      console.log('KARAN :: Fetching supported tokens for onramp...');
       const supportedTokens = await getSupportedRampTokens(
         this.oktoClient,
         'IN',

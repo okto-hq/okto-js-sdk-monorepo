@@ -26,14 +26,15 @@ export class OnRampWebViewBridge {
       const data = event.nativeEvent.data;
       let model: WebEventModel;
 
-      // Handle both Map and JSON string formats
       if (typeof data === 'string') {
+        console.log('KARAN :: Received string data from WebView:', data);
         model = JSON.parse(data);
       } else {
+        console.log('KARAN :: Received non-string data from WebView:', data);
         model = data;
       }
 
-      console.log(`[WebView -> Native] Event: ${model.event}`, model);
+      console.log(`KARAN :: [WebView -> Native] Event: ${model.event}`, model);
 
       switch (model.event) {
         case WebEvent.ANALYTICS:
@@ -41,7 +42,6 @@ export class OnRampWebViewBridge {
           break;
 
         case WebEvent.CLOSE:
-        //   const forwardToRoute = model.request?.[WebKeys.FORWARD_TO_ROUTE];
           this.callbacks.onClose?.();
           break;
 
@@ -64,6 +64,7 @@ export class OnRampWebViewBridge {
           break; }
 
         case WebEvent.DATA:
+          console.log('KARAN :: DATA EVENT:', model);
           { const response = await this.fetchAndAckData(model);
           if (response) {
             this.sendAckMessage(response);
@@ -79,6 +80,7 @@ export class OnRampWebViewBridge {
   }
 
   private async fetchAndAckData(model: WebEventModel): Promise<WebEventModel | null> {
+    console.log('KARAN :: Fetching data for model:', model);
     const request = model.request;
     if (!request) return null;
 
@@ -128,7 +130,6 @@ export class OnRampWebViewBridge {
   private handleUrl(data: Record<string, any> | undefined): void {
     if (!data?.url) return;
     
-    // Handle URL opening - could use Linking.openURL here
     console.log('Handle URL:', data.url);
   }
 
