@@ -7,7 +7,9 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type {
   Address,
   AuthData,
+  OnrampOptions,
   SocialAuthType,
+  WhitelistedToken,
 } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform } from 'react-native';
@@ -16,17 +18,10 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
+import { OnrampRemoteConfig } from '../webview/onRamp/onRampRemoteConfig.js';
 
 interface NavigationProps {
-  navigate: (
-    screen: string,
-    params: {
-      url: string;
-      clientConfig: OktoClientConfig;
-      redirectUrl: string;
-      onWebViewClose: () => void;
-    },
-  ) => void;
+  navigate: (screen: string, params: unknown) => void;
 }
 
 class OktoClient extends OktoCoreClient {
@@ -89,7 +84,6 @@ class OktoClient extends OktoCoreClient {
       platform: Platform.OS,
     };
 
-    // Clean up any existing sessions
     try {
       WebBrowser.maybeCompleteAuthSession();
       await WebBrowser.warmUpAsync();
@@ -138,6 +132,61 @@ class OktoClient extends OktoCoreClient {
         this.initializeSession();
       },
     });
+  }
+
+  /**
+   * Open OnRamp screen for purchasing tokens
+   */
+  public async openOnRamp(
+    navigation: NavigationProps,
+    tokenId: string,
+    options: OnrampOptions & {
+      onSuccess?: (message: string) => void;
+      onError?: (error: string) => void;
+      onClose?: () => void;
+    } = {},
+  ): Promise<void> {
+    try {
+      // Check if OnRamp is enabled
+      const remoteConfig = OnrampRemoteConfig.getInstance();
+      const config = await remoteConfig.getOnrampConfig();
+
+      if (!config.onRampEnabled) {
+        throw new Error('OnRamp is currently disabled');
+      }
+
+      // Prepare onramp options
+      const onrampOptions: OnrampOptions = {
+        theme: config.theme,
+        countryCode: config.countryCode,
+        appVersion: config.appVersion,
+        screenSource: 'portfolio_screen',
+        ...options,
+      };
+
+      // Generate OnRamp URL
+      const url = await this.generateOnrampUrl(tokenId, onrampOptions);
+
+      if (!url) {
+        throw new Error('Failed to generate OnRamp URL');
+      }
+
+      // Navigate to OnRamp screen
+      navigation.navigate('OnRampScreen', {
+        url,
+        tokenId,
+        oktoClient: this,
+        onClose: options.onClose || (() => {}),
+        onSuccess: options.onSuccess,
+        onError: options.onError,
+      });
+    } catch (error) {
+      console.error('[OktoClient] OnRamp error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to open OnRamp';
+      options.onError?.(errorMessage);
+      throw error;
+    }
   }
 }
 
