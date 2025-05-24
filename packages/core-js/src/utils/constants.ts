@@ -38,7 +38,7 @@ export class Constants {
       ENTRYPOINT_CONTRACT_ADDRESS:
         '0x322eF240AD89d19a50Ca092CF70De9603bf6778E' as Hex,
       CHAIN_ID: 124736089,
-      ON_RAMP_URL: 'https://pay.okto.tech',
+      ON_RAMP_URL: 'https://pay.oktostage.com',
       AUTH_PAGE_URL: 'https://onboarding.oktostage.com/',
     },
     SANDBOX: {
@@ -47,7 +47,7 @@ export class Constants {
       ENTRYPOINT_CONTRACT_ADDRESS:
         '0xCa5b1b0d3893b5152014fD5B519FF50f7C40f9da' as Hex,
       CHAIN_ID: 1802466136,
-      ON_RAMP_URL: 'https://pay.okto.tech',
+      ON_RAMP_URL: 'https://sandbox-pay.okto.tech',
       AUTH_PAGE_URL: 'https://sandbox-onboarding.okto.tech/',
     },
     // PRODUCTION: {
