@@ -12,7 +12,10 @@ import { WebView } from 'react-native-webview';
 import { PermissionsAndroid, Platform, Linking } from 'react-native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { OktoClient } from '@okto_web3/core-js-sdk';
-import { generateTransactionToken, getSupportedRampTokens } from '@okto_web3/core-js-sdk/explorer';
+import {
+  generateTransactionToken,
+  getSupportedRampTokens,
+} from '@okto_web3/core-js-sdk/explorer';
 
 /**
  * OnRampService - Service for handling OnRamp WebView operations
@@ -250,8 +253,8 @@ export class OnRampService {
    */
   private async getTransactionToken(): Promise<any> {
     try {
-        const token = await generateTransactionToken(this.oktoClient);
-        return { transactionToken: token };
+      const token = await generateTransactionToken(this.oktoClient);
+      return { transactionToken: token };
     } catch (error) {
       console.error('Error getting transaction token:', error);
       return { error: 'Failed to get transaction token' };
@@ -260,7 +263,11 @@ export class OnRampService {
 
   private async getTokenData(): Promise<any> {
     try {
-      const supportedTokens = await getSupportedRampTokens(this.oktoClient, 'IN', 'onramp');
+      const supportedTokens = await getSupportedRampTokens(
+        this.oktoClient,
+        'IN',
+        'onramp',
+      );
       const onrampTokens = supportedTokens.onrampTokens;
       return { onrampTokens };
     } catch (error) {
@@ -287,27 +294,26 @@ export class OnRampService {
    */
   private async getUserEmail(): Promise<{ email: string }> {
     try {
-    //   const email = this.oktoClient.session?.email;
-    //   if (email) {
-    //     return { email };
-    //   }
-  
+      //   const email = this.oktoClient.session?.email;
+      //   if (email) {
+      //     return { email };
+      //   }
+
       // If email not found, return empty string
-      return { email: "" };
+      return { email: '' };
     } catch (error) {
       console.error('Error getting user email:', error);
-      return { email: "" };
+      return { email: '' };
     }
   }
-  
 
   /**
    * Get wallet address
    */
   private async getWalletAddress(): Promise<any> {
     try {
-        const wallet = this.oktoClient.userSWA;
-        return { walletAddress: wallet };
+      const wallet = this.oktoClient.userSWA;
+      return { walletAddress: wallet };
     } catch (error) {
       console.error('Error getting wallet address:', error);
       return { error: 'Failed to get wallet address' };

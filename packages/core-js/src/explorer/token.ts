@@ -34,7 +34,9 @@ export async function getTokensForSwap(
 /**
  * Fetches a transaction token for ramp operations.
  */
-export async function generateTransactionToken(oc: OktoClient): Promise<string> {
+export async function generateTransactionToken(
+  oc: OktoClient,
+): Promise<string> {
   try {
     const token = await BffClientRepository.generateTransactionToken(oc);
     return token;
@@ -53,14 +55,17 @@ export async function generateTransactionToken(oc: OktoClient): Promise<string> 
 export async function getSupportedRampTokens(
   oc: OktoClient,
   countryCode: string,
-  side: 'onramp' | 'offramp'
+  side: 'onramp' | 'offramp',
 ): Promise<SupportedRampTokensResponse> {
   try {
-    const response = await BffClientRepository.getSupportedRampTokens(oc, countryCode, side);
+    const response = await BffClientRepository.getSupportedRampTokens(
+      oc,
+      countryCode,
+      side,
+    );
     return response;
   } catch (error) {
     console.error('Error fetching supported ramp tokens:', error);
     throw new Error('Failed to fetch supported ramp tokens from the backend.');
   }
 }
-

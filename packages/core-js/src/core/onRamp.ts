@@ -77,7 +77,7 @@ export class OnrampService {
 
       // Find wallet
       const wallet = wallets.find(
-        (w) => w.caip2Id === whitelistedToken.networkId,
+        (w) => w.networkId === whitelistedToken.networkId,
       );
 
       if (!wallet) {

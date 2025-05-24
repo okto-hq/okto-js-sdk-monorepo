@@ -27,7 +27,7 @@ export const OnRampScreen: React.FC<OnRampScreenProps> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<OnRampWebViewBridge | null>(null);
-//   const [isWebViewReady, setIsWebViewReady] = useState(false);
+  //   const [isWebViewReady, setIsWebViewReady] = useState(false);
 
   const handleSuccess = useCallback(
     (data: any) => {
