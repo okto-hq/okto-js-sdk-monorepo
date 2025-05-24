@@ -4,8 +4,8 @@ import { WebView } from 'react-native-webview';
 import { StyleSheet, BackHandler, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { WebViewBridge } from '../webViewBridge.js';
-import type { WebViewParamList } from '../types.js';
+import { WebViewBridge } from './webViewBridge.js';
+import type { WebViewParamList } from './types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
 

@@ -10,6 +10,7 @@ export interface EnvConfig {
   entryPointAddress: Address;
   chainId: number;
   authPageUrl: string;
+  onrampUrl: string;
 }
 
 export interface ClientConfig {
@@ -22,6 +23,7 @@ export interface SessionConfig {
   sessionPubKey: string;
   sessionPrivKey: Hash;
   userSWA: Hex;
+  email?: string;
 }
 
 export interface AuthParams {
