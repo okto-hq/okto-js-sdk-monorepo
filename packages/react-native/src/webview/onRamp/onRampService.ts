@@ -125,6 +125,7 @@ export class OnRampService {
    */
   private async handleDataRequest(request: any): Promise<any> {
     const { key, source } = request.params || {};
+    console.log('Handling data request for key:', key, 'from source:', source);
 
     switch (key) {
       case OnRampDataKeys.TRANSACTION_TOKEN:
@@ -253,6 +254,7 @@ export class OnRampService {
    */
   private async getTransactionToken(): Promise<any> {
     try {
+        console.log('Generating transaction token...');
       const token = await generateTransactionToken(this.oktoClient);
       return { transactionToken: token };
     } catch (error) {
@@ -263,6 +265,7 @@ export class OnRampService {
 
   private async getTokenData(): Promise<any> {
     try {
+        console.log('Fetching supported tokens for onramp...');
       const supportedTokens = await getSupportedRampTokens(
         this.oktoClient,
         'IN',

@@ -118,28 +118,32 @@ export class OnRampWebViewBridge {
   public handleMessage(event: any): void {
     try {
       const message: OnRampBridgeMessage = JSON.parse(event.nativeEvent.data);
-      console.log('OnRamp WebView Bridge received message:', message);
-
+      
       switch (message.type) {
         case 'request':
+          console.log(`[WebView -> Native] REQUEST: ${message.event}`, message.params);
           this.handleIncomingRequest(message);
           break;
         case 'response':
+          console.log(`[WebView -> Native] RESPONSE: ${message.event}`, message.params);
           this.handleIncomingResponse(message);
           break;
         case 'info':
+          console.log(`[WebView -> Native] INFO: ${message.event}`, message.params);
           this.handleInfoMessage(message);
           break;
         case 'error':
+          console.error(`[WebView -> Native] ERROR: ${message.event}`, message.params);
           this.handleErrorMessage(message);
           break;
         default:
-          console.warn('Unknown message type:', message.type);
+          console.warn(`[WebView -> Native] UNKNOWN TYPE: ${message.type}`, message);
       }
     } catch (error) {
-      console.error('Error parsing WebView message:', error);
+      console.error('[WebView -> Native] Failed to parse message:', event.nativeEvent.data);
     }
   }
+  
 
   /**
    * Handle incoming requests from WebView
@@ -153,6 +157,7 @@ export class OnRampWebViewBridge {
       params: message.params,
       source: message.source,
     };
+    console.log('[OnRampWebViewBridge] Incoming request:', request.type, request.params);
 
     const handler = this.requestHandlers.get(request.type);
     if (handler) {
