@@ -9,7 +9,6 @@ import type {
   AuthData,
   OnrampOptions,
   SocialAuthType,
-  WhitelistedToken,
 } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform } from 'react-native';
@@ -18,8 +17,8 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
-import type { UIConfig } from 'src/webview/types.js';
 import { OnrampRemoteConfig } from '../webview/onRamp/onRampRemoteConfig.js';
+import type { UIConfig } from 'src/webview/authentication/types.js';
 
 interface NavigationProps {
   navigate: (screen: string, params: unknown) => void;

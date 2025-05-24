@@ -1,8 +1,3 @@
-// WebViewRequestHandler.ts
-import { WebViewBridge } from './webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from './types.js';
-import { WebViewBridge } from '../webViewBridge.js';
-import type { UIConfig, WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
@@ -12,6 +7,8 @@ import {
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
 import * as Clipboard from 'expo-clipboard';
+import type { WebViewBridge } from './webViewBridge.js';
+import type { UIConfig, WebViewRequest, WebViewResponse } from './types.js';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
