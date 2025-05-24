@@ -94,7 +94,7 @@ export class OnrampService {
         tokenId: token.id,
         networkId: whitelistedToken.networkId,
         tokenName: token.shortName,
-        chain: whitelistedToken.shortName.toUpperCase(),
+        chain: wallet.networkName,
         userId: userSession.userId,
         email: options.email || '',
         countryCode: countryCode,
