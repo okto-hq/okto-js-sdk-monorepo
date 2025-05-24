@@ -20,6 +20,10 @@ export interface OnRampScreenProps {
   onProgress?: (progress: number) => void;
 }
 
+export type OnRampParamList = {
+  OnRampScreen: OnRampScreenProps;
+};
+
 export interface OnrampRequest {
   id: string;
   key:

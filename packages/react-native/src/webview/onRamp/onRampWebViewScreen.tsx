@@ -1,19 +1,24 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  BackHandler,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import { OnRampWebViewBridge } from './webViewBridge.js';
-import type { OnrampCallbacks, OnRampScreenProps } from './types.js';
+import type { OnrampCallbacks, OnRampParamList } from './types.js';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'> & {
+  onWebViewClose?: () => void;
+};
 
-export const OnRampScreen: React.FC<OnRampScreenProps> = ({
-  url,
-  tokenId,
-  oktoClient,
-  onClose,
-  onSuccess,
-  onError,
-  onProgress,
-}) => {
+export const OnRampScreen = ({ route, navigation }: Props) => {
+  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
+    route.params;
+
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<OnRampWebViewBridge | null>(null);
   //   const [isWebViewReady, setIsWebViewReady] = useState(false);
@@ -26,6 +31,17 @@ export const OnRampScreen: React.FC<OnRampScreenProps> = ({
     },
     [onSuccess, onClose],
   );
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleError = useCallback(
     (error: string) => {
