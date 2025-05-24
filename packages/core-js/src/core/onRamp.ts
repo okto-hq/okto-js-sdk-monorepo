@@ -54,7 +54,8 @@ export class OnrampService {
       const groupToken = portfolio.groupTokens.find(
         (group) =>
           group.id === tokenId ||
-          (Array.isArray(group.tokens) && group.tokens.some((token) => token.id === tokenId)),
+          (Array.isArray(group.tokens) &&
+            group.tokens.some((token) => token.id === tokenId)),
       );
 
       if (!groupToken) {

@@ -35,16 +35,6 @@ export interface OnrampCallbacks {
   onProgress?: (progress: number) => void;
 }
 
-export interface OnrampOptions {
-  email?: string;
-  theme?: 'light' | 'dark';
-  countryCode?: string;
-  walletAddress?: string;
-  networkId?: string;
-  appVersion?: string;
-  screenSource?: string;
-}
-
 export interface OnRampToken {
   whitelistedToken: WhitelistedToken;
   tokenId: string;
