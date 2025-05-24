@@ -88,13 +88,13 @@ export class OnrampService {
       }
 
       // Create add funds data
-      const addFundsData: AddFundsData = {
+      const addFundsData: AddFundsData = { 
         walletAddress: wallet.address,
         walletBalance: token.balance,
         tokenId: token.id,
         networkId: whitelistedToken.networkId,
         tokenName: token.shortName,
-        chainId: whitelistedToken.chainId.toString(),
+        chain: whitelistedToken.shortName.toUpperCase(),
         userId: userSession.userId,
         email: options.email || '',
         countryCode: countryCode,
@@ -102,6 +102,8 @@ export class OnrampService {
         app_version: options.appVersion || '500000',
         screen_source: options.screenSource || 'portfolio',
         payToken: transactionToken,
+        platform: 'web',
+        app: 'okto_web',
       };
 
       return this.buildOnrampUrl(oktoClient.env.onrampUrl, addFundsData);

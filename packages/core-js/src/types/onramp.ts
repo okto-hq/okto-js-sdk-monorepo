@@ -4,9 +4,9 @@ export interface AddFundsData {
   walletAddress: string;
   walletBalance: string;
   tokenId: string;
-  networkId: string;
+  networkId: string;  
   tokenName: string;
-  chainId: string;
+  chain: string;
   userId: string;
   email: string;
   countryCode: string;
@@ -14,6 +14,8 @@ export interface AddFundsData {
   app_version: string;
   screen_source: string;
   payToken: string;
+  platform?: string;
+  app?: string;
 }
 
 export interface CombinedToken {
