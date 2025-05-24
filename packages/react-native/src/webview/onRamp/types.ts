@@ -1,3 +1,4 @@
+import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { WhitelistedToken } from '@okto_web3/core-js-sdk/types';
 
 export interface OnrampConfig {
@@ -7,6 +8,16 @@ export interface OnrampConfig {
   appVersion: string;
   timeout: number;
   maxRetries: number;
+}
+
+export interface OnRampScreenProps {
+  url: string;
+  tokenId: string;
+  oktoClient: OktoClient;
+  onClose: () => void;
+  onSuccess?: (message: string) => void;
+  onError?: (error: string) => void;
+  onProgress?: (progress: number) => void;
 }
 
 export interface OnrampRequest {

@@ -2,19 +2,8 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { OnRampWebViewBridge } from './webViewBridge.js';
-import type { WhitelistedToken } from '@okto_web3/core-js-sdk/types';
-import type OktoClient from '@okto_web3/core-js-sdk/core';
-import type { OnrampCallbacks } from './types.js';
+import type { OnrampCallbacks, OnRampScreenProps } from './types.js';
 
-interface OnRampScreenProps {
-  url: string;
-  tokenId: string;
-  oktoClient: OktoClient;
-  onClose: () => void;
-  onSuccess?: (message: string) => void;
-  onError?: (error: string) => void;
-  onProgress?: (progress: number) => void;
-}
 
 export const OnRampScreen: React.FC<OnRampScreenProps> = ({
   url,
