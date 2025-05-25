@@ -94,10 +94,16 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
-    console.log('KARAN :: WebView message received:', event.nativeEvent.data);
-    if (bridgeRef.current) {
-      console.log('KARAN :: Received message from WebView:', event.nativeEvent.data);
-      bridgeRef.current.handleMessage(event);
+    try {
+      console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
+      if (bridgeRef.current) {
+        console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
+        bridgeRef.current.handleMessage(event);
+      }
+    } catch (error) {
+      console.error('KARAN :: Error in handleWebViewMessage', error);
+      // Optionally call the error handler if defined
+      // handleError?.('Failed to process WebView message');
     }
   }, []);
 
