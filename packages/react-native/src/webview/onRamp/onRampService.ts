@@ -6,7 +6,6 @@ import {
   getSupportedRampTokens,
 } from '@okto_web3/core-js-sdk/explorer';
 import type {
-  ApiResponse,
   UserPortfolioData,
   SupportedRampTokensResponse,
 } from '@okto_web3/core-js-sdk/types';
@@ -22,12 +21,6 @@ import { Platform } from 'react-native';
 
 export type WhitelistedToken =
   SupportedRampTokensResponse['onrampTokens'][number];
-
-// Permission request/response types
-interface PermissionRequest {
-  permission: string;
-  rationale?: string;
-}
 
 interface PermissionResponse {
   status: string;
@@ -264,7 +257,6 @@ export class OnRampService {
       if (permissionData.permission) {
         return await this.requestSinglePermission(
           permissionData.permission,
-          permissionData.rationale,
         );
       }
 
@@ -277,7 +269,6 @@ export class OnRampService {
             } else if (perm.permission) {
               return await this.requestSinglePermission(
                 perm.permission,
-                perm.rationale,
               );
             }
             return {
@@ -320,7 +311,7 @@ export class OnRampService {
    */
   private async requestSinglePermission(
     permissionString: string,
-    rationale?: string,
+    // rationale?: string,
   ): Promise<PermissionResponse> {
     console.log(`KARAN :: Requesting single permission: ${permissionString}`);
 
