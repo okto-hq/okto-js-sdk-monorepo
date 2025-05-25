@@ -80,7 +80,7 @@ class OktoClient {
       case 'production':
         return productionEnvConfig;
       default:
-        return sandboxEnvConfig;
+        return productionEnvConfig;
     }
   }
 
