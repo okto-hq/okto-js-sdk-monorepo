@@ -8,7 +8,11 @@ import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
 import { signMessage as viemSignMessage } from 'viem/accounts';
-import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
+import {
+  productionEnvConfig,
+  sandboxEnvConfig,
+  stagingEnvConfig,
+} from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
@@ -73,8 +77,8 @@ class OktoClient {
         return stagingEnvConfig;
       case 'sandbox':
         return sandboxEnvConfig;
-      // case 'production':
-      //   return productionEnvConfig;
+      case 'production':
+        return productionEnvConfig;
       default:
         return sandboxEnvConfig;
     }
@@ -339,7 +343,11 @@ class OktoClient {
 
     try {
       // Generate the authentication URL
-      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+      const url = this._socialAuthUrlGenerator.generateAuthUrl(
+        provider,
+        state,
+        this.env,
+      );
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);

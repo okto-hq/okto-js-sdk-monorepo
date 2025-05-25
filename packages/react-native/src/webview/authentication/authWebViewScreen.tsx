@@ -38,7 +38,10 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   if (!oktoClientRef.current) {
     oktoClientRef.current = new OktoClient({
-      environment: clientConfig.environment as 'staging' | 'sandbox',
+      environment: clientConfig.environment as
+        | 'staging'
+        | 'sandbox'
+        | 'production',
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
     });
