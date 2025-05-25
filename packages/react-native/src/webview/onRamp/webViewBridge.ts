@@ -1,10 +1,7 @@
 import { WebView } from 'react-native-webview';
 import type { MutableRefObject } from 'react';
 import {
-  WebEvent,
-  WebKeys,
   type OnrampCallbacks,
-  type WebEventModel,
 } from './types.js';
 import type { OnRampService } from './onRampService.js';
 
@@ -35,7 +32,7 @@ export class OnRampWebViewBridge {
   private callbacks: OnrampCallbacks;
   private onRampService: OnRampService;
   private tokenId: string;
-  private readonly SOURCE_NAME = 'okto_native'; // Equivalent to Flutter's "okto_web"
+  private readonly SOURCE_NAME = 'okto_web'; 
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -185,7 +182,6 @@ export class OnRampWebViewBridge {
         }
       }
 
-      // Create response in Flutter's ackJson format
       const response: WebViewResponse = {
         type: message.type,
         response: {
@@ -251,7 +247,6 @@ export class OnRampWebViewBridge {
   private handlePermissionAck(message: WebViewMessage): void {
     console.log('REQUEST PERMISSION ACK:', message);
 
-    // Create ACK response matching Flutter structure
     const ackResponse: WebViewResponse = {
       type: 'requestPermission',
       response: message.response || {},
