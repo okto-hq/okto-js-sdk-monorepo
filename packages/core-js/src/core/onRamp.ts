@@ -88,7 +88,7 @@ export class OnrampService {
       }
 
       // Create add funds data
-      const addFundsData: AddFundsData = { 
+      const addFundsData: AddFundsData = {
         walletAddress: wallet.address,
         walletBalance: token.balance,
         tokenId: token.id,

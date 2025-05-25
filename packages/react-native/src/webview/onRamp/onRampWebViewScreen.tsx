@@ -128,8 +128,11 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       
       window.addEventListener('message', function(event) {
         console.log('KARAN :: Received message from React Native:', event.data);
-        if (event.data && typeof event.data === 'object') {
-          window.sendToReactNative(event.data);
+        try {
+           const parsedData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            window.sendToReactNative(parsedData);
+            } catch (e) {
+            console.warn('KARAN ::  Failed to parse message from React Native:', e);
         }
       });
       

@@ -511,7 +511,7 @@ class BffClientRepository {
       {
         headers: {
           'x-source': 'okto_wallet_web',
-          'x-version': 'okto_plus', 
+          'x-version': 'okto_plus',
         },
       },
     );

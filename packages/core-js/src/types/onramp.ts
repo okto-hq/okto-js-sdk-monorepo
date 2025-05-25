@@ -4,7 +4,7 @@ export interface AddFundsData {
   walletAddress: string;
   walletBalance: string;
   tokenId: string;
-  networkId: string;  
+  networkId: string;
   tokenName: string;
   chain: string;
   userId: string;

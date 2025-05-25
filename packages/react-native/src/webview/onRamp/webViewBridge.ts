@@ -1,6 +1,11 @@
 import { WebView } from 'react-native-webview';
 import type { MutableRefObject } from 'react';
-import { WebEvent, WebKeys, type OnrampCallbacks, type WebEventModel } from './types.js';
+import {
+  WebEvent,
+  WebKeys,
+  type OnrampCallbacks,
+  type WebEventModel,
+} from './types.js';
 import type { OnRampService } from './onRampService.js';
 
 export class OnRampWebViewBridge {
@@ -42,7 +47,6 @@ export class OnRampWebViewBridge {
       console.log(`KARAN :: [WebView -> Native] Event: ${model.event}`, model);
 
       switch (model.event) {
-
         case WebEvent.CLOSE:
           console.log('KARAN :: WebView close event received');
           this.callbacks.onClose?.();
@@ -59,23 +63,26 @@ export class OnRampWebViewBridge {
           this.handlePermission({ requestPermissions: model.request?.data });
           break;
 
-        case WebEvent.REQUEST_PERMISSION_ACK:
-          { console.log('REQUEST PERMISSION ACK:', model);
-            console.log('KARAN :: Acknowledging permission request:', model);
+        case WebEvent.REQUEST_PERMISSION_ACK: {
+          console.log('REQUEST PERMISSION ACK:', model);
+          console.log('KARAN :: Acknowledging permission request:', model);
           const ackResponse = {
             ...model,
             event: WebEvent.REQUEST_PERMISSION,
           };
           this.sendMessage(ackResponse);
-          break; }
+          break;
+        }
 
         case WebEvent.DATA:
           console.log('KARAN :: DATA EVENT:', model);
-          { const response = await this.fetchAndAckData(model);
-          if (response) {
-            this.sendAckMessage(response);
+          {
+            const response = await this.fetchAndAckData(model);
+            if (response) {
+              this.sendAckMessage(response);
+            }
+            break;
           }
-          break; }
 
         default:
           console.warn(`Unhandled event: ${model.event}`);
@@ -85,13 +92,15 @@ export class OnRampWebViewBridge {
     }
   }
 
-  private async fetchAndAckData(model: WebEventModel): Promise<WebEventModel | null> {
+  private async fetchAndAckData(
+    model: WebEventModel,
+  ): Promise<WebEventModel | null> {
     console.log('KARAN :: Fetching data for model:', model);
     const request = model.request;
     if (!request) return null;
 
-    const key = request[WebKeys.KEY] as string || '';
-    const source = request[WebKeys.SOURCE] as string || '';
+    const key = (request[WebKeys.KEY] as string) || '';
+    const source = (request[WebKeys.SOURCE] as string) || '';
     console.log(`KARAN :: Fetching data for key: ${key}, source: ${source}`);
 
     let result = '';
@@ -136,13 +145,13 @@ export class OnRampWebViewBridge {
 
   private handleUrl(data: Record<string, any> | undefined): void {
     if (!data?.url) return;
-    
+
     console.log('Handle URL:', data.url);
   }
 
   private handlePermission(data: Record<string, any> | undefined): void {
     if (!data?.requestPermissions) return;
-    
+
     console.log('Handle permissions:', data.requestPermissions);
     // Handle permission requests - could integrate with react-native-permissions
   }
