@@ -15,9 +15,19 @@ interface WebViewMessage {
     control?: boolean;
     key?: string;
     source?: string;
+    data?: any;
     [key: string]: any;
   };
   id?: string;
+  response?: any;
+}
+
+// Response structure matching Flutter's ackJson()
+interface WebViewResponse {
+  type: string;
+  response: any;
+  source: string;
+  id: string;
 }
 
 export class OnRampWebViewBridge {
@@ -25,6 +35,7 @@ export class OnRampWebViewBridge {
   private callbacks: OnrampCallbacks;
   private onRampService: OnRampService;
   private tokenId: string;
+  private readonly SOURCE_NAME = 'okto_native'; // Equivalent to Flutter's "okto_web"
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -43,7 +54,7 @@ export class OnRampWebViewBridge {
       const data = event.nativeEvent.data;
       console.log('KARAN :: handleWebViewMessage ', data);
       console.log('KARAN :: Received message from WebView:', data);
-      
+
       let parsedMessage: WebViewMessage;
 
       if (typeof data === 'string') {
@@ -59,7 +70,10 @@ export class OnRampWebViewBridge {
       console.log('KARAN :: Parsed model:', parsedMessage.type);
       console.log('KARAN :: Parsed model:', parsedMessage.params);
 
-      console.log(`KARAN :: [WebView -> Native] Event: ${parsedMessage.type}`, parsedMessage);
+      console.log(
+        `KARAN :: [WebView -> Native] Event: ${parsedMessage.type}`,
+        parsedMessage,
+      );
 
       // Handle the actual message types from your logs
       switch (parsedMessage.type) {
@@ -68,25 +82,43 @@ export class OnRampWebViewBridge {
           this.handleNativeBack(parsedMessage.params);
           break;
 
-        case 'data':
+        case 'data': {
           console.log('KARAN :: DATA EVENT:', parsedMessage);
-          await this.handleDataRequest(parsedMessage);
+          const response = await this.handleDataRequest(parsedMessage);
+          if (response) {
+            this.sendAckResponse(response);
+          }
           break;
+        }
 
         case 'close':
           console.log('KARAN :: WebView close event received');
+          // const forwardToRoute = parsedMessage.params?.forwardToRoute;
           this.callbacks.onClose?.();
           break;
 
         case 'url':
-          console.log('KARAN :: WebView URL event received:', parsedMessage.params);
+          console.log(
+            'KARAN :: WebView URL event received:',
+            parsedMessage.params,
+          );
           this.handleUrl(parsedMessage.params);
           break;
 
         case 'requestPermission':
           console.log('REQUEST PERMISSION:', parsedMessage.params);
           console.log('KARAN :: Handling request permission:', parsedMessage);
-          this.handlePermission(parsedMessage.params);
+          await this.handlePermission(parsedMessage);
+          break;
+
+        case 'requestPermissionAck':
+          console.log('REQUEST PERMISSION ACK:', parsedMessage);
+          this.handlePermissionAck(parsedMessage);
+          break;
+
+        case 'analytics':
+          console.log('KARAN :: Analytics event received:', parsedMessage);
+          // Handle analytics if needed
           break;
 
         default:
@@ -99,7 +131,7 @@ export class OnRampWebViewBridge {
 
   private handleNativeBack(params?: { control?: boolean }): void {
     console.log('KARAN :: Handling native back with params:', params);
-    
+
     if (params?.control) {
       // Handle controlled back navigation
       this.callbacks.onClose?.();
@@ -109,18 +141,20 @@ export class OnRampWebViewBridge {
     }
   }
 
-  private async handleDataRequest(message: WebViewMessage): Promise<void> {
+  private async handleDataRequest(
+    message: WebViewMessage,
+  ): Promise<WebViewResponse | null> {
     console.log('KARAN :: Fetching data for message:', message);
-    
+
     const params = message.params;
     if (!params?.key) {
       console.warn('KARAN :: No key found in data request');
-      return;
+      return null;
     }
 
     const key = params.key;
     const source = params.source || '';
-    const messageId = message.id;
+    const messageId = message.id || '';
 
     console.log(`KARAN :: Fetching data for key: ${key}, source: ${source}`);
 
@@ -139,7 +173,7 @@ export class OnRampWebViewBridge {
 
           case 'tokenData':
             if (source === this.tokenId) {
-              const tokenData = await this.onRampService.getTokenData();
+              const tokenData = await this.onRampService.getOnRampTokens();
               result = JSON.stringify(tokenData);
               console.log('KARAN :: Token data fetched:', result);
             }
@@ -147,39 +181,37 @@ export class OnRampWebViewBridge {
 
           default:
             console.warn(`Unknown data key: ${key}`);
-            return;
+            return null;
         }
       }
 
-      // Send response back to WebView
-      const response = {
-        type: 'dataResponse',
+      // Create response in Flutter's ackJson format
+      const response: WebViewResponse = {
+        type: message.type,
+        response: {
+          [key]: result,
+        },
+        source: this.SOURCE_NAME,
         id: messageId,
-        params: {
-          key: key,
-          value: result,
-          source: source
-        }
       };
 
-      console.log('KARAN :: Sending data response:', response);
-      this.sendMessage(response);
-
+      console.log('KARAN :: Prepared data response:', response);
+      return response;
     } catch (error) {
       console.error(`Failed to fetch data for key ${key}:`, error);
-      
-      // Send error response
-      const errorResponse = {
-        type: 'dataError',
-        id: messageId,
-        params: {
-          key: key,
+
+      // Create error response
+      const errorResponse: WebViewResponse = {
+        type: message.type,
+        response: {
           error: error instanceof Error ? error.message : 'Unknown error',
-          source: source
-        }
+          [key]: '',
+        },
+        source: this.SOURCE_NAME,
+        id: messageId,
       };
-      
-      this.sendMessage(errorResponse);
+
+      return errorResponse;
     }
   }
 
@@ -187,12 +219,59 @@ export class OnRampWebViewBridge {
     if (!params?.url) return;
     console.log('Handle URL:', params.url);
     // Add your URL handling logic here
+    // this.callbacks.onUrlChange?.(params.url);
   }
 
-  private handlePermission(params: any): void {
-    if (!params?.requestPermissions) return;
-    console.log('Handle permissions:', params.requestPermissions);
-    // Handle permission requests - could integrate with react-native-permissions
+  private async handlePermission(message: WebViewMessage): Promise<void> {
+    const params = message.params;
+    if (!params?.data) return;
+
+    console.log('Handle permissions:', params.data);
+
+    try {
+      // Handle permission requests - integrate with react-native-permissions
+      const permissionResult = await this.onRampService.requestPermissions(
+        params.data,
+      );
+
+      // Create permission response
+      const response: WebViewResponse = {
+        type: 'requestPermission',
+        response: permissionResult,
+        source: this.SOURCE_NAME,
+        id: message.id || '',
+      };
+
+      this.sendAckResponse(response);
+    } catch (error) {
+      console.error('Permission request failed:', error);
+    }
+  }
+
+  private handlePermissionAck(message: WebViewMessage): void {
+    console.log('REQUEST PERMISSION ACK:', message);
+
+    // Create ACK response matching Flutter structure
+    const ackResponse: WebViewResponse = {
+      type: 'requestPermission',
+      response: message.response || {},
+      source: this.SOURCE_NAME,
+      id: message.id || '',
+    };
+
+    console.log('REQUEST PERMISSION SENT:', ackResponse);
+    this.sendAckResponse(ackResponse);
+    console.log('REQUEST PERMISSION SENT 2:', ackResponse);
+  }
+
+  private sendAckResponse(response: WebViewResponse): void {
+    try {
+      const messageString = JSON.stringify(response);
+      console.log('KARAN :: Sending ACK response to WebView:', messageString);
+      this.webViewRef.current?.postMessage(messageString);
+    } catch (error) {
+      console.error('Failed to send ACK response to WebView:', error);
+    }
   }
 
   sendMessage(message: any): void {

@@ -31,6 +31,19 @@ export enum WebEvent {
   DATA = 'data',
 }
 
+export type OnRampToken = {
+  id: string;
+  name: string;
+  symbol: string;
+  iconUrl: string;
+  networkId: string;
+  networkName: string;
+  address: string;
+  balance?: string;
+  precision?: string | number;
+  chainId: string | number;
+};
+
 // WebKeys matching Flutter implementation
 export const WebKeys = {
   REMOTE_CONFIG: 'remote-config',

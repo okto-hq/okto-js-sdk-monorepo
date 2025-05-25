@@ -90,7 +90,14 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       bridgeRef.current = null;
       onRampServiceRef.current = null;
     };
-  }, [tokenId, oktoClient, handleSuccess, handleError, handleClose, handleProgress]);
+  }, [
+    tokenId,
+    oktoClient,
+    handleSuccess,
+    handleError,
+    handleClose,
+    handleProgress,
+  ]);
 
   // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
