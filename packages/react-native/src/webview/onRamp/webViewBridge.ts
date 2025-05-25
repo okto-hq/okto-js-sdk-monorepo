@@ -83,6 +83,7 @@ export class OnRampWebViewBridge {
           console.log('KARAN :: DATA EVENT:', parsedMessage);
           const response = await this.handleDataRequest(parsedMessage);
           if (response) {
+            console.log('KARAN :: Sending data response: in handle message', response);
             this.sendAckResponse(response);
           }
           break;

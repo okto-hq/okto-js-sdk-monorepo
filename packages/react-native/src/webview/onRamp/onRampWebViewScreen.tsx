@@ -106,6 +106,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       if (bridgeRef.current) {
         console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
         bridgeRef.current.handleMessage(event);
+        console.log('KARAN :: Bridge message handled:', event);
       }
     } catch (error) {
       console.error('KARAN :: Error in handleWebViewMessage', error);
