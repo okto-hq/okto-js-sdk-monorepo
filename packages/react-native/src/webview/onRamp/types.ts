@@ -55,7 +55,7 @@ export type OnRampParamList = {
   };
 };
 
-export interface WhitelistedToken {
+export interface WhitelistedRampToken {
   tokenId: string;
   name: string;
   shortName: string;
@@ -68,13 +68,13 @@ export interface WhitelistedToken {
   precision?: number;
 }
 
-export interface Token {
+export interface RampToken {
   balance?: string;
   precision?: number;
   holdingsPriceUsdt?: string;
 }
 
 export interface OnRampToken {
-  whitelistedToken: WhitelistedToken;
-  token?: Token;
+  whitelistedToken: WhitelistedRampToken;
+  token?: RampToken;
 }
