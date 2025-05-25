@@ -1,7 +1,8 @@
+// types.js
 export interface OnrampCallbacks {
   onSuccess?: (data?: any) => void;
   onError?: (error: string) => void;
-  onClose?: () => void;
+  onClose?: (forwardToRoute?: string) => void;
   onProgress?: (progress: number) => void;
 }
 
@@ -15,13 +16,14 @@ export interface OnrampConfig {
 }
 
 export interface WebEventModel {
-  event: string;
+  event: WebEvent;
   id?: string;
   request?: Record<string, any>;
-  response?: Record<string, any>;
+  response?: any;
+  source: string;
 }
 
-// WebEvents enum matching Flutter implementation
+// WebEvents enum matching Flutter implementation exactly
 export enum WebEvent {
   ANALYTICS = 'analytics',
   CLOSE = 'close',
@@ -31,10 +33,10 @@ export enum WebEvent {
   DATA = 'data',
 }
 
-// WebKeys matching Flutter implementation
+// WebKeys matching Flutter implementation exactly
 export const WebKeys = {
   REMOTE_CONFIG: 'remote-config',
-  TRANSACTION_ID: 'payToken',
+  TRANSACTION_ID: 'transactionId', // Changed from 'payToken' to match Flutter
   KEY: 'key',
   SOURCE: 'source',
   FORWARD_TO_ROUTE: 'forwardToRoute',
@@ -46,9 +48,33 @@ export type OnRampParamList = {
     url: string;
     tokenId: string;
     oktoClient: any;
-    onClose: () => void;
+    onClose: (forwardToRoute?: string) => void;
     onSuccess?: (data?: any) => void;
     onError?: (error: string) => void;
     onProgress?: (progress: number) => void;
   };
 };
+
+export interface WhitelistedToken {
+  tokenId: string;
+  name: string;
+  shortName: string;
+  logo: string;
+  // image: string;
+  networkId: string;
+  networkName: string;
+  address: string;
+  chainId: string | number;
+  precision?: number;
+}
+
+export interface Token {
+  balance?: string;
+  precision?: number;
+  holdingsPriceUsdt?: string;
+}
+
+export interface OnRampToken {
+  whitelistedToken: WhitelistedToken;
+  token?: Token;
+}

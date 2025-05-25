@@ -1,3 +1,4 @@
+// OnRampScreen.js
 import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
@@ -9,14 +10,22 @@ import {
 import { WebView } from 'react-native-webview';
 import { OnRampWebViewBridge } from './webViewBridge.js';
 import { OnRampService } from './onRampService.js';
-import type { OnrampCallbacks, OnRampParamList } from './types.js';
+import type { OnrampCallbacks, OnRampParamList, OnRampToken } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
-  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
-    route.params;
+  const { 
+    url, 
+    tokenId, 
+    oktoClient, 
+    onClose, 
+    onSuccess, 
+    onError, 
+    onProgress,
+    onRampToken // Add this parameter to pass the token data
+  } = route.params;
 
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<OnRampWebViewBridge | null>(null);
@@ -40,9 +49,9 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onError, onClose],
   );
 
-  const handleClose = useCallback(() => {
-    console.log('OnRamp screen closing');
-    onClose();
+  const handleClose = useCallback((forwardToRoute?: string) => {
+    console.log('OnRamp screen closing, forwardToRoute:', forwardToRoute);
+    onClose(forwardToRoute);
   }, [onClose]);
 
   const handleProgress = useCallback(
@@ -73,8 +82,8 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       onProgress: handleProgress,
     };
 
-    // Initialize OnRamp service
-    onRampServiceRef.current = new OnRampService({}, oktoClient);
+    // Initialize OnRamp service with the token data
+    onRampServiceRef.current = new OnRampService({}, oktoClient, onRampToken);
 
     // Create the bridge instance
     bridgeRef.current = new OnRampWebViewBridge(
@@ -90,59 +99,85 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       bridgeRef.current = null;
       onRampServiceRef.current = null;
     };
-  }, [tokenId, oktoClient, handleSuccess, handleError, handleClose, handleProgress]);
+  }, [tokenId, oktoClient, onRampToken, handleSuccess, handleError, handleClose, handleProgress]);
 
   // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
     try {
-      console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
+      console.log('WebView message received:', event.nativeEvent.data);
       if (bridgeRef.current) {
-        console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
         bridgeRef.current.handleMessage(event);
       }
     } catch (error) {
-      console.error('KARAN :: Error in handleWebViewMessage', error);
-      // Optionally call the error handler if defined
-      // handleError?.('Failed to process WebView message');
+      console.error('Error in handleWebViewMessage:', error);
+      handleError?.('Failed to process WebView message');
     }
-  }, []);
+  }, [handleError]);
 
   // Handle WebView load completion
   const handleWebViewLoadEnd = useCallback(() => {
-    console.log('OnRamp WebView loaded');
+    console.log('OnRamp WebView loaded successfully');
   }, []);
 
   // Handle WebView errors
-  const handleWebViewError = useCallback(() => {
-    const errorMessage =
-      'Failed to load payment page. Please check your internet connection.';
+  const handleWebViewError = useCallback((syntheticEvent: any) => {
+    const { nativeEvent } = syntheticEvent;
+    const errorMessage = `Failed to load payment page: ${nativeEvent.description || 'Unknown error'}`;
     console.error('OnRamp WebView Error:', errorMessage);
     handleError(errorMessage);
   }, [handleError]);
 
-  // Simplified injected JavaScript
+  // Injected JavaScript to establish communication bridge
   const injectedJavaScript = `
     (function() {
+      console.log('OnRamp WebView bridge initializing...');
+      
+      // Ensure ReactNativeWebView exists
       window.ReactNativeWebView = window.ReactNativeWebView || {};
       
+      // Function to send messages to React Native
       window.sendToReactNative = function(message) {
-      console.log('KARAN :: Sending message to React Native:', message);
-        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          window.ReactNativeWebView.postMessage(JSON.stringify(message));
+        console.log('Sending message to React Native:', message);
+        try {
+          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+            const messageString = typeof message === 'string' ? message : JSON.stringify(message);
+            window.ReactNativeWebView.postMessage(messageString);
+          } else {
+            console.error('ReactNativeWebView.postMessage not available');
+          }
+        } catch (error) {
+          console.error('Error sending message to React Native:', error);
         }
       };
       
+      // Listen for messages from React Native
       window.addEventListener('message', function(event) {
-        console.log('KARAN :: Received message from React Native:', event.data);
+        console.log('Received message in WebView:', event.data);
         try {
-           const parsedData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            window.sendToReactNative(parsedData);
-            } catch (e) {
-            console.warn('KARAN ::  Failed to parse message from React Native:', e);
+          const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          // Handle incoming messages from React Native if needed
+          // This could trigger specific actions in your web application
+        } catch (e) {
+          console.warn('Failed to parse message from React Native:', e);
         }
       });
       
-      console.log('KARAN :: OnRamp WebView bridge ready');
+      // Override the default message posting if your web app uses a specific method
+      // This ensures compatibility with your existing web implementation
+      const originalPostMessage = window.postMessage;
+      window.postMessage = function(message, targetOrigin) {
+        console.log('Web app posting message:', message);
+        
+        // Send to React Native
+        window.sendToReactNative(message);
+        
+        // Also call original postMessage if needed
+        if (originalPostMessage && targetOrigin) {
+          originalPostMessage.call(window, message, targetOrigin);
+        }
+      };
+      
+      console.log('OnRamp WebView bridge ready');
     })();
     true;
   `;
@@ -170,6 +205,10 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           showsVerticalScrollIndicator={false}
           startInLoadingState={true}
           allowsLinkPreview={false}
+          // Additional props for better compatibility
+          cacheEnabled={false}
+          incognito={false}
+          sharedCookiesEnabled={true}
         />
       </View>
     </SafeAreaView>

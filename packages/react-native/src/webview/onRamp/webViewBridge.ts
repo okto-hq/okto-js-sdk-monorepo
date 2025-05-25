@@ -1,3 +1,4 @@
+// webViewBridge.js
 import { WebView } from 'react-native-webview';
 import type { MutableRefObject } from 'react';
 import {
@@ -7,18 +8,6 @@ import {
   type WebEventModel,
 } from './types.js';
 import type { OnRampService } from './onRampService.js';
-
-// Define the actual message structure based on your logs
-interface WebViewMessage {
-  type: string;
-  params?: {
-    control?: boolean;
-    key?: string;
-    source?: string;
-    [key: string]: any;
-  };
-  id?: string;
-}
 
 export class OnRampWebViewBridge {
   private webViewRef: MutableRefObject<WebView | null>;
@@ -41,146 +30,189 @@ export class OnRampWebViewBridge {
   async handleMessage(event: any): Promise<void> {
     try {
       const data = event.nativeEvent.data;
-      console.log('KARAN :: handleWebViewMessage ', data);
-      console.log('KARAN :: Received message from WebView:', data);
+      console.log("ACK :: 1 :: Received data type:", typeof data, "Data:", data);
       
-      let parsedMessage: WebViewMessage;
-
-      if (typeof data === 'string') {
-        console.log('KARAN :: Received string data from WebView:', data);
-        parsedMessage = JSON.parse(data);
-      } else {
-        console.log('KARAN :: Received non-string data from WebView:', data);
-        parsedMessage = data;
+      // Parse the message similar to Flutter implementation
+      const model = this.parseWebEventModel(data);
+      console.log("ACK :: 2 :: Parsed model:", model);
+      
+      if (!model) {
+        console.warn("Failed to parse WebEventModel");
+        return;
       }
 
-      // Log the actual structure we're working with
-      console.log('KARAN :: Parsed model:', parsedMessage.id);
-      console.log('KARAN :: Parsed model:', parsedMessage.type);
-      console.log('KARAN :: Parsed model:', parsedMessage.params);
-
-      console.log(`KARAN :: [WebView -> Native] Event: ${parsedMessage.type}`, parsedMessage);
-
-      // Handle the actual message types from your logs
-      switch (parsedMessage.type) {
-        case 'nativeBack':
-          console.log('KARAN :: WebView native back event received');
-          this.handleNativeBack(parsedMessage.params);
+      // Handle events matching Flutter switch statement
+      switch (model.event) {
+        case WebEvent.ANALYTICS:
+          console.log("Analytics event received");
           break;
 
-        case 'data':
-          console.log('KARAN :: DATA EVENT:', parsedMessage);
-          await this.handleDataRequest(parsedMessage);
-          break;
-
-        case 'close':
-          console.log('KARAN :: WebView close event received');
+        case WebEvent.CLOSE:
+          console.log("Close event received");
+          // const forwardToRoute = model.request?.[WebKeys.FORWARD_TO_ROUTE];
           this.callbacks.onClose?.();
           break;
 
-        case 'url':
-          console.log('KARAN :: WebView URL event received:', parsedMessage.params);
-          this.handleUrl(parsedMessage.params);
+        case WebEvent.URL:
+          console.log("URL event received");
+          this.handleUrl(model.request);
           break;
 
-        case 'requestPermission':
-          console.log('REQUEST PERMISSION:', parsedMessage.params);
-          console.log('KARAN :: Handling request permission:', parsedMessage);
-          this.handlePermission(parsedMessage.params);
+        case WebEvent.REQUEST_PERMISSION:
+          console.log("REQUEST PERMISSION ::", model.request?.data);
+          this.handlePermission({ requestPermissions: model.request?.data });
+          break;
+
+        case WebEvent.REQUEST_PERMISSION_ACK:
+          { console.log("REQUEST PERMISSION ACK ::", model);
+          const ack = this.createAckResponse(model, WebEvent.REQUEST_PERMISSION);
+          console.log("REQUEST PERMISSION SENT ::", ack);
+          this.send(ack);
+          break; }
+
+        case WebEvent.DATA:
+          console.log("Data request received:", model);
+          const response = await this.fetchAndAckData(model);
+          if (response) {
+            console.log("Sending data response:", response);
+            this.send(response);
+          }
           break;
 
         default:
-          console.warn(`Unhandled event: ${parsedMessage.type}`);
+          console.warn("Unhandled event type:", model.event);
       }
     } catch (error) {
-      console.error('Error handling WebView message:', error);
+      console.error("WEB :: Error ->", error);
     }
   }
 
-  private handleNativeBack(params?: { control?: boolean }): void {
-    console.log('KARAN :: Handling native back with params:', params);
-    
-    if (params?.control) {
-      // Handle controlled back navigation
-      this.callbacks.onClose?.();
-    } else {
-      // Handle regular back navigation
-      // You might want to add specific logic here
+  private parseWebEventModel(data: any): WebEventModel | null {
+    try {
+      let jsonData;
+      
+      if (typeof data === 'string') {
+        jsonData = JSON.parse(data);
+      } else if (typeof data === 'object') {
+        jsonData = data;
+      } else {
+        return null;
+      }
+
+      // Parse similar to Flutter WebEventModel.fromJson
+      return {
+        event: this.getWebEventFromType(jsonData.type),
+        request: jsonData.params,
+        id: jsonData.id,
+        response: jsonData.response,
+        source: "okto_web"
+      };
+    } catch (error) {
+      console.error("Error parsing WebEventModel:", error);
+      return null;
     }
   }
 
-  private async handleDataRequest(message: WebViewMessage): Promise<void> {
-    console.log('KARAN :: Fetching data for message:', message);
-    
-    const params = message.params;
-    if (!params?.key) {
-      console.warn('KARAN :: No key found in data request');
-      return;
+  private getWebEventFromType(type: string): WebEvent {
+    switch (type) {
+      case 'analytics':
+        return WebEvent.ANALYTICS;
+      case 'close':
+        return WebEvent.CLOSE;
+      case 'url':
+        return WebEvent.URL;
+      case 'requestPermission':
+        return WebEvent.REQUEST_PERMISSION;
+      case 'requestPermission_ack':
+        return WebEvent.REQUEST_PERMISSION_ACK;
+      case 'data':
+        return WebEvent.DATA;
+      default:
+        return WebEvent.DATA; // Default fallback
+    }
+  }
+
+  private async fetchAndAckData(model: WebEventModel): Promise<any | null> {
+    const request = model.request;
+    if (!request || Object.keys(request).length === 0) {
+      return null;
     }
 
-    const key = params.key;
-    const source = params.source || '';
-    const messageId = message.id;
+    const key = request[WebKeys.KEY] || "";
+    const source = request[WebKeys.SOURCE] || "";
 
-    console.log(`KARAN :: Fetching data for key: ${key}, source: ${source}`);
+    console.log(`Fetching data for key: ${key}, source: ${source}`);
 
-    let result = '';
+    let res = '';
 
     try {
-      if (source === 'remote-config') {
-        result = await this.onRampService.getRemoteConfigValue(key);
-        console.log('KARAN :: Remote config value fetched:', result);
+      if (source === WebKeys.REMOTE_CONFIG) {
+        res = await this.onRampService.getRemoteConfigValue(key);
       } else {
         switch (key) {
-          case 'transactionId':
-            result = await this.onRampService.getTransactionToken();
-            console.log('KARAN :: Transaction token fetched:', result);
+          case WebKeys.TRANSACTION_ID:
+            res = await this.onRampService.getTransactionToken() || "";
             break;
-
-          case 'tokenData':
+          case WebKeys.TOKEN_DATA:
             if (source === this.tokenId) {
               const tokenData = await this.onRampService.getTokenData();
-              result = JSON.stringify(tokenData);
-              console.log('KARAN :: Token data fetched:', result);
+              // Create the response similar to Flutter's OnRampToken.ackJson()
+              const tokenJson = this.createTokenResponse(tokenData);
+              res = JSON.stringify(tokenJson);
             }
             break;
-
           default:
             console.warn(`Unknown data key: ${key}`);
-            return;
+            return null;
         }
       }
 
-      // Send response back to WebView
-      const response = {
-        type: 'dataResponse',
-        id: messageId,
-        params: {
-          key: key,
-          value: result,
-          source: source
-        }
-      };
-
-      console.log('KARAN :: Sending data response:', response);
-      this.sendMessage(response);
-
+      // Return the response in Flutter-compatible format
+      return this.createDataAckResponse(model, key, res);
     } catch (error) {
-      console.error(`Failed to fetch data for key ${key}:`, error);
-      
-      // Send error response
-      const errorResponse = {
-        type: 'dataError',
-        id: messageId,
-        params: {
-          key: key,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          source: source
-        }
-      };
-      
-      this.sendMessage(errorResponse);
+      console.error(`Error fetching data for key ${key}:`, error);
+      return null;
     }
+  }
+
+  private createTokenResponse(tokenData: any): any {
+    // This should match Flutter's OnRampToken.ackJson() format
+    if (!tokenData) return {};
+    
+    return {
+      id: tokenData.id,
+      name: tokenData.name,
+      symbol: tokenData.shortName,
+      iconUrl: tokenData.image || tokenData.logo,
+      networkId: tokenData.networkId,
+      networkName: tokenData.networkName,
+      address: tokenData.address,
+      balance: tokenData.balance,
+      precision: tokenData.precision,
+      chainId: tokenData.chainId
+    };
+  }
+
+  private createDataAckResponse(model: WebEventModel, key: string, response: string): any {
+    // Match Flutter's ackJson() format
+    return {
+      type: model.event,
+      response: {
+        [key]: response
+      },
+      source: "okto_web",
+      id: model.id
+    };
+  }
+
+  private createAckResponse(model: WebEventModel, eventType: WebEvent): any {
+    // Match Flutter's copyWith().ackJson() format
+    return {
+      type: eventType,
+      response: model.response,
+      source: "okto_web",
+      id: model.id
+    };
   }
 
   private handleUrl(params: any): void {
@@ -192,13 +224,13 @@ export class OnRampWebViewBridge {
   private handlePermission(params: any): void {
     if (!params?.requestPermissions) return;
     console.log('Handle permissions:', params.requestPermissions);
-    // Handle permission requests - could integrate with react-native-permissions
+    // Handle permission requests
   }
 
-  sendMessage(message: any): void {
+  private send(message: any): void {
     try {
       const messageString = JSON.stringify(message);
-      console.log('KARAN :: Sending message to WebView:', messageString);
+      console.log('Sending message to WebView:', messageString);
       this.webViewRef.current?.postMessage(messageString);
     } catch (error) {
       console.error('Failed to send message to WebView:', error);
@@ -206,7 +238,6 @@ export class OnRampWebViewBridge {
   }
 
   cleanup(): void {
-    // Clean up any resources if needed
-    console.log('KARAN :: Cleaning up WebView bridge');
+    console.log('Cleaning up WebView bridge');
   }
 }
