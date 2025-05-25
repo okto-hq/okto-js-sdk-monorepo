@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -94,6 +94,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
+    console.log('KARAN :: WebView message received:', event.nativeEvent.data);
     if (bridgeRef.current) {
       console.log('KARAN :: Received message from WebView:', event.nativeEvent.data);
       bridgeRef.current.handleMessage(event);
@@ -119,18 +120,20 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       window.ReactNativeWebView = window.ReactNativeWebView || {};
       
       window.sendToReactNative = function(message) {
+      console.log('KARAN :: Sending message to React Native:', message);
         if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
           window.ReactNativeWebView.postMessage(JSON.stringify(message));
         }
       };
       
       window.addEventListener('message', function(event) {
+        console.log('KARAN :: Received message from React Native:', event.data);
         if (event.data && typeof event.data === 'object') {
           window.sendToReactNative(event.data);
         }
       });
       
-      console.log('OnRamp WebView bridge ready');
+      console.log('KARAN :: OnRamp WebView bridge ready');
     })();
     true;
   `;
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
-    paddingTop: 20,
+    paddingTop: 25,
   },
   webViewContainer: {
     flex: 1,

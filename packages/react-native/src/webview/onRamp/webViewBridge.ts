@@ -24,11 +24,16 @@ export class OnRampWebViewBridge {
   async handleMessage(event: any): Promise<void> {
     try {
       const data = event.nativeEvent.data;
+      console.log('KARAN :: Received message from WebView:', data);
       let model: WebEventModel;
 
       if (typeof data === 'string') {
         console.log('KARAN :: Received string data from WebView:', data);
         model = JSON.parse(data);
+        console.log('KARAN :: Parsed model:', model.id);
+        console.log('KARAN :: Parsed model:', model.event);
+        console.log('KARAN :: Parsed model:', model.request);
+        console.log('KARAN :: Parsed model:', model.response);
       } else {
         console.log('KARAN :: Received non-string data from WebView:', data);
         model = data;
@@ -37,25 +42,26 @@ export class OnRampWebViewBridge {
       console.log(`KARAN :: [WebView -> Native] Event: ${model.event}`, model);
 
       switch (model.event) {
-        case WebEvent.ANALYTICS:
-          // Handle analytics if needed
-          break;
 
         case WebEvent.CLOSE:
+          console.log('KARAN :: WebView close event received');
           this.callbacks.onClose?.();
           break;
 
         case WebEvent.URL:
+          console.log('KARAN :: WebView URL event received:', model.request);
           this.handleUrl(model.request);
           break;
 
         case WebEvent.REQUEST_PERMISSION:
           console.log('REQUEST PERMISSION:', model.request?.data);
+          console.log('KARAN :: Handling request permission:', model);
           this.handlePermission({ requestPermissions: model.request?.data });
           break;
 
         case WebEvent.REQUEST_PERMISSION_ACK:
           { console.log('REQUEST PERMISSION ACK:', model);
+            console.log('KARAN :: Acknowledging permission request:', model);
           const ackResponse = {
             ...model,
             event: WebEvent.REQUEST_PERMISSION,
@@ -86,6 +92,7 @@ export class OnRampWebViewBridge {
 
     const key = request[WebKeys.KEY] as string || '';
     const source = request[WebKeys.SOURCE] as string || '';
+    console.log(`KARAN :: Fetching data for key: ${key}, source: ${source}`);
 
     let result = '';
 
