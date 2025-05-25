@@ -129,16 +129,19 @@ export class OnRampWebViewBridge {
     try {
       if (source === 'remote-config') {
         result = await this.onRampService.getRemoteConfigValue(key);
+        console.log('KARAN :: Remote config value fetched:', result);
       } else {
         switch (key) {
           case 'transactionId':
             result = await this.onRampService.getTransactionToken();
+            console.log('KARAN :: Transaction token fetched:', result);
             break;
 
           case 'tokenData':
             if (source === this.tokenId) {
               const tokenData = await this.onRampService.getTokenData();
               result = JSON.stringify(tokenData);
+              console.log('KARAN :: Token data fetched:', result);
             }
             break;
 
