@@ -165,11 +165,11 @@ export interface SocialLogin {
 /**
  * @OtpLoginOption
  * @description Interface for OTP login options.
- * @property {string} type - Type of OTP login (e.g., "email", "phone").
+ * @property {string} type - Type of OTP login (e.g., "email", "whatsapp").
  * @property {number} position - Position of the OTP login in the list.
  */
 export interface OtpLoginOption {
-  type?: 'email' | 'phone';
+  type?: 'email' | 'whatsapp';
   position?: number;
 }
 
