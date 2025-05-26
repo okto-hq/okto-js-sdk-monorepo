@@ -1,4 +1,4 @@
-import { OnrampRemoteConfig } from '../onRamp/onRampRemoteConfig.js';
+import { RemoteConfigService } from './onRampRemoteConfig.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import {
   generateTransactionToken,
@@ -19,23 +19,51 @@ import {
 } from 'react-native-permissions';
 import { Platform } from 'react-native';
 
-export type WhitelistedToken =
-  SupportedRampTokensResponse['onrampTokens'][number];
+type WhitelistedToken = SupportedRampTokensResponse['onrampTokens'][number];
 
 interface PermissionResponse {
-  status: string;
+  status:
+    | 'granted'
+    | 'denied'
+    | 'blocked'
+    | 'limited'
+    | 'unavailable'
+    | 'error';
   permission: string;
   granted: boolean;
   message?: string;
 }
 
+const PERMISSION_MAP: Record<string, Permission> = {
+  camera: Platform.select({
+    ios: PERMISSIONS.IOS.CAMERA,
+    android: PERMISSIONS.ANDROID.CAMERA,
+  }) as Permission,
+  microphone: Platform.select({
+    ios: PERMISSIONS.IOS.MICROPHONE,
+    android: PERMISSIONS.ANDROID.RECORD_AUDIO,
+  }) as Permission,
+  location: Platform.select({
+    ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+    android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  }) as Permission,
+  photo_library: Platform.select({
+    ios: PERMISSIONS.IOS.PHOTO_LIBRARY,
+    android: PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
+  }) as Permission,
+  contacts: Platform.select({
+    ios: PERMISSIONS.IOS.CONTACTS,
+    android: PERMISSIONS.ANDROID.READ_CONTACTS,
+  }) as Permission,
+};
+
 export class OnRampService {
-  private remoteConfig: OnrampRemoteConfig;
-  private oktoClient: OktoClient;
-  private config: OnrampConfig;
+  private readonly remoteConfig: RemoteConfigService;
+  private readonly oktoClient: OktoClient;
+  private readonly config: OnrampConfig;
 
   constructor(config: Partial<OnrampConfig> = {}, oktoClient: OktoClient) {
-    this.remoteConfig = OnrampRemoteConfig.getInstance();
+    this.remoteConfig = RemoteConfigService.getInstance();
     this.oktoClient = oktoClient;
     this.config = {
       onRampEnabled: true,
@@ -50,7 +78,6 @@ export class OnRampService {
 
   async getTransactionToken(): Promise<string> {
     try {
-      console.log('KARAN :: Generating transaction token...');
       return await generateTransactionToken(this.oktoClient);
     } catch (error) {
       console.error('Error getting transaction token:', error);
@@ -58,15 +85,14 @@ export class OnRampService {
     }
   }
 
-  async getTokenData(): Promise<WhitelistedToken[]> {
+  async getTokenData(countryCode: string = 'IN'): Promise<WhitelistedToken[]> {
     try {
-      console.log('KARAN :: Fetching supported tokens for onramp...');
-      const supportedTokens = await getSupportedRampTokens(
+      const { onrampTokens } = await getSupportedRampTokens(
         this.oktoClient,
-        'IN',
+        countryCode,
         'onramp',
       );
-      return supportedTokens.onrampTokens;
+      return onrampTokens;
     } catch (error) {
       console.error('Error fetching onramp tokens:', error);
       throw error;
@@ -75,8 +101,7 @@ export class OnRampService {
 
   async getPortfolioData(): Promise<UserPortfolioData> {
     try {
-      const response = await getPortfolio(this.oktoClient);
-      return response;
+      return await getPortfolio(this.oktoClient);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
       throw error;
@@ -85,266 +110,139 @@ export class OnRampService {
 
   async getOnRampTokens(): Promise<OnRampToken[]> {
     const [whitelistedTokens, portfolio] = await Promise.all([
-      this.getTokenData(),
+      this.getTokenData(this.config.countryCode),
       this.getPortfolioData(),
     ]);
 
-    const flatPortfolioTokens = portfolio.groupTokens.flatMap(
+    const portfolioTokens = portfolio.groupTokens.flatMap(
       (group) => group.tokens,
     );
 
-    return whitelistedTokens.map((whitelistedToken) => {
-      const matchingToken = flatPortfolioTokens.find(
-        (token) =>
-          token.tokenAddress.toLowerCase() ===
-          whitelistedToken.address.toLowerCase(),
+    return whitelistedTokens.map((token) => {
+      const portfolioToken = portfolioTokens.find(
+        (pt) => pt.tokenAddress.toLowerCase() === token.address.toLowerCase(),
       );
 
       return {
-        id: whitelistedToken.tokenId,
-        name: whitelistedToken.name,
-        symbol: whitelistedToken.shortName,
-        iconUrl: whitelistedToken.logo,
-        networkId: whitelistedToken.networkId,
-        networkName: whitelistedToken.networkName,
-        address: whitelistedToken.address,
-        balance: matchingToken?.balance,
-        precision: matchingToken?.precision ?? whitelistedToken.precision,
-        chainId: whitelistedToken.chainId,
+        id: token.tokenId,
+        name: token.name,
+        symbol: token.shortName,
+        iconUrl: token.logo,
+        networkId: token.networkId,
+        networkName: token.networkName,
+        address: token.address,
+        balance: portfolioToken?.balance,
+        precision: portfolioToken?.precision ?? token.precision,
+        chainId: token.chainId,
       };
     });
   }
 
   async getRemoteConfigValue(key: string): Promise<string> {
     try {
-      const configValue = await this.remoteConfig.getValue(key);
-      return configValue.stringValue || '';
+      const configValue = await this.remoteConfig.getConfigValue(key);
+      return configValue.stringValue;
     } catch (error) {
       console.error('Error getting remote config:', error);
       return '';
     }
   }
 
-  /**
-   * Maps permission string to react-native-permissions Permission type
-   */
-  private getPermissionType(permissionString: string): Permission | null {
-    const permissionMap: Record<string, Permission> = {
-      camera:
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.CAMERA
-          : PERMISSIONS.ANDROID.CAMERA,
-      microphone:
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.MICROPHONE
-          : PERMISSIONS.ANDROID.RECORD_AUDIO,
-      location:
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      photo_library:
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.PHOTO_LIBRARY
-          : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-      contacts:
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.CONTACTS
-          : PERMISSIONS.ANDROID.READ_CONTACTS,
-      // 'notifications': Platform.OS === 'ios' ? PERMISSIONS.IOS.NOTIFICATIONS : PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
+  private mapPermissionStatus(
+    status: PermissionStatus,
+  ): Omit<PermissionResponse, 'permission'> {
+    type StatusResult = Omit<PermissionResponse, 'permission'>;
+
+    const statusMap: Record<string, StatusResult> = {
+      [RESULTS.GRANTED]: { status: 'granted', granted: true },
+      [RESULTS.DENIED]: {
+        status: 'denied',
+        granted: false,
+        message: 'Permission denied by user',
+      },
+      [RESULTS.BLOCKED]: {
+        status: 'blocked',
+        granted: false,
+        message: 'Permission blocked. Please enable in device settings.',
+      },
+      [RESULTS.LIMITED]: {
+        status: 'limited',
+        granted: true,
+        message: 'Permission granted with limitations',
+      },
+      [RESULTS.UNAVAILABLE]: {
+        status: 'unavailable',
+        granted: false,
+        message: 'Permission not available',
+      },
     };
 
-    return permissionMap[permissionString.toLowerCase()] || null;
+    const defaultResult: StatusResult = {
+      status: 'error',
+      granted: false,
+      message: 'Unknown permission status',
+    };
+
+    return statusMap[status] || defaultResult;
   }
 
-  /**
-   * Maps PermissionStatus to user-friendly status string
-   */
-  private mapPermissionStatus(status: PermissionStatus): {
-    status: string;
-    granted: boolean;
-    message?: string;
-  } {
-    switch (status) {
-      case RESULTS.GRANTED:
-        return { status: 'granted', granted: true };
-      case RESULTS.DENIED:
-        return {
-          status: 'denied',
-          granted: false,
-          message: 'Permission denied by user',
-        };
-      case RESULTS.BLOCKED:
-        return {
-          status: 'blocked',
-          granted: false,
-          message: 'Permission blocked. Please enable in device settings.',
-        };
-      case RESULTS.LIMITED:
-        return {
-          status: 'limited',
-          granted: true,
-          message: 'Permission granted with limitations',
-        };
-      case RESULTS.UNAVAILABLE:
-        return {
-          status: 'unavailable',
-          granted: false,
-          message: 'Permission not available on this device',
-        };
-      default:
-        return {
-          status: 'unknown',
-          granted: false,
-          message: 'Unknown permission status',
-        };
-    }
-  }
-
-  /**
-   * Request camera permission specifically
-   */
   async requestCameraPermission(): Promise<PermissionResponse> {
-    console.log('KARAN :: Requesting camera permission...');
-
-    try {
-      const permission = this.getPermissionType('camera');
-      if (!permission) {
-        return {
-          status: 'unavailable',
-          permission: 'camera',
-          granted: false,
-          message: 'Camera permission not available on this platform',
-        };
-      }
-
-      const result = await request(permission);
-      const mappedResult = this.mapPermissionStatus(result);
-
-      console.log('KARAN :: Camera permission result:', result);
-
-      return {
-        permission: 'camera',
-        ...mappedResult,
-      };
-    } catch (error) {
-      console.error('KARAN :: Error requesting camera permission:', error);
-      return {
-        status: 'error',
-        permission: 'camera',
-        granted: false,
-        message:
-          error instanceof Error ? error.message : 'Unknown error occurred',
-      };
-    }
+    return this.requestSinglePermission('camera');
   }
 
-  /**
-   * Generic permission request handler
-   * Handles both single permission requests and multiple permissions
-   */
   async requestPermissions(
-    permissionData: any,
+    permissions: string | string[] | Record<string, any>,
   ): Promise<PermissionResponse | PermissionResponse[]> {
-    console.log('KARAN :: Requesting permissions:', permissionData);
-
-    try {
-      // Handle single permission request
-      if (typeof permissionData === 'string') {
-        return await this.requestSinglePermission(permissionData);
-      }
-
-      // Handle permission object with specific permission type
-      if (permissionData.permission) {
-        return await this.requestSinglePermission(
-          permissionData.permission,
-        );
-      }
-
-      // Handle array of permissions
-      if (Array.isArray(permissionData)) {
-        const results = await Promise.all(
-          permissionData.map(async (perm) => {
-            if (typeof perm === 'string') {
-              return await this.requestSinglePermission(perm);
-            } else if (perm.permission) {
-              return await this.requestSinglePermission(
-                perm.permission,
-              );
-            }
-            return {
-              status: 'error',
-              permission: 'unknown',
-              granted: false,
-              message: 'Invalid permission format',
-            };
-          }),
-        );
-        return results;
-      }
-
-      // Handle object with multiple permission keys
-      if (typeof permissionData === 'object') {
-        const permissions = Object.keys(permissionData);
-        const results = await Promise.all(
-          permissions.map(
-            async (perm) => await this.requestSinglePermission(perm),
-          ),
-        );
-        return results;
-      }
-
-      throw new Error('Invalid permission data format');
-    } catch (error) {
-      console.error('KARAN :: Error in requestPermissions:', error);
-      return {
-        status: 'error',
-        permission: 'unknown',
-        granted: false,
-        message:
-          error instanceof Error ? error.message : 'Unknown error occurred',
-      };
+    if (typeof permissions === 'string') {
+      return this.requestSinglePermission(permissions);
     }
+
+    if (Array.isArray(permissions)) {
+      return Promise.all(
+        permissions.map((perm) =>
+          typeof perm === 'string'
+            ? this.requestSinglePermission(perm)
+            : this.requestSinglePermission(perm.permission),
+        ),
+      );
+    }
+
+    if (typeof permissions === 'object') {
+      return Promise.all(
+        Object.keys(permissions).map((perm) =>
+          this.requestSinglePermission(perm),
+        ),
+      );
+    }
+
+    throw new Error('Invalid permission data format');
   }
 
-  /**
-   * Request a single permission
-   */
   private async requestSinglePermission(
     permissionString: string,
-    // rationale?: string,
   ): Promise<PermissionResponse> {
-    console.log(`KARAN :: Requesting single permission: ${permissionString}`);
+    const permissionKey = permissionString.toLowerCase();
+    const permission = PERMISSION_MAP[permissionKey];
 
-    // Handle camera permission specifically (most common use case for onramp)
-    if (permissionString.toLowerCase() === 'camera') {
-      return await this.requestCameraPermission();
+    if (!permission) {
+      return {
+        status: 'unavailable',
+        permission: permissionString,
+        granted: false,
+        message: `${permissionString} permission not available on this platform`,
+      };
     }
 
     try {
-      const permission = this.getPermissionType(permissionString);
-      if (!permission) {
-        return {
-          status: 'unavailable',
-          permission: permissionString,
-          granted: false,
-          message: `${permissionString} permission not available on this platform`,
-        };
-      }
-
       const result = await request(permission);
       const mappedResult = this.mapPermissionStatus(result);
-
-      console.log(`KARAN :: ${permissionString} permission result:`, result);
 
       return {
         permission: permissionString,
         ...mappedResult,
       };
     } catch (error) {
-      console.error(
-        `KARAN :: Error requesting ${permissionString} permission:`,
-        error,
-      );
+      console.error(`Error requesting ${permissionString} permission:`, error);
       return {
         status: 'error',
         permission: permissionString,

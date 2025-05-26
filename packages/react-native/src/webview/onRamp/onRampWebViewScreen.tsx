@@ -7,24 +7,50 @@ import {
   BackHandler,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { OnRampWebViewBridge } from './webViewBridge.js';
+import { WebViewBridge } from './webViewBridge.js';
 import { OnRampService } from './onRampService.js';
 import type { OnrampCallbacks, OnRampParamList } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
 
+const INJECTED_JAVASCRIPT = `
+  (function() {
+    window.ReactNativeWebView = window.ReactNativeWebView || {};
+    
+    window.sendToReactNative = function(message) {
+      if (window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+      }
+    };
+    
+    window.addEventListener('message', function(event) {
+      try {
+        const parsedData = typeof event.data === 'string' 
+          ? JSON.parse(event.data) 
+          : event.data;
+        window.sendToReactNative(parsedData);
+      } catch (e) {
+        console.warn('Failed to parse message from React Native:', e);
+      }
+    });
+  })();
+  true;
+`;
+
 export const OnRampScreen = ({ route, navigation }: Props) => {
+  console.log('[OnRampScreen] Initializing with route params:', route.params);
   const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
     route.params;
 
   const webViewRef = useRef<WebView>(null);
-  const bridgeRef = useRef<OnRampWebViewBridge | null>(null);
-  const onRampServiceRef = useRef<OnRampService | null>(null);
+  const bridgeRef = useRef<WebViewBridge | null>(null);
+
+  console.log('[OnRampScreen] WebView and Bridge refs created');
 
   const handleSuccess = useCallback(
     (data: any) => {
-      console.log('OnRamp transaction successful:', data);
+      console.log('[OnRampScreen] Success callback triggered with data:', data);
       onSuccess?.(data?.message || 'Transaction completed successfully');
       onClose();
     },
@@ -33,7 +59,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   const handleError = useCallback(
     (error: string) => {
-      console.error('OnRamp transaction error:', error);
+      console.error('[OnRampScreen] Error callback triggered:', error);
       onError?.(error);
       onClose();
     },
@@ -41,13 +67,12 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   );
 
   const handleClose = useCallback(() => {
-    console.log('OnRamp screen closing');
+    console.log('[OnRampScreen] Close callback triggered');
     onClose();
   }, [onClose]);
 
   const handleProgress = useCallback(
     (progress: number) => {
-      console.log('OnRamp progress:', progress);
       onProgress?.(progress);
     },
     [onProgress],
@@ -64,7 +89,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     return () => backHandler.remove();
   }, [navigation]);
 
-  // Initialize services and bridge
   useEffect(() => {
     const callbacks: OnrampCallbacks = {
       onSuccess: handleSuccess,
@@ -73,22 +97,17 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       onProgress: handleProgress,
     };
 
-    // Initialize OnRamp service
-    onRampServiceRef.current = new OnRampService({}, oktoClient);
-
-    // Create the bridge instance
-    bridgeRef.current = new OnRampWebViewBridge(
+    const onRampService = new OnRampService({}, oktoClient);
+    bridgeRef.current = new WebViewBridge(
       webViewRef,
       callbacks,
-      onRampServiceRef.current,
+      onRampService,
       tokenId,
     );
 
-    // Cleanup on unmount
     return () => {
       bridgeRef.current?.cleanup();
       bridgeRef.current = null;
-      onRampServiceRef.current = null;
     };
   }, [
     tokenId,
@@ -99,61 +118,19 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     handleProgress,
   ]);
 
-  // Handle WebView message events
   const handleWebViewMessage = useCallback((event: any) => {
-    try {
-      console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
-      if (bridgeRef.current) {
-        console.log('KARAN :: handleWebViewMessage ', event.nativeEvent.data);
-        bridgeRef.current.handleMessage(event);
-        console.log('KARAN :: Bridge message handled:', event);
-      }
-    } catch (error) {
-      console.error('KARAN :: Error in handleWebViewMessage', error);
-      // Optionally call the error handler if defined
-      // handleError?.('Failed to process WebView message');
-    }
+    console.log(
+      '[OnRampScreen] Received message from WebView:',
+      event.nativeEvent.data,
+    );
+    bridgeRef.current?.handleMessage(event);
   }, []);
 
-  // Handle WebView load completion
-  const handleWebViewLoadEnd = useCallback(() => {
-    console.log('OnRamp WebView loaded');
-  }, []);
-
-  // Handle WebView errors
   const handleWebViewError = useCallback(() => {
-    const errorMessage =
-      'Failed to load payment page. Please check your internet connection.';
-    console.error('OnRamp WebView Error:', errorMessage);
-    handleError(errorMessage);
+    handleError(
+      'Failed to load payment page. Please check your internet connection.',
+    );
   }, [handleError]);
-
-  // Simplified injected JavaScript
-  const injectedJavaScript = `
-    (function() {
-      window.ReactNativeWebView = window.ReactNativeWebView || {};
-      
-      window.sendToReactNative = function(message) {
-      console.log('KARAN :: Sending message to React Native:', message);
-        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          window.ReactNativeWebView.postMessage(JSON.stringify(message));
-        }
-      };
-      
-      window.addEventListener('message', function(event) {
-        console.log('KARAN :: Received message from React Native:', event.data);
-        try {
-           const parsedData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            window.sendToReactNative(parsedData);
-            } catch (e) {
-            console.warn('KARAN ::  Failed to parse message from React Native:', e);
-        }
-      });
-      
-      console.log('KARAN :: OnRamp WebView bridge ready');
-    })();
-    true;
-  `;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -163,20 +140,18 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
-          injectedJavaScript={injectedJavaScript}
-          onLoadEnd={handleWebViewLoadEnd}
+          injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
+          javaScriptEnabled
+          domStorageEnabled
           mixedContentMode="compatibility"
-          allowsInlineMediaPlayback={true}
+          allowsInlineMediaPlayback
           style={styles.webView}
           allowsBackForwardNavigationGestures={false}
           bounces={false}
-          scrollEnabled={true}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          startInLoadingState={true}
+          startInLoadingState
           allowsLinkPreview={false}
         />
       </View>
@@ -188,11 +163,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
-    paddingTop: 25,
   },
   webViewContainer: {
     flex: 1,
-    position: 'relative',
   },
   webView: {
     flex: 1,

@@ -31,7 +31,6 @@ export class OnrampService {
     const countryCode = options.countryCode || 'IN';
 
     try {
-      // Get required data
       const [
         portfolio,
         wallets,
@@ -50,21 +49,6 @@ export class OnrampService {
         ),
       ]);
 
-      // Find token in portfolio
-      const groupToken = portfolio.groupTokens.find(
-        (group) =>
-          group.id === tokenId ||
-          (Array.isArray(group.tokens) &&
-            group.tokens.some((token) => token.id === tokenId)),
-      );
-
-      if (!groupToken) {
-        throw new Error(`Token ${tokenId} not found in portfolio`);
-      }
-
-      const token =
-        groupToken.tokens.find((t) => t.id === tokenId) || groupToken;
-
       // Find whitelisted token from supported ramp tokens
       const whitelistedToken = supportedRampTokens.onrampTokens.find(
         (rampToken) => rampToken.tokenId === tokenId,
@@ -76,7 +60,7 @@ export class OnrampService {
         );
       }
 
-      // Find wallet
+      // Find wallet for the network
       const wallet = wallets.find(
         (w) => w.networkId === whitelistedToken.networkId,
       );
@@ -87,13 +71,30 @@ export class OnrampService {
         );
       }
 
+      let tokenBalance = '0';
+      let tokenName = whitelistedToken.name;
+
+      const groupToken = portfolio.groupTokens.find(
+        (group) =>
+          group.id === tokenId ||
+          (Array.isArray(group.tokens) &&
+            group.tokens.some((token) => token.id === tokenId)),
+      );
+
+      if (groupToken) {
+        const token =
+          groupToken.tokens.find((t) => t.id === tokenId) || groupToken;
+        tokenBalance = token.balance || '0';
+        tokenName = token.shortName || tokenName;
+      }
+
       // Create add funds data
       const addFundsData: AddFundsData = {
         walletAddress: wallet.address,
-        walletBalance: token.balance || '0',
-        tokenId: token.id,
+        walletBalance: tokenBalance,
+        tokenId: tokenId,
         networkId: whitelistedToken.networkId,
-        tokenName: token.shortName,
+        tokenName: tokenName,
         chain: wallet.networkName,
         userId: userSession.userId,
         email: options.email || '',

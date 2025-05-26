@@ -17,7 +17,7 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
-import { OnrampRemoteConfig } from '../webview/onRamp/onRampRemoteConfig.js';
+import { RemoteConfigService } from '../webview/onRamp/onRampRemoteConfig.js';
 import type { UIConfig } from 'src/webview/authentication/types.js';
 
 interface NavigationProps {
@@ -68,6 +68,26 @@ class OktoClient extends OktoCoreClient {
       this.setSessionConfig(session);
       onSuccess?.(session);
     });
+  }
+
+  override loginUsingEmail(
+    email: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    return super.loginUsingEmail(
+      email,
+      otp,
+      token,
+      (session) => {
+        setStorage('okto_session', JSON.stringify(session));
+        this.setSessionConfig(session);
+        onSuccess?.(session);
+      },
+      overrideSessionConfig,
+    );
   }
 
   override async loginUsingSocial(
@@ -153,7 +173,7 @@ class OktoClient extends OktoCoreClient {
   ): Promise<void> {
     try {
       // Check if OnRamp is enabled
-      const remoteConfig = OnrampRemoteConfig.getInstance();
+      const remoteConfig = RemoteConfigService.getInstance();
       const config = await remoteConfig.getOnrampConfig();
 
       if (!config.onRampEnabled) {

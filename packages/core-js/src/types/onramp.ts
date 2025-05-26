@@ -68,7 +68,6 @@ export type TransactionTokenResponse = {
 };
 
 export interface OnrampOptions {
-  email?: string;
   countryCode?: string;
   theme?: 'light' | 'dark';
   appVersion?: string;

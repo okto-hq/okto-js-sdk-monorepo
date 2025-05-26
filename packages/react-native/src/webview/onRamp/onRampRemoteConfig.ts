@@ -1,5 +1,5 @@
 import { getStorage } from '../../utils/storageUtils.js';
-import type { OnrampConfig } from '../onRamp/types.js';
+import type { OnrampConfig } from './types.js';
 
 interface ConfigValue {
   stringValue: string;
@@ -21,99 +21,83 @@ interface RemoteConfigData {
   parameters: Record<string, RemoteConfigParameter>;
 }
 
-export class OnrampRemoteConfig {
-  private static instance: OnrampRemoteConfig | null = null;
+const DEFAULT_CONFIG: Record<string, { value: any; type: ValueType }> = {
+  on_ramp_enabled: { value: true, type: 'BOOLEAN' },
+  onramp_theme: { value: 'light', type: 'STRING' },
+  onramp_country_code: { value: 'IN', type: 'STRING' },
+  onramp_app_version: { value: '500000', type: 'STRING' },
+  onramp_timeout: { value: 30000, type: 'NUMBER' },
+  onramp_max_retries: { value: 3, type: 'NUMBER' },
+};
+
+export class RemoteConfigService {
+  private static instance: RemoteConfigService;
   private configValues = new Map<string, ConfigValue>();
   private isLoaded = false;
 
   private constructor() {}
 
-  public static getInstance(): OnrampRemoteConfig {
-    if (!OnrampRemoteConfig.instance) {
-      OnrampRemoteConfig.instance = new OnrampRemoteConfig();
+  public static getInstance(): RemoteConfigService {
+    if (!RemoteConfigService.instance) {
+      RemoteConfigService.instance = new RemoteConfigService();
     }
-    return OnrampRemoteConfig.instance;
+    return RemoteConfigService.instance;
   }
 
-  public async getValue(key: string): Promise<ConfigValue> {
-    if (!this.isLoaded) {
-      await this.loadDefaultConfig();
-    }
-    return this.configValues.get(key) || this.createConfigValue('', 'STRING');
-  }
+  public async initialize(): Promise<void> {
+    if (this.isLoaded) return;
 
-  public getValueSync(key: string): ConfigValue {
-    return this.configValues.get(key) || this.createConfigValue('', 'STRING');
-  }
-
-  private async loadDefaultConfig(): Promise<void> {
     try {
       const storedConfig = getStorage('okto_remote_config');
       if (storedConfig) {
         this.parseConfig(JSON.parse(storedConfig) as RemoteConfigData);
       } else {
-        this.createDefaultConfig();
+        this.setDefaultConfig();
       }
     } catch (error) {
       console.error('Error loading config:', error);
-      this.createDefaultConfig();
+      this.setDefaultConfig();
     }
     this.isLoaded = true;
   }
 
-  private createDefaultConfig(): void {
-    console.log('Creating default config values...');
-    this.configValues.set(
-      'on_ramp_enabled',
-      this.createConfigValue(true, 'BOOLEAN'),
-    );
-    this.configValues.set(
-      'onramp_theme',
-      this.createConfigValue('light', 'STRING'),
-    );
-    this.configValues.set(
-      'onramp_country_code',
-      this.createConfigValue('IN', 'STRING'),
-    );
-    this.configValues.set(
-      'onramp_app_version',
-      this.createConfigValue('500000', 'STRING'),
-    );
-    this.configValues.set(
-      'onramp_timeout',
-      this.createConfigValue(30000, 'NUMBER'),
-    );
-    this.configValues.set(
-      'onramp_max_retries',
-      this.createConfigValue(3, 'NUMBER'),
-    );
+  public async getConfigValue(key: string): Promise<ConfigValue> {
+    await this.initialize();
+    return this.configValues.get(key) || this.createConfigValue('', 'STRING');
+  }
+
+  public getConfigValueSync(key: string): ConfigValue {
+    if (!this.isLoaded) {
+      throw new Error('Config not loaded. Call initialize() first.');
+    }
+    return this.configValues.get(key) || this.createConfigValue('', 'STRING');
+  }
+
+  private setDefaultConfig(): void {
+    Object.entries(DEFAULT_CONFIG).forEach(([key, { value, type }]) => {
+      this.configValues.set(key, this.createConfigValue(value, type));
+    });
   }
 
   private parseConfig(configData: RemoteConfigData): void {
-    const parameters = configData?.parameters;
-
-    if (!parameters || typeof parameters !== 'object') {
-      console.warn("No valid 'parameters' object found in config.");
-      this.createDefaultConfig();
+    if (!configData?.parameters || typeof configData.parameters !== 'object') {
+      console.warn('Invalid config data, using defaults');
+      this.setDefaultConfig();
       return;
     }
 
-    for (const key in parameters) {
+    Object.entries(configData.parameters).forEach(([key, param]) => {
       try {
-        const param = parameters[key];
-        const valueType = param?.valueType;
-        const value = param?.defaultValue?.value;
-
-        if (!valueType || value === undefined) {
-          console.warn(`Skipping invalid config entry: ${key}`);
-          continue;
+        if (param?.valueType && param?.defaultValue?.value !== undefined) {
+          this.configValues.set(
+            key,
+            this.createConfigValue(param.defaultValue.value, param.valueType),
+          );
         }
-
-        this.configValues.set(key, this.createConfigValue(value, valueType));
-      } catch (innerError) {
-        console.error(`Error parsing config key '${key}':`, innerError);
+      } catch (error) {
+        console.error(`Error parsing config key '${key}':`, error);
       }
-    }
+    });
   }
 
   private createConfigValue(
@@ -141,18 +125,14 @@ export class OnrampRemoteConfig {
           result.stringValue = String(result.numberValue);
           break;
         case 'JSON':
-          if (typeof value === 'string') {
-            result.jsonValue = JSON.parse(value) as
-              | Record<string, unknown>
-              | unknown[];
-          } else {
-            result.jsonValue = value as Record<string, unknown> | unknown[];
-          }
+          result.jsonValue =
+            typeof value === 'string'
+              ? JSON.parse(value)
+              : (value as Record<string, unknown> | unknown[]);
           result.stringValue = JSON.stringify(result.jsonValue);
           break;
         default:
           result.stringValue = String(value ?? '');
-          break;
       }
     } catch (error) {
       console.error(`Failed to parse value of type ${type}:`, error);
@@ -162,14 +142,16 @@ export class OnrampRemoteConfig {
   }
 
   public async getOnrampConfig(): Promise<OnrampConfig> {
-    await this.loadDefaultConfig();
+    await this.initialize();
     return {
-      onRampEnabled: this.getValueSync('on_ramp_enabled').booleanValue,
-      theme: this.getValueSync('onramp_theme').stringValue as 'light' | 'dark',
-      countryCode: this.getValueSync('onramp_country_code').stringValue,
-      appVersion: this.getValueSync('onramp_app_version').stringValue,
-      timeout: this.getValueSync('onramp_timeout').numberValue,
-      maxRetries: this.getValueSync('onramp_max_retries').numberValue,
+      onRampEnabled: this.getConfigValueSync('on_ramp_enabled').booleanValue,
+      theme: this.getConfigValueSync('onramp_theme').stringValue as
+        | 'light'
+        | 'dark',
+      countryCode: this.getConfigValueSync('onramp_country_code').stringValue,
+      appVersion: this.getConfigValueSync('onramp_app_version').stringValue,
+      timeout: this.getConfigValueSync('onramp_timeout').numberValue,
+      maxRetries: this.getConfigValueSync('onramp_max_retries').numberValue,
     };
   }
 }

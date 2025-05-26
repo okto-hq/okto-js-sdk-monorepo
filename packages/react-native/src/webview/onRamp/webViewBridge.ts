@@ -1,12 +1,9 @@
-import { WebView } from 'react-native-webview';
 import type { MutableRefObject } from 'react';
-import {
-  type OnrampCallbacks,
-} from './types.js';
+import { WebView } from 'react-native-webview';
+import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
 
-// Define the actual message structure based on your logs
-interface WebViewMessage {
+type WebViewMessage = {
   type: string;
   params?: {
     control?: boolean;
@@ -17,22 +14,21 @@ interface WebViewMessage {
   };
   id?: string;
   response?: any;
-}
+};
 
-// Response structure matching Flutter's ackJson()
-interface WebViewResponse {
+type WebViewResponse = {
   type: string;
   response: any;
   source: string;
   id: string;
-}
+};
 
-export class OnRampWebViewBridge {
-  private webViewRef: MutableRefObject<WebView | null>;
-  private callbacks: OnrampCallbacks;
-  private onRampService: OnRampService;
-  private tokenId: string;
-  private readonly SOURCE_NAME = 'okto_web'; 
+export class WebViewBridge {
+  private readonly webViewRef: MutableRefObject<WebView | null>;
+  private readonly callbacks: OnrampCallbacks;
+  private readonly onRampService: OnRampService;
+  private readonly tokenId: string;
+  private readonly SOURCE_NAME = 'okto_web';
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -40,6 +36,13 @@ export class OnRampWebViewBridge {
     onRampService: OnRampService,
     tokenId: string,
   ) {
+    console.log('[WebViewBridge] Initializing with:', {
+      webViewRef: !!webViewRef.current,
+      callbacks: Object.keys(callbacks),
+      onRampService,
+      tokenId,
+    });
+
     this.webViewRef = webViewRef;
     this.callbacks = callbacks;
     this.onRampService = onRampService;
@@ -48,157 +51,117 @@ export class OnRampWebViewBridge {
 
   async handleMessage(event: any): Promise<void> {
     try {
-      const data = event.nativeEvent.data;
-      console.log('KARAN :: handleWebViewMessage ', data);
-      console.log('KARAN :: Received message from WebView:', data);
+      console.log('[WebViewBridge] Raw message received:', event);
+      const message = this.parseMessage(event.nativeEvent.data);
+      if (!message) return;
 
-      let parsedMessage: WebViewMessage;
+      console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
+        params: message.params,
+        id: message.id,
+      });
 
-      if (typeof data === 'string') {
-        console.log('KARAN :: Received string data from WebView:', data);
-        parsedMessage = JSON.parse(data);
-      } else {
-        console.log('KARAN :: Received non-string data from WebView:', data);
-        parsedMessage = data;
-      }
-
-      // Log the actual structure we're working with
-      console.log('KARAN :: Parsed model:', parsedMessage.id);
-      console.log('KARAN :: Parsed model:', parsedMessage.type);
-      console.log('KARAN :: Parsed model:', parsedMessage.params);
-
-      console.log(
-        `KARAN :: [WebView -> Native] Event: ${parsedMessage.type}`,
-        parsedMessage,
-      );
-
-      // Handle the actual message types from your logs
-      switch (parsedMessage.type) {
+      switch (message.type) {
         case 'nativeBack':
-          console.log('KARAN :: WebView native back event received');
-          this.handleNativeBack(parsedMessage.params);
+          console.log('[WebViewBridge] Handling nativeBack event');
+          this.handleNativeBack(message.params);
           break;
-
-        case 'data': {
-          console.log('KARAN :: DATA EVENT:', parsedMessage);
-          const response = await this.handleDataRequest(parsedMessage);
-          if (response) {
-            console.log('KARAN :: Sending data response: in handle message', response);
-            this.sendAckResponse(response);
-          }
+        case 'data':
+          console.log('[WebViewBridge] Handling data request');
+          await this.handleDataRequest(message);
           break;
-        }
-
         case 'close':
-          console.log('KARAN :: WebView close event received');
-          // const forwardToRoute = parsedMessage.params?.forwardToRoute;
+          console.log('[WebViewBridge] Handling close event');
           this.callbacks.onClose?.();
           break;
-
         case 'url':
-          console.log(
-            'KARAN :: WebView URL event received:',
-            parsedMessage.params,
-          );
-          this.handleUrl(parsedMessage.params);
+          this.handleUrl({ url: message.params?.url });
           break;
-
         case 'requestPermission':
-          console.log('REQUEST PERMISSION:', parsedMessage.params);
-          console.log('KARAN :: Handling request permission:', parsedMessage);
-          await this.handlePermission(parsedMessage);
+          await this.handlePermissionRequest(message);
           break;
-
         case 'requestPermissionAck':
-          console.log('REQUEST PERMISSION ACK:', parsedMessage);
-          this.handlePermissionAck(parsedMessage);
+          this.handlePermissionAck(message);
           break;
-
         case 'analytics':
-          console.log('KARAN :: Analytics event received:', parsedMessage);
           // Handle analytics if needed
           break;
-
         default:
-          console.warn(`Unhandled event: ${parsedMessage.type}`);
+          console.warn(`Unhandled event: ${message.type}`);
       }
     } catch (error) {
       console.error('Error handling WebView message:', error);
     }
   }
 
-  private handleNativeBack(params?: { control?: boolean }): void {
-    console.log('KARAN :: Handling native back with params:', params);
-
-    if (params?.control) {
-      // Handle controlled back navigation
-      this.callbacks.onClose?.();
-    } else {
-      // Handle regular back navigation
-      // You might want to add specific logic here
+  private parseMessage(data: any): WebViewMessage | null {
+    try {
+      return typeof data === 'string' ? JSON.parse(data) : data;
+    } catch (error) {
+      console.error('Error parsing message:', error);
+      return null;
     }
   }
 
-  private async handleDataRequest(
-    message: WebViewMessage,
-  ): Promise<WebViewResponse | null> {
-    console.log('KARAN :: Fetching data for message:', message);
-
-    const params = message.params;
-    if (!params?.key) {
-      console.warn('KARAN :: No key found in data request');
-      return null;
+  private handleNativeBack(params?: { control?: boolean }): void {
+    if (params?.control) {
+      this.callbacks.onClose?.();
     }
+    // Add other back navigation logic if needed
+  }
 
-    const key = params.key;
-    const source = params.source || '';
-    const messageId = message.id || '';
+  private async handleDataRequest(message: WebViewMessage): Promise<void> {
+    console.log('[WebViewBridge] Processing data request:', {
+      key: message.params?.key,
+      source: message.params?.source,
+      id: message.id,
+    });
 
-    console.log(`KARAN :: Fetching data for key: ${key}, source: ${source}`);
+    const { params, id } = message;
+    if (!params?.key) return;
 
-    let result = '';
+    const { key, source = '' } = params;
+    const messageId = id || '';
 
     try {
+      let result = '';
+      console.log('[WebViewBridge] Data request details:', { key, source });
       if (source === 'remote-config') {
         result = await this.onRampService.getRemoteConfigValue(key);
-        console.log('KARAN :: Remote config value fetched:', result);
       } else {
         switch (key) {
           case 'transactionId':
+            console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
-            console.log('KARAN :: Transaction token fetched:', result);
             break;
-
           case 'tokenData':
+            console.log('[WebViewBridge] Fetching token data');
             if (source === this.tokenId) {
               const tokenData = await this.onRampService.getOnRampTokens();
               result = JSON.stringify(tokenData);
-              console.log('KARAN :: Token data fetched:', result);
             }
             break;
-
           default:
             console.warn(`Unknown data key: ${key}`);
-            return null;
+            return;
         }
       }
-
-      const response: WebViewResponse = {
-        type: message.type,
-        response: {
-          [key]: result,
+      console.log(
+        '[WebViewBridge] Data request successful, sending response:',
+        {
+          key,
+          result:
+            result.length > 100 ? `${result.substring(0, 100)}...` : result,
         },
+      );
+
+      this.sendResponse({
+        type: message.type,
+        response: { [key]: result },
         source: this.SOURCE_NAME,
         id: messageId,
-      };
-
-      console.log('KARAN :: Prepared data response:', response);
-      return response;
+      });
     } catch (error) {
-      console.error(`Failed to fetch data for key ${key}:`, error);
-
-      // Create error response
-      const errorResponse: WebViewResponse = {
+      this.sendResponse({
         type: message.type,
         response: {
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -206,82 +169,61 @@ export class OnRampWebViewBridge {
         },
         source: this.SOURCE_NAME,
         id: messageId,
-      };
-
-      return errorResponse;
+      });
     }
   }
 
-  private handleUrl(params: any): void {
-    if (!params?.url) return;
-    console.log('Handle URL:', params.url);
-    // Add your URL handling logic here
-    // this.callbacks.onUrlChange?.(params.url);
+  private handleUrl(params?: { url?: string }): void {
+    if (params?.url) {
+      // Handle URL navigation if needed
+    }
   }
 
-  private async handlePermission(message: WebViewMessage): Promise<void> {
-    const params = message.params;
-    if (!params?.data) return;
-
-    console.log('Handle permissions:', params.data);
+  private async handlePermissionRequest(
+    message: WebViewMessage,
+  ): Promise<void> {
+    if (!message.params?.data) return;
 
     try {
-      // Handle permission requests - integrate with react-native-permissions
       const permissionResult = await this.onRampService.requestPermissions(
-        params.data,
+        message.params.data,
       );
 
-      // Create permission response
-      const response: WebViewResponse = {
+      this.sendResponse({
         type: 'requestPermission',
         response: permissionResult,
         source: this.SOURCE_NAME,
         id: message.id || '',
-      };
-
-      this.sendAckResponse(response);
+      });
     } catch (error) {
       console.error('Permission request failed:', error);
     }
   }
 
   private handlePermissionAck(message: WebViewMessage): void {
-    console.log('REQUEST PERMISSION ACK:', message);
-
-    const ackResponse: WebViewResponse = {
+    this.sendResponse({
       type: 'requestPermission',
       response: message.response || {},
       source: this.SOURCE_NAME,
       id: message.id || '',
-    };
-
-    console.log('REQUEST PERMISSION SENT:', ackResponse);
-    this.sendAckResponse(ackResponse);
-    console.log('REQUEST PERMISSION SENT 2:', ackResponse);
+    });
   }
 
-  private sendAckResponse(response: WebViewResponse): void {
+  private sendResponse(response: WebViewResponse): void {
     try {
-      const messageString = JSON.stringify(response);
-      console.log('KARAN :: Sending ACK response to WebView:', messageString);
-      this.webViewRef.current?.postMessage(messageString);
-    } catch (error) {
-      console.error('Failed to send ACK response to WebView:', error);
-    }
-  }
+      console.log('[WebViewBridge] Sending response to WebView:', {
+        type: response.type,
+        id: response.id,
+        responseSize: JSON.stringify(response.response)?.length,
+      });
 
-  sendMessage(message: any): void {
-    try {
-      const messageString = JSON.stringify(message);
-      console.log('KARAN :: Sending message to WebView:', messageString);
-      this.webViewRef.current?.postMessage(messageString);
+      this.webViewRef.current?.postMessage(JSON.stringify(response));
     } catch (error) {
-      console.error('Failed to send message to WebView:', error);
+      console.error('Failed to send response to WebView:', error);
     }
   }
 
   cleanup(): void {
-    // Clean up any resources if needed
-    console.log('KARAN :: Cleaning up WebView bridge');
+    // Clean up resources if needed
   }
 }

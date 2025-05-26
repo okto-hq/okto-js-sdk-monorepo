@@ -611,10 +611,12 @@ class OktoClient {
     tokenId: string,
     options: OnrampOptions = {},
   ): Promise<string> {
-    if (!options.email && this._sessionConfig?.email) {
-      options.email = this._sessionConfig.email;
-    }
-    return this._onrampService.generateOnrampUrl(this, tokenId, options);
+    const email = this._sessionConfig?.email || '';
+    const onrampPayload = {
+      ...options,
+      email,
+    };
+    return this._onrampService.generateOnrampUrl(this, tokenId, onrampPayload);
   }
 
   public isLoggedIn(): boolean {
