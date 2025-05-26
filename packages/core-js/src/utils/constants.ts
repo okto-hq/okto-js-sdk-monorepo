@@ -61,5 +61,5 @@ export class Constants {
   };
 
   static readonly GOOGLE_CLIENT_ID =
-    '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com';
+    '625834323626-c0rnc34fogig1n059prr5q73p6a6uulf.apps.googleusercontent.com';
 }
