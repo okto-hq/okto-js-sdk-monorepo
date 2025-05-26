@@ -46,8 +46,8 @@ export async function generateAuthenticatePayload(
   payload.sessionData.nonce = nonce;
   payload.sessionData.clientSWA = clientSWA;
   payload.sessionData.sessionPk = sessionKey.uncompressedPublicKeyHexWith0x;
-  payload.sessionData.maxPriorityFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
-  payload.sessionData.maxFeePerGas = '0xBA43B7400'; //TODO: Get from Bundler
+  // payload.sessionData.maxPriorityFeePerGas = '0xBA43B7400'; 
+  // payload.sessionData.maxFeePerGas = '0xBA43B7400';
   payload.sessionData.paymaster = oc.env.paymasterAddress;
   payload.sessionData.paymasterData = await generatePaymasterAndData(
     clientSWA,
