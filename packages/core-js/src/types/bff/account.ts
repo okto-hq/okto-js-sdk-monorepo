@@ -13,7 +13,7 @@ export type Wallet = {
   caipId: string;
   networkName: string;
   address: string;
-  caip2Id: string;
+  networkId: string;
   networkSymbol: string;
 };
 
