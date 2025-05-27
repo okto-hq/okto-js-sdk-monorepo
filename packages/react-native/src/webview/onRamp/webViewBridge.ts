@@ -3,29 +3,22 @@ import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
 
-// Host Request/Response Interfaces
-interface HostReqIntf {
+// Type definitions
+type HostRequest = {
   type: string;
   id?: string;
   params?: Record<string, unknown>;
   [key: string]: unknown;
-}
+};
 
-interface HostResIntf {
+type HostResponse = {
   type: string;
   id?: string;
   response?: Record<string, unknown>;
   source?: string;
   [key: string]: unknown;
-}
+};
 
-// Channel Event Structure
-interface ChannelEvent {
-  eventName: string;
-  eventData: string;
-}
-
-// Host Events Enum
 enum HostEvent {
   DATA = 'data',
   CLOSE = 'close',
@@ -37,18 +30,22 @@ enum HostEvent {
   REMOVE_LISTENER = 'removeListener'
 }
 
-// App Name Enum
-enum AppNameEnum {
+enum AppName {
   OktoWeb = 'okto_web'
 }
+
+type ChannelMessage = {
+  channel: 'launchChannel' | 'requestChannel' | 'infoChannel';
+  data: string;
+};
 
 export class WebViewBridge {
   private readonly webViewRef: MutableRefObject<WebView | null>;
   private readonly callbacks: OnrampCallbacks;
   private readonly onRampService: OnRampService;
   private readonly tokenId: string;
-  private readonly SOURCE_NAME = AppNameEnum.OktoWeb;
-  private readonly callbackHandlers = new Map<string, (res: HostResIntf) => void>();
+  private readonly sourceName = AppName.OktoWeb;
+  private readonly callbackHandlers = new Map<string, (res: HostResponse) => void>();
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -56,12 +53,6 @@ export class WebViewBridge {
     onRampService: OnRampService,
     tokenId: string,
   ) {
-    console.log('[WebViewBridge] Initializing with channels pattern:', {
-      webViewRef: !!webViewRef.current,
-      callbacks: Object.keys(callbacks),
-      tokenId,
-    });
-
     this.webViewRef = webViewRef;
     this.callbacks = callbacks;
     this.onRampService = onRampService;
@@ -71,54 +62,32 @@ export class WebViewBridge {
   }
 
   private setupChannels(): void {
-    // Inject JavaScript handlers for all channels
+    const channels = ['launchChannel', 'requestChannel', 'infoChannel'];
+    const channelSetup = channels.map(channel => `
+      window.${channel} = {
+        postMessage: function(data) {
+          window.ReactNativeWebView?.postMessage(JSON.stringify({
+            channel: '${channel}',
+            data: data
+          }));
+        }
+      };
+    `).join('');
+
     const injectedJS = `
       (function() {
-        console.log('[WebView] Setting up channels...');
+        // Setup communication channels
+        ${channelSetup}
         
-        // Global handlers for channels
-        window.launchChannel = {
-          postMessage: function(data) {
-            console.log('[WebView] launchChannel received:', data);
-            window.ReactNativeWebView?.postMessage(JSON.stringify({
-              channel: 'launchChannel',
-              data: data
-            }));
-          }
-        };
-
-        window.requestChannel = {
-          postMessage: function(data) {
-            console.log('[WebView] requestChannel received:', data);
-            window.ReactNativeWebView?.postMessage(JSON.stringify({
-              channel: 'requestChannel',
-              data: data
-            }));
-          }
-        };
-
-        window.infoChannel = {
-          postMessage: function(data) {
-            console.log('[WebView] infoChannel received:', data);
-            window.ReactNativeWebView?.postMessage(JSON.stringify({
-              channel: 'infoChannel',
-              data: data
-            }));
-          }
-        };
-
-        // Response channel for sending data back to WebView
+        // Response channel handler
         window.responseChannel = function(hostRes) {
-          console.log('[WebView] responseChannel called with:', hostRes);
           // This will be handled by the web app's callback system
         };
-
-        console.log('[WebView] All channels setup complete');
+        
+        true;
       })();
-      true;
     `;
 
-    // Inject the channel setup script
     this.webViewRef.current?.injectJavaScript(injectedJS);
   }
 
@@ -127,128 +96,110 @@ export class WebViewBridge {
       console.log('[WebViewBridge] Raw message received:', event.nativeEvent.data);
       
       const message = this.parseMessage(event.nativeEvent.data);
+      if (!message) {
+        console.warn('[WebViewBridge] Failed to parse message or message was null');
+        return;
+      }
 
-      console.log("karan is here ",message.channel, message.data);
-      console.log('[WebViewBridge] Parsed message:', message);
-      // if (!message) return;
+      console.log('[WebViewBridge] Parsed message:', {
+        channel: message.channel,
+        data: message.data,
+        timestamp: new Date().toISOString()
+      });
 
       await this.handleChannelMessage(message.channel, message.data);
     } catch (error) {
-      console.error('[WebViewBridge] Error handling message:', error);
+      console.error('[WebViewBridge] Error handling message:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        rawMessage: event.nativeEvent.data,
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      this.callbacks.onError?.('Failed to process message');
     }
   }
 
   private async handleChannelMessage(channel: string, data: string): Promise<void> {
-    console.log(`[WebViewBridge] Processing channel: ${channel}`);
-    
     try {
-      const hostReq: HostReqIntf = JSON.parse(data);
+      const hostReq: HostRequest = JSON.parse(data);
       
-      switch (channel) {
-        case 'launchChannel':
-          await this.processLaunchChannel(hostReq);
-          break;
-        case 'requestChannel':
-          await this.processRequestChannel(hostReq);
-          break;
-        case 'infoChannel':
-          await this.processInfoChannel(hostReq);
-          break;
-        default:
-          console.warn(`[WebViewBridge] Unknown channel: ${channel}`);
+      const channelHandlers: Record<string, (req: HostRequest) => Promise<void>> = {
+        'launchChannel': this.processLaunchChannel.bind(this),
+        'requestChannel': this.processRequestChannel.bind(this),
+        'infoChannel': this.processInfoChannel.bind(this)
+      };
+
+      const handler = channelHandlers[channel];
+      if (handler) {
+        await handler(hostReq);
+      } else {
+        console.warn(`[WebViewBridge] Unknown channel: ${channel}`);
       }
     } catch (error) {
       console.error(`[WebViewBridge] Error processing channel ${channel}:`, error);
     }
   }
 
-  private async processLaunchChannel(hostReq: HostReqIntf): Promise<void> {
-    console.log('[WebViewBridge] Processing launch channel:', hostReq.type);
+  private async processLaunchChannel(hostReq: HostRequest): Promise<void> {
+    const eventHandlers: Record<string, () => void> = {
+      [HostEvent.CLOSE]: () => this.handleClose(hostReq),
+      [HostEvent.NATIVE_BACK]: () => this.handleNativeBack(hostReq.params),
+      [HostEvent.URL]: () => this.handleUrl(hostReq.params),
+      [HostEvent.ANALYTICS]: () => this.handleAnalytics(hostReq)
+    };
 
-    switch (hostReq.type) {
-      case HostEvent.CLOSE:
-        this.handleClose(hostReq);
-        break;
-      case HostEvent.NATIVE_BACK:
-        this.handleNativeBack(hostReq.params);
-        break;
-      case HostEvent.URL:
-        this.handleUrl(hostReq.params);
-        break;
-      case HostEvent.ANALYTICS:
-        this.handleAnalytics(hostReq);
-        break;
-      default:
-        console.warn(`[WebViewBridge] Unhandled launch event: ${hostReq.type}`);
+    const handler = eventHandlers[hostReq.type];
+    if (handler) {
+      handler();
+    } else {
+      console.warn(`[WebViewBridge] Unhandled launch event: ${hostReq.type}`);
     }
   }
 
-  private async processRequestChannel(hostReq: HostReqIntf): Promise<void> {
-    console.log('[WebViewBridge] Processing request channel:', hostReq.type);
+  private async processRequestChannel(hostReq: HostRequest): Promise<void> {
+    const eventHandlers: Record<string, () => Promise<void>> = {
+      [HostEvent.DATA]: () => this.handleDataRequest(hostReq),
+      [HostEvent.REQUEST_PERMISSION]: () => this.handlePermissionRequest(hostReq)
+    };
 
-    switch (hostReq.type) {
-      case HostEvent.DATA:
-        await this.handleDataRequest(hostReq);
-        break;
-      case HostEvent.REQUEST_PERMISSION:
-        await this.handlePermissionRequest(hostReq);
-        break;
-      default:
-        console.warn(`[WebViewBridge] Unhandled request event: ${hostReq.type}`);
+    const handler = eventHandlers[hostReq.type];
+    if (handler) {
+      await handler();
+    } else {
+      console.warn(`[WebViewBridge] Unhandled request event: ${hostReq.type}`);
     }
   }
 
-  private async processInfoChannel(hostReq: HostReqIntf): Promise<void> {
-    console.log('[WebViewBridge] Processing info channel:', hostReq.type);
-    
-    // Info channel typically used for analytics or logging
-    // Add specific info handling logic here if needed
+  private async processInfoChannel(hostReq: HostRequest): Promise<void> {
+    // Info channel handling logic
   }
 
-  private handleClose(hostReq: HostReqIntf): void {
-    console.log('[WebViewBridge] Handling close event');
-    
-    // Extract orderId if present in params
+  private handleClose(hostReq: HostRequest): void {
     const orderId = hostReq.params?.orderId;
     if (orderId) {
       console.log('[WebViewBridge] Close with orderId:', orderId);
     }
-    
     this.callbacks.onClose?.();
   }
 
   private handleNativeBack(params?: Record<string, unknown>): void {
-    console.log('[WebViewBridge] Handling native back:', params);
-    
     const control = params?.control as boolean;
     if (control) {
-      // Handle controlled back navigation
       this.callbacks.onClose?.();
     }
   }
 
   private handleUrl(params?: Record<string, unknown>): void {
-    console.log('[WebViewBridge] Handling URL navigation:', params);
-    
     const url = params?.url as string;
-    const openApp = params?.openApp as boolean;
-    const appName = params?.name as string;
-    
     if (url) {
-      // Handle URL navigation logic
-      // This could trigger app opening or in-app navigation
-      console.log('[WebViewBridge] URL navigation requested:', { url, openApp, appName });
+      console.log('[WebViewBridge] URL navigation requested:', url);
     }
   }
 
-  private handleAnalytics(hostReq: HostReqIntf): void {
-    console.log('[WebViewBridge] Handling analytics event:', hostReq);
-    // Implement analytics handling if needed
+  private handleAnalytics(hostReq: HostRequest): void {
+    // Analytics handling logic
   }
 
-  private async handleDataRequest(hostReq: HostReqIntf): Promise<void> {
-    console.log('[WebViewBridge] Processing data request:', hostReq);
-
+  private async handleDataRequest(hostReq: HostRequest): Promise<void> {
     const { params, id } = hostReq;
     if (!params?.key) {
       console.warn('[WebViewBridge] Data request missing key');
@@ -267,11 +218,9 @@ export class WebViewBridge {
       } else {
         switch (key) {
           case 'transactionId':
-            console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
             break;
           case 'tokenData':
-            console.log('[WebViewBridge] Fetching token data');
             if (source === this.tokenId) {
               const tokenData = await this.onRampService.getOnRampTokens();
               result = JSON.stringify(tokenData);
@@ -283,35 +232,26 @@ export class WebViewBridge {
         }
       }
 
-      console.log('[WebViewBridge] Data request successful:', {
-        key,
-        resultLength: result.length,
-      });
-
       this.sendResponse({
         type: hostReq.type,
         response: { [key]: result },
-        source: this.SOURCE_NAME,
+        source: this.sourceName,
         id: messageId,
       });
     } catch (error) {
-      console.error('[WebViewBridge] Data request failed:', error);
-      
       this.sendResponse({
         type: hostReq.type,
         response: {
           error: error instanceof Error ? error.message : 'Unknown error',
           [key]: '',
         },
-        source: this.SOURCE_NAME,
+        source: this.sourceName,
         id: messageId,
       });
     }
   }
 
-  private async handlePermissionRequest(hostReq: HostReqIntf): Promise<void> {
-    console.log('[WebViewBridge] Processing permission request:', hostReq);
-
+  private async handlePermissionRequest(hostReq: HostRequest): Promise<void> {
     if (!hostReq.params?.data) {
       console.warn('[WebViewBridge] Permission request missing data');
       return;
@@ -319,35 +259,32 @@ export class WebViewBridge {
 
     try {
       const requestedPermissions = hostReq.params.data as string[];
-      const results: Record<string, any> = {};
+      const results: Record<string, boolean> = {};
 
       for (const permission of requestedPermissions) {
         if (permission === 'camera') {
-          const permissionResult = await this.onRampService.requestCameraPermission();
-          results[permission] = permissionResult;
+          const permissionResponse = await this.onRampService.requestCameraPermission();
+          results[permission] = permissionResponse.granted;
         }
-        // Add other permission types as needed
       }
 
       this.sendResponse({
         type: HostEvent.REQUEST_PERMISSION,
         response: results,
-        source: this.SOURCE_NAME,
+        source: this.sourceName,
         id: hostReq.id || '',
       });
     } catch (error) {
-      console.error('[WebViewBridge] Permission request failed:', error);
-      
       this.sendResponse({
         type: HostEvent.REQUEST_PERMISSION,
         response: { error: 'Permission request failed' },
-        source: this.SOURCE_NAME,
+        source: this.sourceName,
         id: hostReq.id || '',
       });
     }
   }
 
-  private parseMessage(data: string): any | null {
+  private parseMessage(data: string): ChannelMessage | null {
     try {
       return JSON.parse(data);
     } catch (error) {
@@ -356,44 +293,29 @@ export class WebViewBridge {
     }
   }
 
-  private sendResponse(response: HostResIntf): void {
-    try {
-      console.log('[WebViewBridge] Sending response:', {
-        type: response.type,
-        id: response.id,
-        source: response.source,
-      });
-
-      if (!this.webViewRef.current) {
-        console.warn('[WebViewBridge] WebView reference is null, cannot send response');
-        return;
-      }
-
-      // Send response back to WebView via responseChannel
-      const jsCode = `
-        (function() {
-          try {
-            if (typeof window.responseChannel === 'function') {
-              window.responseChannel(${JSON.stringify(response)});
-              console.log('[WebView] Response sent via responseChannel');
-            } else {
-              console.warn('[WebView] responseChannel not available');
-            }
-          } catch (error) {
-            console.error('[WebView] Error sending response:', error);
-          }
-        })();
-        true;
-      `;
-
-      this.webViewRef.current.injectJavaScript(jsCode);
-    } catch (error) {
-      console.error('[WebViewBridge] Failed to send response:', error);
+  private sendResponse(response: HostResponse): void {
+    if (!this.webViewRef.current) {
+      console.warn('[WebViewBridge] WebView reference is null');
+      return;
     }
+
+    const jsCode = `
+      (function() {
+        try {
+          if (typeof window.responseChannel === 'function') {
+            window.responseChannel(${JSON.stringify(response)});
+          }
+        } catch (error) {
+          console.error('[WebView] Error sending response:', error);
+        }
+      })();
+      true;
+    `;
+
+    this.webViewRef.current.injectJavaScript(jsCode);
   }
 
   cleanup(): void {
-    console.log('[WebViewBridge] Cleaning up...');
     this.callbackHandlers.clear();
   }
 }
