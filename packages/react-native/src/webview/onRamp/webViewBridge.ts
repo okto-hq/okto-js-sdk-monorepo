@@ -240,26 +240,13 @@ export class WebViewBridge {
     });
   }
 
-  public sendResponse(jsonMessage: Record<string, unknown>): void {
+  public sendResponse(message: Record<string, unknown>): void {
     try {
-      const jsonString = JSON.stringify(jsonMessage);
-      const escapedJsonString = JSON.stringify(jsonString); // Escapes the string again for safe JS embedding
-  
-      const jsCode = `
-        (function() {
-          try {
-            const message = JSON.parse(${escapedJsonString});
-            console.log('Received message from Native:', message);
-            window.postMessage(message, '*');
-          } catch (e) {
-            console.error('Failed to parse message from Native:', e, ${escapedJsonString});
-          }
-        })();
-      `;
-  
+      const jsonString = JSON.stringify(message);
+      const jsCode = `window.ReactNativeWebView.postMessage(${jsonString});`;
       this.webViewRef.current?.injectJavaScript(jsCode);
     } catch (error) {
-      console.error('[WebViewBridge] Error sending message to WebView:', error);
+      console.error('[WebViewBridge] Failed to send response:', error);
     }
   }
 
