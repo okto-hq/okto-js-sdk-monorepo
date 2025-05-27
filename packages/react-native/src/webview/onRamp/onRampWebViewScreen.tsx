@@ -19,6 +19,7 @@ const INJECTED_JAVASCRIPT = `
   (function() {
     window.ReactNativeWebView = window.ReactNativeWebView || {};
     
+    // Function to send messages from WebView to React Native
     window.sendToReactNative = function(message) {
       console.log('[WebView -> React Native] Sending message:', message);
       if (window.ReactNativeWebView.postMessage) {
@@ -26,17 +27,22 @@ const INJECTED_JAVASCRIPT = `
       }
     };
     
-    // Log messages received from React Native
+    // Handle responses from React Native (don't echo them back!)
     window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
+      console.log('[React Native -> WebView] Received response:', event.data);
       try {
         const parsedData = typeof event.data === 'string' 
           ? JSON.parse(event.data) 
           : event.data;
-        window.sendToReactNative(parsedData);
+        
+        // Process the response data here instead of sending it back
+        // This is where you'd handle responses to your data requests
+        if (parsedData.type === 'data' && parsedData.response) {
+          // Handle data responses
+          window.handleDataResponse && window.handleDataResponse(parsedData);
+        }
       } catch (e) {
-        console.error('[WebView] Failed to parse message:', e);
-        console.warn('Failed to parse message from React Native:', e);
+        console.error('[WebView] Failed to parse response from React Native:', e);
       }
     });
 
@@ -64,13 +70,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     },
     [onSuccess, onClose],
   );
-
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
 
   const handleError = useCallback(
     (error: string) => {
