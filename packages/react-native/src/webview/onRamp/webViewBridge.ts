@@ -159,7 +159,7 @@ export class WebViewBridge {
 
       this.sendResponse({
         type: message.type,
-        response: { "tokenData" : result },
+        response: { [key]: result },
         source: this.SOURCE_NAME,
         id: messageId,
       });
