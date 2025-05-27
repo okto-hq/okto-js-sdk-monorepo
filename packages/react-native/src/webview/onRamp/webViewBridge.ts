@@ -127,16 +127,12 @@ export class WebViewBridge {
       console.log('[WebViewBridge] Raw message received:', event.nativeEvent.data);
       
       const message = this.parseMessage(event.nativeEvent.data);
-      if (!message) return;
 
-      // Handle channel-based messages
-      if (message.channel) {
-        await this.handleChannelMessage(message.channel, message.data);
-        return;
-      }
+      console.log("karan is here ",message.channel, message.data);
+      console.log('[WebViewBridge] Parsed message:', message);
+      // if (!message) return;
 
-      // Fallback for direct messages (backward compatibility)
-      await this.handleDirectMessage(message);
+      await this.handleChannelMessage(message.channel, message.data);
     } catch (error) {
       console.error('[WebViewBridge] Error handling message:', error);
     }
@@ -348,33 +344,6 @@ export class WebViewBridge {
         source: this.SOURCE_NAME,
         id: hostReq.id || '',
       });
-    }
-  }
-
-  private async handleDirectMessage(message: any): Promise<void> {
-    // Backward compatibility for direct messages
-    console.log('[WebViewBridge] Processing direct message:', message.type);
-    
-    // Convert direct message to channel format and process
-    const hostReq: HostReqIntf = {
-      type: message.type,
-      id: message.id,
-      params: message.params,
-    };
-
-    // Route based on message type
-    switch (message.type) {
-      case HostEvent.DATA:
-        await this.handleDataRequest(hostReq);
-        break;
-      case HostEvent.CLOSE:
-        this.handleClose(hostReq);
-        break;
-      case HostEvent.REQUEST_PERMISSION:
-        await this.handlePermissionRequest(hostReq);
-        break;
-      default:
-        console.warn(`[WebViewBridge] Unhandled direct message: ${message.type}`);
     }
   }
 
