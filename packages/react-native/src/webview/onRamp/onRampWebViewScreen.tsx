@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
@@ -13,68 +14,69 @@ import type { OnrampCallbacks, OnRampParamList } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
-type OnRampSuccessData = { message?: string };
 
+// Simplified injected JavaScript for channel-based communication
 const INJECTED_JAVASCRIPT = `
   (function() {
-    window.ReactNativeWebView = window.ReactNativeWebView || {};
-    
-    window.sendToReactNative = function(message) {
-      console.log('[WebView -> React Native] Sending message:', message);
-      if (window.ReactNativeWebView.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+    // Initialize communication channels
+    window.requestChannel = {
+      postMessage: function(message) {
+        console.log('[WebView] Sending request:', message);
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(message);
+        }
       }
     };
-    
-    // Log messages received from React Native
-    window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
-      try {
-        const parsedData = typeof event.data === 'string' 
-          ? JSON.parse(event.data) 
-          : event.data;
-        window.sendToReactNative(parsedData);
-      } catch (e) {
-        console.error('[WebView] Failed to parse message:', e);
-        console.warn('Failed to parse message from React Native:', e);
-      }
-    });
 
-    // Log when the script is injected
-    console.log('[WebView] Bridge script initialized');
+    window.launchChannel = {
+      postMessage: function(message) {
+        console.log('[WebView] Sending launch event:', message);
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(message);
+        }
+      }
+    };
+
+    window.infoChannel = {
+      postMessage: function(message) {
+        console.log('[WebView] Sending info:', message);
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(message);
+        }
+      }
+    };
+
+    // Response channel for receiving data from native
+    window.responseChannel = function(response) {
+      console.log('[WebView] Received response:', response);
+      // This will be called by the native side to send responses
+      const event = new CustomEvent('nativeResponse', { detail: response });
+      window.dispatchEvent(event);
+    };
+
+    console.log('[WebView] Channel-based communication initialized');
   })();
   true;
 `;
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
-  console.log('[OnRampScreen] Initializing with route params:', route.params);
-  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
-    route.params;
+  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } = route.params;
 
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<WebViewBridge | null>(null);
 
-  console.log('[OnRampScreen] WebView and Bridge refs created');
-
   const handleSuccess = useCallback(
-    (data: OnRampSuccessData) => {
-      console.log('[OnRampScreen] Success callback triggered with data:', data);
-      onSuccess?.(data?.message || 'Transaction completed successfully');
+    (data?: string) => {
+      console.log('[OnRampScreen] Success:', data);
+      onSuccess?.(data || 'Transaction completed successfully');
       onClose();
     },
     [onSuccess, onClose],
   );
 
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
-
   const handleError = useCallback(
     (error: string) => {
-      console.error('[OnRampScreen] Error callback triggered:', error);
+      console.error('[OnRampScreen] Error:', error);
       onError?.(error);
       onClose();
     },
@@ -82,12 +84,9 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   );
 
   const handleClose = useCallback(() => {
-    console.log('[OnRampScreen] Close callback triggered');
-    // if (onClose) {
-    //     onClose();
-    // }
+    console.log('[OnRampScreen] Closing OnRamp screen');
     navigation.goBack();
-}, [onClose, navigation]);
+  }, [navigation]);
 
   const handleProgress = useCallback(
     (progress: number) => {
@@ -96,17 +95,19 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onProgress],
   );
 
+  // Handle hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        navigation.goBack();
+        handleClose();
         return true;
       },
     );
     return () => backHandler.remove();
-  }, [navigation]);
+  }, [handleClose]);
 
+  // Initialize WebView bridge
   useEffect(() => {
     const callbacks: OnrampCallbacks = {
       onSuccess: handleSuccess,
@@ -127,28 +128,25 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       bridgeRef.current?.cleanup();
       bridgeRef.current = null;
     };
-  }, [
-    tokenId,
-    oktoClient,
-    handleSuccess,
-    handleError,
-    handleClose,
-    handleProgress,
-  ]);
+  }, [tokenId, oktoClient, handleSuccess, handleError, handleClose, handleProgress]);
 
   const handleWebViewMessage = useCallback((event: WebViewMessageEvent) => {
-    console.log(
-      '[OnRampScreen] Received message from WebView:',
-      event.nativeEvent.data,
-    );
+    console.log('[OnRampScreen] Received WebView message');
     bridgeRef.current?.handleMessage(event);
   }, []);
 
-  const handleWebViewError = useCallback(() => {
-    handleError(
-      'Failed to load payment page. Please check your internet connection.',
-    );
-  }, [handleError]);
+  const handleWebViewError = useCallback(
+    (syntheticEvent: any) => {
+      const { nativeEvent } = syntheticEvent;
+      console.error('[OnRampScreen] WebView error:', nativeEvent);
+      handleError('Failed to load payment page. Please check your internet connection.');
+    },
+    [handleError],
+  );
+
+  const handleWebViewLoad = useCallback(() => {
+    console.log('[OnRampScreen] WebView loaded successfully');
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,18 +156,18 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
-          injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
-          javaScriptEnabled
-          domStorageEnabled
+          onLoad={handleWebViewLoad}
+          injectedJavaScript={INJECTED_JAVASCRIPT}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
           mixedContentMode="compatibility"
-          allowsInlineMediaPlayback
           style={styles.webView}
           allowsBackForwardNavigationGestures={false}
           bounces={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          startInLoadingState
+          startInLoadingState={true}
           allowsLinkPreview={false}
         />
       </View>

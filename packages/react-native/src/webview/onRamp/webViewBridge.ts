@@ -1,29 +1,17 @@
 import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { Linking } from 'react-native';
 import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
 
-type WebViewParams = {
-  control?: boolean;
-  key?: string;
-  source?: string;
-  url?: string;
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
-};
-
-type WebViewMessage = {
-  type: string;
-  params?: WebViewParams;
-  id?: string;
-  response?: Record<string, unknown>;
-};
-
-type WebViewResponse = {
-  type: string;
-  response: unknown;
-  source: string;
+type ChannelMessage = {
   id: string;
+  type: string;
+  params?: Record<string, any>;
+  response?: Record<string, any>;
+  status?: 'success' | 'loading' | 'error';
+  message?: string;
+  error?: string;
 };
 
 export class WebViewBridge {
@@ -31,7 +19,6 @@ export class WebViewBridge {
   private readonly callbacks: OnrampCallbacks;
   private readonly onRampService: OnRampService;
   private readonly tokenId: string;
-  private readonly SOURCE_NAME = 'okto_web';
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -39,13 +26,7 @@ export class WebViewBridge {
     onRampService: OnRampService,
     tokenId: string,
   ) {
-    console.log('[WebViewBridge] Initializing with:', {
-      webViewRef: !!webViewRef.current,
-      callbacks: Object.keys(callbacks),
-      onRampService,
-      tokenId,
-    });
-
+    console.log('[WebViewBridge] Initializing with channel-based communication');
     this.webViewRef = webViewRef;
     this.callbacks = callbacks;
     this.onRampService = onRampService;
@@ -54,185 +35,253 @@ export class WebViewBridge {
 
   async handleMessage(event: WebViewMessageEvent): Promise<void> {
     try {
-      console.log('[WebViewBridge] Raw message received:', event);
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
 
-      console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
-        params: message.params,
-        id: message.id,
-      });
+      console.log(`[WebViewBridge] Processing channel message:`, message);
 
-      switch (message.type) {
-        case 'nativeBack':
-          console.log('[WebViewBridge] Handling nativeBack event');
-          this.handleNativeBack(message.params);
-          break;
-        case 'data':
-          console.log('[WebViewBridge] Handling data request');
-          await this.handleDataRequest(message);
-          break;
-        case 'close':
-          console.log('[WebViewBridge] Handling close event');
-          this.callbacks.onClose?.();
-          break;
-        case 'url':
-          this.handleUrl({ url: message.params?.url });
-          break;
-        case 'requestPermission':
-          await this.handlePermissionRequest(message);
-          break;
-        case 'requestPermissionAck':
-          this.handlePermissionAck(message);
-          break;
-        case 'analytics':
-          // Handle analytics if needed
-          break;
-        default:
-          console.warn(`Unhandled event: ${message.type}`);
+      // Handle different channel types based on the protocol
+      if (message.type === 'data') {
+        await this.handleRequestChannel(message);
+      } else {
+        await this.handleLaunchChannel(message);
       }
     } catch (error) {
-      console.error('Error handling WebView message:', error);
+      console.error('[WebViewBridge] Error handling message:', error);
     }
   }
 
-  private parseMessage(data: string | WebViewMessage): WebViewMessage | null {
+  private parseMessage(data: string): ChannelMessage | null {
     try {
-      return typeof data === 'string' ? JSON.parse(data) : data;
+      return JSON.parse(data);
     } catch (error) {
-      console.error('Error parsing message:', error);
+      console.error('[WebViewBridge] Error parsing message:', error);
       return null;
     }
   }
 
-  private handleNativeBack(params?: { control?: boolean }): void {
-    if (params?.control) {
-      // this.callbacks.onClose?.();
+  // Handle requestChannel messages (Web → SDK)
+  private async handleRequestChannel(message: ChannelMessage): Promise<void> {
+    const { id, params } = message;
+    
+    if (!params?.key) {
+      console.warn('[WebViewBridge] Invalid request: missing key');
+      return;
     }
-    // Add other back navigation logic if needed
-  }
 
-  private async handleDataRequest(message: WebViewMessage): Promise<void> {
-    console.log('[WebViewBridge] Processing data request:', {
-      key: message.params?.key,
-      source: message.params?.source,
-      id: message.id,
-    });
-
-    const { params, id } = message;
-    if (!params?.key) return;
-
-    const { key, source = '' } = params;
-    const messageId = id || '';
+    const { key, source } = params;
 
     try {
-      let result = '';
-      console.log('[WebViewBridge] Data request details:', { key, source });
-      if (source === 'remote-config') {
-        result = await this.onRampService.getRemoteConfigValue(key);
-      } else {
-        switch (key) {
-          case 'transactionId':
-            console.log('[WebViewBridge] Fetching transaction token');
-            result = await this.onRampService.getTransactionToken();
-            break;
-          case 'tokenData':
-            console.log('[WebViewBridge] Fetching token data');
-            if (source === this.tokenId) {
-              const tokenData = await this.onRampService.getOnRampTokens();
-              result = JSON.stringify(tokenData);
+      let responseData: any = {};
+
+      switch (key) {
+        case 'tokenData':
+          if (source === this.tokenId) {
+            const tokens = await this.onRampService.getOnRampTokens();
+            const tokenData = tokens.find(token => token.id === this.tokenId);
+            
+            if (tokenData) {
+              responseData.tokenData = {
+                symbol: tokenData.symbol,
+                networkName: tokenData.networkName,
+                iconUrl: tokenData.iconUrl,
+                precision: tokenData.precision,
+              };
             }
-            break;
-          default:
-            console.warn(`Unknown data key: ${key}`);
+          }
+          break;
+
+        case 'payToken':
+          responseData.payToken = await this.onRampService.getTransactionToken();
+          break;
+
+        default:
+          // Handle remote config requests
+          if (source === 'remote-config') {
+            responseData[key] = await this.onRampService.getRemoteConfigValue(key);
+          } else {
+            console.warn(`[WebViewBridge] Unknown request key: ${key}`);
+            this.sendErrorResponse(id, `Unknown request key: ${key}`);
             return;
-        }
+          }
       }
-      console.log(
-        '[WebViewBridge] Data request successful, sending response:',
-        {
-          key,
-          result:
-            result.length > 100 ? `${result.substring(0, 100)}...` : result,
-        },
-      );
 
-      this.sendResponse({
-        type: message.type,
-        response: { [key]: result },
-        source: this.SOURCE_NAME,
-        id: messageId,
-      });
+      this.sendSuccessResponse(id, responseData);
     } catch (error) {
-      this.sendResponse({
-        type: message.type,
-        response: {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          [key]: '',
-        },
-        source: this.SOURCE_NAME,
-        id: messageId,
-      });
+      console.error('[WebViewBridge] Request handling error:', error);
+      this.sendErrorResponse(id, error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
-  private handleUrl(params?: { url?: string }): void {
-    if (params?.url) {
-      // Handle URL navigation if needed
+  // Handle launchChannel messages (Web → SDK)
+  private async handleLaunchChannel(message: ChannelMessage): Promise<void> {
+    const { type, params } = message;
+
+    switch (type) {
+      case 'close':
+        this.handleClose(params);
+        break;
+
+      case 'url':
+        this.handleUrlLaunch(params);
+        break;
+
+      case 'onRampCompleted':
+        this.handleOnRampCompleted(params);
+        break;
+
+      case 'requestPermission':
+        await this.handlePermissionRequest(message);
+        break;
+
+      default:
+        console.warn(`[WebViewBridge] Unknown launch event: ${type}`);
     }
   }
 
-  private async handlePermissionRequest(
-    message: WebViewMessage,
-  ): Promise<void> {
-    if (!message.params?.data) return;
+  private handleClose(params?: Record<string, any>): void {
+    console.log('[WebViewBridge] Handling close event with params:', params);
+    
+    const { forwardToRoute, status } = params || {};
+    
+    // Handle different close scenarios based on status
+    switch (status) {
+      case 'success':
+        this.callbacks.onSuccess?.('Transaction completed successfully');
+        break;
+      case 'failure':
+        this.callbacks.onError?.('Transaction failed');
+        break;
+      default:
+        // Default close behavior
+        break;
+    }
+    
+    // Note: forwardToRoute is Okto-specific and can be ignored by SDK
+    this.callbacks.onClose?.();
+  }
+
+  private async handleUrlLaunch(params?: Record<string, any>): Promise<void> {
+    const { url, openApp, type } = params || {};
+    
+    if (!url) {
+      console.warn('[WebViewBridge] URL launch: missing URL');
+      return;
+    }
+
+    console.log(`[WebViewBridge] Handling URL launch: ${type}`, { url, openApp });
 
     try {
-      const permissionResult =
-        await this.onRampService.requestCameraPermission();
-
-      this.sendResponse({
-        type: 'requestPermission',
-        response: permissionResult,
-        source: this.SOURCE_NAME,
-        id: message.id || '',
-      });
+      if (openApp && await Linking.canOpenURL(url)) {
+        await Linking.openURL(url);
+      } else {
+        // Fallback to system browser
+        await Linking.openURL(url);
+      }
     } catch (error) {
-      console.error('Permission request failed:', error);
+      console.error('[WebViewBridge] Failed to open URL:', error);
+      this.callbacks.onError?.(`Failed to open URL: ${url}`);
     }
   }
 
-  private handlePermissionAck(message: WebViewMessage): void {
-    this.sendResponse({
+  private handleOnRampCompleted(params?: Record<string, any>): void {
+    const { orderId } = params || {};
+    console.log('[WebViewBridge] OnRamp completed:', { orderId });
+    
+    // This is Okto-specific and can be ignored by SDK implementations
+    this.callbacks.onSuccess?.(`OnRamp completed with order: ${orderId}`);
+  }
+
+  private async handlePermissionRequest(message: ChannelMessage): Promise<void> {
+    const { id, params } = message;
+    const permissions = params?.data || {};
+
+    console.log('[WebViewBridge] Handling permission request:', permissions);
+
+    try {
+      const results: Record<string, any> = {};
+
+      // Handle camera permission if requested
+      if (permissions.camera === true) {
+        const cameraResult = await this.onRampService.requestCameraPermission();
+        results.camera = cameraResult;
+      }
+
+      // Handle other permissions as needed
+      if (permissions.microphone === true) {
+        // Microphone permission handling would go here
+        results.microphone = { 
+          permission: 'microphone', 
+          status: 'unavailable', 
+          granted: false,
+          message: 'Microphone permission not implemented'
+        };
+      }
+
+      this.sendPermissionResponse(id, results);
+    } catch (error) {
+      console.error('[WebViewBridge] Permission request failed:', error);
+      this.sendErrorResponse(id, error instanceof Error ? error.message : 'Permission request failed');
+    }
+  }
+
+  // Response channel methods (SDK → Web)
+  private sendSuccessResponse(id: string, responseData: Record<string, any>): void {
+    const response: ChannelMessage = {
+      id,
+      type: 'data',
+      response: responseData,
+      status: 'success',
+      message: 'Request completed successfully',
+    };
+
+    this.postMessageToWebView(response);
+  }
+
+  private sendErrorResponse(id: string, errorMessage: string): void {
+    const response: ChannelMessage = {
+      id,
+      type: 'data',
+      response: {},
+      status: 'error',
+      error: errorMessage,
+    };
+
+    this.postMessageToWebView(response);
+  }
+
+  private sendPermissionResponse(id: string, permissionResults: Record<string, any>): void {
+    const response: ChannelMessage = {
+      id,
       type: 'requestPermission',
-      response: message.response || {},
-      source: this.SOURCE_NAME,
-      id: message.id || '',
-    });
+      response: permissionResults,
+      status: 'success',
+    };
+
+    this.postMessageToWebView(response);
   }
 
-  private sendResponse(response: WebViewResponse): void {
+  private postMessageToWebView(message: ChannelMessage): void {
     try {
-      console.log('[WebViewBridge] Sending response to WebView:', {
-        type: response.type,
-        id: response.id,
-        responseSize: JSON.stringify(response.response)?.length,
-        response: JSON.stringify(response.response),
+      if (!this.webViewRef.current) {
+        console.warn('[WebViewBridge] WebView reference is null, cannot send message');
+        return;
+      }
+
+      console.log('[WebViewBridge] Sending message to WebView:', {
+        id: message.id,
+        type: message.type,
+        status: message.status,
       });
 
-      console.log(
-        'KARAN :: [WebViewBridge] WebView reference exists:', JSON.stringify(response));
-
-      if(!this.webViewRef.current) {
-        console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
-
-      this.webViewRef.current?.postMessage(JSON.stringify(response));
+      this.webViewRef.current.postMessage(JSON.stringify(message));
     } catch (error) {
-      console.error('Failed to send response to WebView:', error);
+      console.error('[WebViewBridge] Failed to send message to WebView:', error);
     }
   }
 
   cleanup(): void {
-    // Clean up resources if needed
+    console.log('[WebViewBridge] Cleaning up resources');
+    // Clean up any pending requests or subscriptions if needed
   }
 }
