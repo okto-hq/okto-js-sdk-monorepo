@@ -53,12 +53,21 @@ export class WebViewBridge {
   }
 
   async handleMessage(event: WebViewMessageEvent): Promise<void> {
-    console.log('[WebViewBridge] Message received:', event.nativeEvent.data);
+    console.log('[WebViewBridge] Raw message data:', {
+      data: event.nativeEvent.data,
+      type: typeof event.nativeEvent.data
+    });
+    
     let data: WebViewParams | null = null;
     try {
-      data = JSON.parse(event.nativeEvent.data);
+      data = typeof event.nativeEvent.data === 'string' 
+        ? JSON.parse(event.nativeEvent.data)
+        : event.nativeEvent.data;
     } catch (error) {
-      console.error('[WebViewBridge] JSON Parse Error:', error);
+      console.error('[WebViewBridge] JSON Parse Error:', {
+        error,
+        rawData: event.nativeEvent.data
+      });
       return;
     }
   
@@ -75,7 +84,7 @@ export class WebViewBridge {
     console.log(`[WebViewBridge] Processing message - Type: ${data.type}, ID: ${data.id}`);
   
     if (data.type === 'onMetaHandler') {
-     //todo
+      //todo
     } else {
       await this.handleWebMessage(event);
     }
