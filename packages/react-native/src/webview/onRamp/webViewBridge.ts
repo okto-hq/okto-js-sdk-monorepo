@@ -107,7 +107,7 @@ export class WebViewBridge {
 
   private handleNativeBack(params?: { control?: boolean }): void {
     if (params?.control) {
-      this.callbacks.onClose?.();
+      // this.callbacks.onClose?.();
     }
     // Add other back navigation logic if needed
   }
