@@ -17,30 +17,39 @@ type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
-    window.ReactNativeWebView = window.ReactNativeWebView || {};
-    
-    window.sendToReactNative = function(message) {
-      console.log('[WebView -> React Native] Sending message:', message);
-      if (window.ReactNativeWebView.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(message));
-      }
-    };
-    
-    // Log messages received from React Native
-    window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
+    function sendMessage(msg) {
       try {
-        const parsedData = typeof event.data === 'string' 
-          ? JSON.parse(event.data) 
-          : event.data;
-        window.sendToReactNative(parsedData);
+        const message = typeof msg === 'string' ? msg : JSON.stringify(msg);
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(message);
+        } else {
+          console.warn('[WebView] No bridge found to send message:', message);
+        }
       } catch (e) {
-        console.error('[WebView] Failed to parse message:', e);
-        console.warn('Failed to parse message from React Native:', e);
+        console.error('[WebView] Failed to send message to React Native:', e);
       }
+    }
+
+    // Global bridge object
+    window.ReactNativeBridge = {
+      postMessage: sendMessage
+    };
+
+    // Send test message
+    sendMessage({
+      type: 'test',
+      message: 'Bridge initialized'
     });
 
-    // Log when the script is injected
+    // Override window.postMessage safely
+    const originalPostMessage = window.postMessage;
+    window.postMessage = function(msg) {
+      sendMessage(msg);
+      if (typeof originalPostMessage === 'function') {
+        originalPostMessage.apply(window, arguments);
+      }
+    };
+
     console.log('[WebView] Bridge script initialized');
   })();
   true;

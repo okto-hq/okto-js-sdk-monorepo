@@ -19,12 +19,12 @@ type WebViewMessage = {
   response?: Record<string, unknown>;
 };
 
-type WebViewResponse = {
-  type: string;
-  response: unknown;
-  source: string;
-  id: string;
-};
+// type WebViewResponse = {
+//   type: string;
+//   response: unknown;
+//   source: string;
+//   id: string;
+// };
 
 export class WebViewBridge {
   private readonly webViewRef: MutableRefObject<WebView | null>;
@@ -53,6 +53,35 @@ export class WebViewBridge {
   }
 
   async handleMessage(event: WebViewMessageEvent): Promise<void> {
+    console.log('[WebViewBridge] Message received:', event.nativeEvent.data);
+    let data: WebViewParams | null = null;
+    try {
+      data = JSON.parse(event.nativeEvent.data);
+    } catch (error) {
+      console.error('[WebViewBridge] JSON Parse Error:', error);
+      return;
+    }
+  
+    if (!data) {
+      console.warn('[WebViewBridge] Deserialized data is null');
+      return;
+    }
+  
+    if (data.source === this.SOURCE_NAME) {
+      console.log('[WebViewBridge] Skipping self-originated event');
+      return;
+    }
+  
+    console.log(`[WebViewBridge] Processing message - Type: ${data.type}, ID: ${data.id}`);
+  
+    if (data.type === 'onMetaHandler') {
+     //todo
+    } else {
+      await this.handleWebMessage(event);
+    }
+  }
+
+  async handleWebMessage(event: WebViewMessageEvent): Promise<void> {
     try {
       console.log('[WebViewBridge] Raw message received:', event);
       const message = this.parseMessage(event.nativeEvent.data);
@@ -132,7 +161,7 @@ export class WebViewBridge {
         result = await this.onRampService.getRemoteConfigValue(key);
       } else {
         switch (key) {
-          case 'transactionId':
+          case 'payToken':
             console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
             break;
@@ -211,17 +240,26 @@ export class WebViewBridge {
     });
   }
 
-  private sendResponse(response: WebViewResponse): void {
+  public sendResponse(jsonMessage: Record<string, unknown>): void {
     try {
-      console.log('[WebViewBridge] Sending response to WebView:', {
-        type: response.type,
-        id: response.id,
-        responseSize: JSON.stringify(response.response)?.length,
-      });
-
-      this.webViewRef.current?.postMessage(JSON.stringify(response));
+      const jsonString = JSON.stringify(jsonMessage);
+      const escapedJsonString = JSON.stringify(jsonString); // Escapes the string again for safe JS embedding
+  
+      const jsCode = `
+        (function() {
+          try {
+            const message = JSON.parse(${escapedJsonString});
+            console.log('Received message from Native:', message);
+            window.postMessage(message, '*');
+          } catch (e) {
+            console.error('Failed to parse message from Native:', e, ${escapedJsonString});
+          }
+        })();
+      `;
+  
+      this.webViewRef.current?.injectJavaScript(jsCode);
     } catch (error) {
-      console.error('Failed to send response to WebView:', error);
+      console.error('[WebViewBridge] Error sending message to WebView:', error);
     }
   }
 
