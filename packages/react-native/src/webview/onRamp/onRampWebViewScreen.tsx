@@ -15,10 +15,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
 type OnRampSuccessData = { message?: string };
 
+
 const INJECTED_JAVASCRIPT = `
   (function() {
     window.ReactNativeWebView = window.ReactNativeWebView || {};
     
+    // Function to send messages TO React Native
     window.sendToReactNative = function(message) {
       console.log('[WebView -> React Native] Sending message:', message);
       if (window.ReactNativeWebView.postMessage) {
@@ -26,22 +28,45 @@ const INJECTED_JAVASCRIPT = `
       }
     };
     
-    // Log messages received from React Native
+    // Function to handle messages FROM React Native
+    window.handleMessageFromReactNative = function(data) {
+      console.log('[React Native -> WebView] Received response:', data);
+      
+      // Dispatch a custom event that your WebView app can listen to
+      const event = new CustomEvent('reactNativeMessage', {
+        detail: data
+      });
+      window.dispatchEvent(event);
+      
+      // Also make it available globally if your WebView code expects it
+      if (window.onReactNativeMessage) {
+        window.onReactNativeMessage(data);
+      }
+    };
+    
+    // Listen for messages from React Native
     window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
+      console.log('[WebView] Raw message from React Native:', event.data);
       try {
         const parsedData = typeof event.data === 'string' 
           ? JSON.parse(event.data) 
           : event.data;
-        window.sendToReactNative(parsedData);
+        
+        // Handle the response instead of sending it back
+        window.handleMessageFromReactNative(parsedData);
       } catch (e) {
-        console.error('[WebView] Failed to parse message:', e);
-        console.warn('Failed to parse message from React Native:', e);
+        console.error('[WebView] Failed to parse message from React Native:', e);
       }
     });
 
     // Log when the script is injected
     console.log('[WebView] Bridge script initialized');
+    
+    // Make functions available globally for debugging
+    window.webViewBridge = {
+      sendToReactNative: window.sendToReactNative,
+      handleMessageFromReactNative: window.handleMessageFromReactNative
+    };
   })();
   true;
 `;
@@ -65,13 +90,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onSuccess, onClose],
   );
 
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
-
   const handleError = useCallback(
     (error: string) => {
       console.error('[OnRampScreen] Error callback triggered:', error);
@@ -83,9 +101,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
-    if (onClose) {
-        onClose();
-    }
     navigation.goBack();
 }, [onClose, navigation]);
 
