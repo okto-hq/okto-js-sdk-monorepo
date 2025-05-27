@@ -201,9 +201,6 @@ class OktoClient extends OktoCoreClient {
         url,
         tokenId,
         oktoClient: this,
-        onClose: options.onClose || (() => {}),
-        onSuccess: options.onSuccess,
-        onError: options.onError,
       });
     } catch (error) {
       console.error('[OktoClient] OnRamp error:', error);

@@ -221,12 +221,29 @@ export class WebViewBridge {
       });
 
       console.log(
-        'KARAN :: [WebViewBridge] WebView reference exists:', JSON.stringify(response));
+        'KARAN :: [WebViewBridge] WebView reference exists:',
+        JSON.stringify(response),
+      );
 
-      if(!this.webViewRef.current) {
-        console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
+      if (!this.webViewRef.current) {
+        console.warn(
+          '[WebViewBridge] WebView reference is null, cannot send response',
+        );
+      }
 
-      this.webViewRef.current?.postMessage(JSON.stringify(response));
+      // this.webViewRef.current?.postMessage(JSON.stringify(response));
+      this.webViewRef.current?.injectJavaScript(`
+        (function() {
+          try {
+            const message = JSON.parse(${JSON.stringify(response)});
+            console.log('Received message from React Native:', message);
+            window.postMessage(message, '*');
+          } catch (e) {
+            console.error('Failed to parse message from React Native:', e, ${JSON.stringify(response)});
+          }
+        })();
+        true;
+      `);
     } catch (error) {
       console.error('Failed to send response to WebView:', error);
     }

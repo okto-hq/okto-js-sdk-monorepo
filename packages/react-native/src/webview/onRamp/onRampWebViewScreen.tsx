@@ -65,13 +65,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onSuccess, onClose],
   );
 
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
-
   const handleError = useCallback(
     (error: string) => {
       console.error('[OnRampScreen] Error callback triggered:', error);
@@ -84,10 +77,10 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
     if (onClose) {
-        onClose();
+      onClose();
     }
     navigation.goBack();
-}, [onClose, navigation]);
+  }, [onClose, navigation]);
 
   const handleProgress = useCallback(
     (progress: number) => {
@@ -96,16 +89,16 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onProgress],
   );
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        navigation.goBack();
-        return true;
-      },
-    );
-    return () => backHandler.remove();
-  }, [navigation]);
+  // useEffect(() => {
+  //   const backHandler = BackHandler.addEventListener(
+  //     'hardwareBackPress',
+  //     () => {
+  //       navigation.goBack();
+  //       return true;
+  //     },
+  //   );
+  //   return () => backHandler.remove();
+  // }, [navigation]);
 
   useEffect(() => {
     const callbacks: OnrampCallbacks = {
