@@ -20,21 +20,28 @@ const INJECTED_JAVASCRIPT = `
     window.ReactNativeWebView = window.ReactNativeWebView || {};
     
     window.sendToReactNative = function(message) {
+      console.log('[WebView -> React Native] Sending message:', message);
       if (window.ReactNativeWebView.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify(message));
       }
     };
     
+    // Log messages received from React Native
     window.addEventListener('message', function(event) {
+      console.log('[React Native -> WebView] Received message:', event.data);
       try {
         const parsedData = typeof event.data === 'string' 
           ? JSON.parse(event.data) 
           : event.data;
         window.sendToReactNative(parsedData);
       } catch (e) {
+        console.error('[WebView] Failed to parse message:', e);
         console.warn('Failed to parse message from React Native:', e);
       }
     });
+
+    // Log when the script is injected
+    console.log('[WebView] Bridge script initialized');
   })();
   true;
 `;
