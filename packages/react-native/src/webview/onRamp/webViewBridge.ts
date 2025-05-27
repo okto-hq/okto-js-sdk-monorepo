@@ -218,12 +218,25 @@ export class WebViewBridge {
         id: response.id,
         responseSize: JSON.stringify(response.response)?.length,
       });
-
-      this.webViewRef.current?.postMessage(JSON.stringify(response));
+  
+      const script = `(function() {
+        try {
+          if (window.handleReactNativeResponse) {
+            window.handleReactNativeResponse(${JSON.stringify(response)});
+          } else {
+            console.warn('handleReactNativeResponse not defined');
+          }
+        } catch (e) {
+          console.error('Error handling response:', e);
+        }
+      })();`;
+  
+      this.webViewRef.current?.injectJavaScript(script);
     } catch (error) {
       console.error('Failed to send response to WebView:', error);
     }
   }
+
 
   cleanup(): void {
     // Clean up resources if needed
