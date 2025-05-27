@@ -83,9 +83,9 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
-    if (onClose) {
-        onClose();
-    }
+    // if (onClose) {
+    //     onClose();
+    // }
     navigation.goBack();
 }, [onClose, navigation]);
 
