@@ -65,12 +65,12 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onSuccess, onClose],
   );
 
-  const navigateBack = () => {
-    if (onClose) {
-      onClose();
-    }
-    navigation.goBack();
-  };
+  // const navigateBack = () => {
+  //   if (onClose) {
+  //     onClose();
+  //   }
+  //   navigation.goBack();
+  // };
 
   const handleError = useCallback(
     (error: string) => {
@@ -83,7 +83,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
-    navigateBack();
+    onClose();
   }, [onClose]);
 
   const handleProgress = useCallback(
