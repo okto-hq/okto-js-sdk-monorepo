@@ -219,6 +219,9 @@ export class WebViewBridge {
         responseSize: JSON.stringify(response.response)?.length,
       });
 
+      if(!this.webViewRef.current) {
+        console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
+
       this.webViewRef.current?.postMessage(JSON.stringify(response));
     } catch (error) {
       console.error('Failed to send response to WebView:', error);
