@@ -14,13 +14,6 @@ export interface OnrampConfig {
   maxRetries: number;
 }
 
-export interface WebEventModel {
-  event: string;
-  id?: string;
-  request?: Record<string, any>;
-  response?: Record<string, any>;
-}
-
 // WebEvents enum matching Flutter implementation
 export enum WebEvent {
   ANALYTICS = 'analytics',
@@ -60,7 +53,7 @@ export type OnRampParamList = {
     tokenId: string;
     oktoClient: any;
     onClose: () => void;
-    onSuccess?: (data?: any) => void;
+    onSuccess?: (data?: string) => void;
     onError?: (error: string) => void;
     onProgress?: (progress: number) => void;
   };

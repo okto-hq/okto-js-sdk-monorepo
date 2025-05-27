@@ -16,34 +16,59 @@ type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
 type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
-  (function() {
-    window.ReactNativeWebView = window.ReactNativeWebView || {};
-    
-    window.sendToReactNative = function(message) {
-      console.log('[WebView -> React Native] Sending message:', message);
-      if (window.ReactNativeWebView.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(message));
-      }
-    };
-    
-    // Log messages received from React Native
-    window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
-      try {
-        const parsedData = typeof event.data === 'string' 
-          ? JSON.parse(event.data) 
-          : event.data;
-        window.sendToReactNative(parsedData);
-      } catch (e) {
-        console.error('[WebView] Failed to parse message:', e);
-        console.warn('Failed to parse message from React Native:', e);
-      }
-    });
+(function() {
+  // Create the bridge if it doesn't exist
+  window.ReactNativeWebView = window.ReactNativeWebView || {
+    postMessage: function(data) {
+      window.sendToReactNative(data);
+    }
+  };
 
-    // Log when the script is injected
-    console.log('[WebView] Bridge script initialized');
-  })();
-  true;
+  // Function to send messages to React Native
+  window.sendToReactNative = function(message) {
+    try {
+      if (typeof message !== 'string') {
+        message = JSON.stringify(message);
+      }
+      if (window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(message);
+      }
+    } catch (error) {
+      console.error('[WebView] Error sending message to React Native:', error);
+    }
+  };
+
+  // Function to handle messages from React Native
+  window.handleReactNativeMessage = function(data) {
+    try {
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      if (parsedData && typeof parsedData === 'object') {
+        // Dispatch a custom event with the parsed data
+        const event = new CustomEvent('reactNativeMessage', { detail: parsedData });
+        window.dispatchEvent(event);
+      }
+    } catch (error) {
+      console.error('[WebView] Error parsing message from React Native:', error);
+    }
+  };
+
+  // Listen for messages from React Native
+  document.addEventListener('message', function(event) {
+    window.handleReactNativeMessage(event.data);
+  });
+
+  // Fallback for Android
+  window.addEventListener('message', function(event) {
+    // Filter out other message events that might come from other sources
+    if (event.data && typeof event.data === 'string' && event.data.startsWith('{')) {
+      window.handleReactNativeMessage(event.data);
+    }
+  });
+
+  // Log initialization
+  console.log('[WebView] Bridge initialized successfully');
+})();
+true;
 `;
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
