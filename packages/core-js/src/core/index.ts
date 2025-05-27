@@ -3,7 +3,7 @@ import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
-import type { AuthData, SocialAuthType } from '@/types/index.js';
+import type { AuthData, OnrampOptions, SocialAuthType } from '@/types/index.js';
 import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
@@ -32,6 +32,7 @@ import type {
   WhatsAppSendOtpResponse,
 } from '@/types/auth/whatsapp.js';
 import SocialAuthUrlGenerator from '@/authentication/social.js';
+import { OnrampService } from './onRamp.js';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -48,6 +49,7 @@ class OktoClient {
   private _whatsAppAuthentication: WhatsAppAuthentication;
   private _emailAuthentication: EmailAuthentication;
   private _socialAuthUrlGenerator: SocialAuthUrlGenerator;
+  private _onrampService: OnrampService;
 
   constructor(config: OktoClientConfig) {
     validateOktoClientConfig(config);
@@ -65,6 +67,7 @@ class OktoClient {
       config.clientPrivateKey,
     );
     this._socialAuthUrlGenerator = new SocialAuthUrlGenerator();
+    this._onrampService = new OnrampService();
   }
 
   get env(): EnvConfig {
@@ -192,15 +195,16 @@ class OktoClient {
         authPayload,
       );
 
-      // TODO: Update with SessionKey Object
-      this._sessionConfig = {
+      const sessionConfig: SessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
         sessionPubKey: session.uncompressedPublicKeyHexWith0x,
         userSWA: authRes.userSWA as Hex,
       };
 
+      this._sessionConfig = sessionConfig;
+
       await this.syncUserKeys();
-      onSuccess?.(this._sessionConfig);
+      onSuccess?.(sessionConfig);
 
       if (overrideSessionConfig) {
         this._sessionConfig = overrideSessionConfig;
@@ -256,7 +260,17 @@ class OktoClient {
         provider: 'okto',
       };
 
-      return this.loginUsingOAuth(authData, onSuccess, overrideSessionConfig);
+      const emailOnSuccess = (session: SessionConfig) => {
+        session.email = email;
+        this._sessionConfig = session;
+        onSuccess?.(session);
+      };
+
+      return this.loginUsingOAuth(
+        authData,
+        emailOnSuccess,
+        overrideSessionConfig,
+      );
     } catch (error) {
       console.error('Error logging in using email:', error);
       if (error instanceof RpcError) {
@@ -589,6 +603,18 @@ class OktoClient {
       }
       throw error;
     }
+  }
+
+  public async generateOnrampUrl(
+    tokenId: string,
+    options: OnrampOptions = {},
+  ): Promise<string> {
+    const email = this._sessionConfig?.email || '';
+    const onrampPayload = {
+      ...options,
+      email,
+    };
+    return this._onrampService.generateOnrampUrl(this, tokenId, onrampPayload);
   }
 
   public isLoggedIn(): boolean {

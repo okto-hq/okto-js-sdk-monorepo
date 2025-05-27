@@ -115,6 +115,26 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
+  override loginUsingEmail(
+    email: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    return super.loginUsingEmail(
+      email,
+      otp,
+      token,
+      (session) => {
+        setStorage('okto_session', JSON.stringify(session));
+        this.setSessionConfig(session);
+        onSuccess?.(session);
+      },
+      overrideSessionConfig,
+    );
+  }
+
   override sessionClear(): void {
     clearStorage('okto_session');
     return super.sessionClear();
