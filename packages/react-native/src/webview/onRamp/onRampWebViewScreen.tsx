@@ -53,6 +53,32 @@ const INJECTED_JAVASCRIPT = `
       }
     };
     
+    // Add message listener for React Native to WebView communication
+    window.addEventListener('message', function(event) {
+      try {
+        if (event.data && typeof event.data === 'string') {
+          const message = JSON.parse(event.data);
+          
+          // Handle specific message types
+          if (message.type === 'response') {
+            if (window.responseChannel) {
+              window.responseChannel(message.data);
+            }
+          }
+          
+          // Add more message types as needed
+        }
+      } catch (error) {
+        console.error('Error processing message from React Native:', error);
+      }
+    });
+    
+    // Notify React Native that the script has been injected
+    window.ReactNativeWebView?.postMessage(JSON.stringify({
+      type: 'injectedScriptLoaded',
+      status: 'ready'
+    }));
+    
     true;
   })();
 `;
@@ -116,10 +142,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     handleError('Failed to load payment page. Please check your internet connection.');
   }, [handleError]);
 
-  const handleWebViewHttpError = useCallback((syntheticEvent: any) => {
-    const { nativeEvent } = syntheticEvent;
-    handleError(`Payment page failed to load (${nativeEvent.statusCode}).`);
-  }, [handleError]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -131,7 +153,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           onMessage={handleWebViewMessage}
           injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
-          onHttpError={handleWebViewHttpError}
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="compatibility"
