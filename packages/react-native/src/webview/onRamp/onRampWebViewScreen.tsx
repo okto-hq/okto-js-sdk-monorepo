@@ -155,7 +155,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
-          injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT} //TODO: check this once
+          injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
           javaScriptEnabled
           domStorageEnabled
