@@ -83,9 +83,11 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
 
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
+    if (onClose) {
+        onClose();
+    }
     navigation.goBack();
-    onClose();
-  }, [onClose,navigation]);
+}, [onClose, navigation]);
 
   const handleProgress = useCallback(
     (progress: number) => {
