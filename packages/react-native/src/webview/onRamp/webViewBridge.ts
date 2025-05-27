@@ -58,6 +58,11 @@ export class WebViewBridge {
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
 
+      if (message.params?.source === this.SOURCE_NAME) {
+        return;
+      }
+  
+
       console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
         params: message.params,
         id: message.id,
