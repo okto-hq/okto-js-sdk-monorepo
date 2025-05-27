@@ -217,7 +217,11 @@ export class WebViewBridge {
         type: response.type,
         id: response.id,
         responseSize: JSON.stringify(response.response)?.length,
+        response: JSON.stringify(response.response),
       });
+
+      console.log(
+        'KARAN :: [WebViewBridge] WebView reference exists:', JSON.stringify(response));
 
       if(!this.webViewRef.current) {
         console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
