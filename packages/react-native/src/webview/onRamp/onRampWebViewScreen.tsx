@@ -6,13 +6,14 @@ import {
   StatusBar,
   BackHandler,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { WebViewBridge } from './webViewBridge.js';
 import { OnRampService } from './onRampService.js';
 import type { OnrampCallbacks, OnRampParamList } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
+type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
@@ -49,7 +50,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   console.log('[OnRampScreen] WebView and Bridge refs created');
 
   const handleSuccess = useCallback(
-    (data: any) => {
+    (data: OnRampSuccessData) => {
       console.log('[OnRampScreen] Success callback triggered with data:', data);
       onSuccess?.(data?.message || 'Transaction completed successfully');
       onClose();
@@ -118,7 +119,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     handleProgress,
   ]);
 
-  const handleWebViewMessage = useCallback((event: any) => {
+  const handleWebViewMessage = useCallback((event: WebViewMessageEvent) => {
     console.log(
       '[OnRampScreen] Received message from WebView:',
       event.nativeEvent.data,
@@ -140,7 +141,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
-          injectedJavaScript={INJECTED_JAVASCRIPT}
+          injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT} //TODO: check this once
           onError={handleWebViewError}
           javaScriptEnabled
           domStorageEnabled
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
   },
   webViewContainer: {
     flex: 1,
+    paddingTop: 25,
   },
   webView: {
     flex: 1,

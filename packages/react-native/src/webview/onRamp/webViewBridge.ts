@@ -1,24 +1,27 @@
 import type { MutableRefObject } from 'react';
-import { WebView } from 'react-native-webview';
+import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
 
+type WebViewParams = {
+  control?: boolean;
+  key?: string;
+  source?: string;
+  url?: string;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 type WebViewMessage = {
   type: string;
-  params?: {
-    control?: boolean;
-    key?: string;
-    source?: string;
-    data?: any;
-    [key: string]: any;
-  };
+  params?: WebViewParams;
   id?: string;
-  response?: any;
+  response?: Record<string, unknown>;
 };
 
 type WebViewResponse = {
   type: string;
-  response: any;
+  response: unknown;
   source: string;
   id: string;
 };
@@ -49,7 +52,7 @@ export class WebViewBridge {
     this.tokenId = tokenId;
   }
 
-  async handleMessage(event: any): Promise<void> {
+  async handleMessage(event: WebViewMessageEvent): Promise<void> {
     try {
       console.log('[WebViewBridge] Raw message received:', event);
       const message = this.parseMessage(event.nativeEvent.data);
@@ -93,7 +96,7 @@ export class WebViewBridge {
     }
   }
 
-  private parseMessage(data: any): WebViewMessage | null {
+  private parseMessage(data: string | WebViewMessage): WebViewMessage | null {
     try {
       return typeof data === 'string' ? JSON.parse(data) : data;
     } catch (error) {
@@ -185,9 +188,8 @@ export class WebViewBridge {
     if (!message.params?.data) return;
 
     try {
-      const permissionResult = await this.onRampService.requestPermissions(
-        message.params.data,
-      );
+      const permissionResult =
+        await this.onRampService.requestCameraPermission();
 
       this.sendResponse({
         type: 'requestPermission',

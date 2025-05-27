@@ -21,7 +21,10 @@ interface RemoteConfigData {
   parameters: Record<string, RemoteConfigParameter>;
 }
 
-const DEFAULT_CONFIG: Record<string, { value: any; type: ValueType }> = {
+const DEFAULT_CONFIG: Record<
+  string,
+  { value: string | number | boolean | object; type: ValueType }
+> = {
   on_ramp_enabled: { value: true, type: 'BOOLEAN' },
   onramp_theme: { value: 'light', type: 'STRING' },
   onramp_country_code: { value: 'IN', type: 'STRING' },

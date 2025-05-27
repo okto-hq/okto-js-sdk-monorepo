@@ -1,4 +1,11 @@
-import { RemoteConfigService } from './onRampRemoteConfig.js';
+import { Platform } from 'react-native';
+import {
+  request,
+  PERMISSIONS,
+  RESULTS,
+  type PermissionStatus,
+  type Permission,
+} from 'react-native-permissions';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import {
   generateTransactionToken,
@@ -10,14 +17,7 @@ import type {
   SupportedRampTokensResponse,
 } from '@okto_web3/core-js-sdk/types';
 import type { OnrampConfig, OnRampToken } from './types.js';
-import {
-  request,
-  PERMISSIONS,
-  RESULTS,
-  type PermissionStatus,
-  type Permission,
-} from 'react-native-permissions';
-import { Platform } from 'react-native';
+import { RemoteConfigService } from './onRampRemoteConfig.js';
 
 type WhitelistedToken = SupportedRampTokensResponse['onrampTokens'][number];
 
@@ -29,38 +29,20 @@ interface PermissionResponse {
     | 'limited'
     | 'unavailable'
     | 'error';
-  permission: string;
+  permission: 'camera';
   granted: boolean;
   message?: string;
 }
-
-const PERMISSION_MAP: Record<string, Permission> = {
-  camera: Platform.select({
-    ios: PERMISSIONS.IOS.CAMERA,
-    android: PERMISSIONS.ANDROID.CAMERA,
-  }) as Permission,
-  microphone: Platform.select({
-    ios: PERMISSIONS.IOS.MICROPHONE,
-    android: PERMISSIONS.ANDROID.RECORD_AUDIO,
-  }) as Permission,
-  location: Platform.select({
-    ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-    android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  }) as Permission,
-  photo_library: Platform.select({
-    ios: PERMISSIONS.IOS.PHOTO_LIBRARY,
-    android: PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-  }) as Permission,
-  contacts: Platform.select({
-    ios: PERMISSIONS.IOS.CONTACTS,
-    android: PERMISSIONS.ANDROID.READ_CONTACTS,
-  }) as Permission,
-};
 
 export class OnRampService {
   private readonly remoteConfig: RemoteConfigService;
   private readonly oktoClient: OktoClient;
   private readonly config: OnrampConfig;
+
+  private readonly CAMERA_PERMISSION: Permission = Platform.select({
+    ios: PERMISSIONS.IOS.CAMERA,
+    android: PERMISSIONS.ANDROID.CAMERA,
+  }) as Permission;
 
   constructor(config: Partial<OnrampConfig> = {}, oktoClient: OktoClient) {
     this.remoteConfig = RemoteConfigService.getInstance();
@@ -148,108 +130,61 @@ export class OnRampService {
     }
   }
 
-  private mapPermissionStatus(
-    status: PermissionStatus,
-  ): Omit<PermissionResponse, 'permission'> {
-    type StatusResult = Omit<PermissionResponse, 'permission'>;
-
-    const statusMap: Record<string, StatusResult> = {
-      [RESULTS.GRANTED]: { status: 'granted', granted: true },
-      [RESULTS.DENIED]: {
-        status: 'denied',
-        granted: false,
-        message: 'Permission denied by user',
-      },
-      [RESULTS.BLOCKED]: {
-        status: 'blocked',
-        granted: false,
-        message: 'Permission blocked. Please enable in device settings.',
-      },
-      [RESULTS.LIMITED]: {
-        status: 'limited',
-        granted: true,
-        message: 'Permission granted with limitations',
-      },
-      [RESULTS.UNAVAILABLE]: {
-        status: 'unavailable',
-        granted: false,
-        message: 'Permission not available',
-      },
-    };
-
-    const defaultResult: StatusResult = {
-      status: 'error',
-      granted: false,
-      message: 'Unknown permission status',
-    };
-
-    return statusMap[status] || defaultResult;
-  }
-
   async requestCameraPermission(): Promise<PermissionResponse> {
-    return this.requestSinglePermission('camera');
-  }
-
-  async requestPermissions(
-    permissions: string | string[] | Record<string, any>,
-  ): Promise<PermissionResponse | PermissionResponse[]> {
-    if (typeof permissions === 'string') {
-      return this.requestSinglePermission(permissions);
-    }
-
-    if (Array.isArray(permissions)) {
-      return Promise.all(
-        permissions.map((perm) =>
-          typeof perm === 'string'
-            ? this.requestSinglePermission(perm)
-            : this.requestSinglePermission(perm.permission),
-        ),
-      );
-    }
-
-    if (typeof permissions === 'object') {
-      return Promise.all(
-        Object.keys(permissions).map((perm) =>
-          this.requestSinglePermission(perm),
-        ),
-      );
-    }
-
-    throw new Error('Invalid permission data format');
-  }
-
-  private async requestSinglePermission(
-    permissionString: string,
-  ): Promise<PermissionResponse> {
-    const permissionKey = permissionString.toLowerCase();
-    const permission = PERMISSION_MAP[permissionKey];
-
-    if (!permission) {
-      return {
-        status: 'unavailable',
-        permission: permissionString,
-        granted: false,
-        message: `${permissionString} permission not available on this platform`,
-      };
-    }
-
     try {
-      const result = await request(permission);
-      const mappedResult = this.mapPermissionStatus(result);
-
+      const result = await request(this.CAMERA_PERMISSION);
       return {
-        permission: permissionString,
-        ...mappedResult,
+        permission: 'camera',
+        ...this.mapPermissionStatus(result),
       };
     } catch (error) {
-      console.error(`Error requesting ${permissionString} permission:`, error);
+      console.error('Error requesting camera permission:', error);
       return {
+        permission: 'camera',
         status: 'error',
-        permission: permissionString,
         granted: false,
         message:
           error instanceof Error ? error.message : 'Unknown error occurred',
       };
+    }
+  }
+
+  private mapPermissionStatus(
+    status: PermissionStatus,
+  ): Omit<PermissionResponse, 'permission'> {
+    switch (status) {
+      case RESULTS.GRANTED:
+        return { status: 'granted', granted: true };
+      case RESULTS.DENIED:
+        return {
+          status: 'denied',
+          granted: false,
+          message: 'Permission denied by user',
+        };
+      case RESULTS.BLOCKED:
+        return {
+          status: 'blocked',
+          granted: false,
+          message: 'Permission blocked. Please enable in device settings.',
+        };
+      case RESULTS.LIMITED:
+        return {
+          status: 'limited',
+          granted: true,
+          message: 'Permission granted with limitations',
+        };
+      case RESULTS.UNAVAILABLE:
+        return {
+          status: 'unavailable',
+          granted: false,
+          message: 'Permission not available',
+        };
+      default:
+        return {
+          status: 'error',
+          granted: false,
+          message: 'Unknown permission status',
+        };
     }
   }
 
