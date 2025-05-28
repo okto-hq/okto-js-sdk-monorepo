@@ -146,6 +146,7 @@ export class WebViewBridge {
             if (source === this.tokenId) {
               const tokenData = await this.onRampService.getOnRampTokens();
               result = JSON.stringify(tokenData);
+              console.log("karan is here",result);
             }
             break;
           default:
@@ -248,7 +249,7 @@ export class WebViewBridge {
     const js = `
       (function() {
         try {
-          const msg = ${JSON.stringify(response)};
+          const msg = ${JSON.stringify(response.response)};
           window.postMessage(msg, '*');
         } catch (e) {
           console.error('Failed to post message to WebView:', e);
