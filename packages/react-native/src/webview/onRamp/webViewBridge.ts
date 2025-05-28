@@ -272,28 +272,27 @@ export class WebViewBridge {
       JSON.stringify(response),
     );
 
-    const responseStr = JSON.stringify(response);
-
     const js = `
-      (function() {
-        try {
-          const msg = ${JSON.stringify(responseStr)};
-          console.log('[WebViewBridge] Posting response message to WebView:', msg);
-          
-          if (window.responseChannel && typeof window.responseChannel === 'function') {
-            window.responseChannel(JSON.parse(msg));
-          }
-    
-          window.postMessage(JSON.parse(msg), '*');
-    
-          const event = new CustomEvent('nativeResponse', { detail: JSON.parse(msg) });
-          window.dispatchEvent(event);
-          
-        } catch (e) {
-          console.error('[WebViewBridge] Failed to post response to WebView:', e);
-        }
-      })();
-    `;
+  (function() {
+    try {
+      const msg = ${JSON.stringify(response)};
+      console.log('[WebViewBridge] Posting response message to WebView:', msg);
+
+      if (window.responseChannel && typeof window.responseChannel === 'function') {
+        window.responseChannel(msg);
+      }
+
+      window.postMessage(msg, '*');
+
+      const event = new CustomEvent('nativeResponse', { detail: msg });
+      window.dispatchEvent(event);
+    } catch (e) {
+      console.error('[WebViewBridge] Failed to post response to WebView:', e);
+    }
+  })();
+`;
+
+    this.webViewRef.current?.injectJavaScript(js);
 
     this.webViewRef.current?.injectJavaScript(js);
   }

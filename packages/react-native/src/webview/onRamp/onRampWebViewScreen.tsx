@@ -41,6 +41,13 @@ const INJECTED_JAVASCRIPT = `
     window.ReactNativeBridge = {
       postMessage: sendToNative
     };
+    
+    // Global response channel handler (called by native)
+    window.responseChannel = (hostRes) => {
+      console.log('[WebViewBridge] Response channel called:', hostRes);
+      // This will be called by your native code when sending responses
+      // The web app already defines this globally, so we just log it
+    };
 
     // Override window.postMessage to handle bidirectional communication
     window.postMessage = function(message, targetOrigin) {
