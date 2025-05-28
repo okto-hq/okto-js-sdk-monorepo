@@ -159,6 +159,7 @@ export class WebViewBridge {
               const tokens = await this.onRampService.getOnRampTokens();
               const token = tokens.find((t) => t.id === this.tokenId);
               if (token) {
+                console.log('[WebViewBridge] Token found:', token.iconUrl);
                 this.sendResponse({
                   type: message.type,
                   response: {
@@ -166,7 +167,7 @@ export class WebViewBridge {
                       id: token.id,
                       name: token.name,
                       symbol: token.symbol,
-                      iconUrl: token.iconUrl.trim().replace(/\\$/, ''),
+                      iconUrl: token.iconUrl.trim().replace(/\\+$/, ''),
                       networkId: token.networkId,
                       networkName: token.networkName,
                       address: token.address,
