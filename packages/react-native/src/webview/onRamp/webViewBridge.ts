@@ -272,22 +272,21 @@ export class WebViewBridge {
       JSON.stringify(response),
     );
 
+    const responseStr = JSON.stringify(response);
+
     const js = `
       (function() {
         try {
-          const msg = ${JSON.stringify(response)};
+          const msg = ${JSON.stringify(responseStr)};
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
           
-          // Call the global responseChannel function
           if (window.responseChannel && typeof window.responseChannel === 'function') {
-            window.responseChannel(msg);
+            window.responseChannel(JSON.parse(msg));
           }
-          
-          // Also post as message event for addEventListener handlers
-          window.postMessage(msg, '*');
-          
-          // Dispatch custom event as backup
-          const event = new CustomEvent('nativeResponse', { detail: msg });
+    
+          window.postMessage(JSON.parse(msg), '*');
+    
+          const event = new CustomEvent('nativeResponse', { detail: JSON.parse(msg) });
           window.dispatchEvent(event);
           
         } catch (e) {
