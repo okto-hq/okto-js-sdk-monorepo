@@ -89,6 +89,53 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     [onSuccess, onClose],
   );
 
+  const initialTokenData = {
+    type: "data",
+    response: {
+      tokenData: JSON.stringify({
+        id: "b5a9350d-2d00-3381-b913-ee9f989d48f7",
+        name: "(PoS) Tether USD",
+        symbol: "USDT",
+        iconUrl: "https://images.okto.tech/token_logos/USDT.png",
+        networkId: "ae506585-0ba7-32f3-8b92-120ddf940198",
+        networkName: "POLYGON",
+        address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+        precision: "4",
+        chainId: "137"
+      })
+    },
+    source: "okto_web",
+    id: "b5a9350d-2d00-3381-b913-ee9f989d48f7"
+  };
+
+  const sendInitialTokenData = useCallback(() => {
+    const jsCode = `
+      (function() {
+        try {
+          const message = ${JSON.stringify(initialTokenData)};
+          if (window.handleNativeResponse) {
+            window.handleNativeResponse(message);
+          } else {
+            // Fallback if handler not registered yet
+            setTimeout(() => {
+              if (window.handleNativeResponse) {
+                window.handleNativeResponse(message);
+              } else {
+                console.warn('handleNativeResponse not available');
+              }
+            }, 500);
+          }
+          true;
+        } catch(e) {
+          console.error('Error sending initial token data:', e);
+          true;
+        }
+      })();
+    `;
+  
+    webViewRef.current?.injectJavaScript(jsCode);
+  }, []);
+
   // const navigateBack = () => {
   //   if (onClose) {
   //     onClose();
@@ -188,6 +235,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           onMessage={handleWebViewMessage}
           injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
+          onLoadEnd={sendInitialTokenData}
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="compatibility"
