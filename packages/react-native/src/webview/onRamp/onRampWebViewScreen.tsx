@@ -41,12 +41,31 @@ const INJECTED_JAVASCRIPT = `
       message: 'Bridge initialized'
     });
 
+    // Store original postMessage
     const originalPostMessage = window.postMessage;
+    
+    // Override postMessage to intercept WebView -> Native communication
     window.postMessage = function(msg) {
-      sendMessage(msg);
-      // if (typeof originalPostMessage === 'function') {
-      //   originalPostMessage.apply(window, arguments);
-      // }
+      try {
+        const parsedMsg = typeof msg === 'string' ? JSON.parse(msg) : msg;
+        
+        // Only forward messages that are NOT responses from the native bridge
+        // Responses have 'source' === 'okto_web' or contain 'response' field
+        if (parsedMsg.source !== 'okto_web' && parsedMsg.response === undefined) {
+          console.log('[WebViewBridge] Forwarding request to React Native:', parsedMsg);
+          sendMessage(msg);
+        } else {
+          console.log('[WebViewBridge] Handling response from React Native:', parsedMsg);
+          // Handle the response in the WebView (this is where your web app would process the data)
+          if (window.handleNativeResponse) {
+            window.handleNativeResponse(parsedMsg);
+          }
+        }
+      } catch (e) {
+        console.error('[WebViewBridge] Error processing message:', e);
+        // Fallback: send the message anyway
+        sendMessage(msg);
+      }
     };
   })();
 `;

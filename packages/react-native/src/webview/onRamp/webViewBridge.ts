@@ -58,16 +58,24 @@ export class WebViewBridge {
       console.log('[WebViewBridge] Raw message received:', event);
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
-
+  
+      // Skip processing messages that are responses from our own bridge
       if (message.params?.source === this.SOURCE_NAME) {
+        console.log('[WebViewBridge] Skipping own response message');
         return;
       }
-
+  
+      // Also skip if the message has a 'response' field (indicates it's a response, not a request)
+      if (message.response !== undefined) {
+        console.log('[WebViewBridge] Skipping response message');
+        return;
+      }
+  
       console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
         params: message.params,
         id: message.id,
       });
-
+  
       switch (message.type) {
         case 'nativeBack':
           console.log('[WebViewBridge] Handling nativeBack event');
@@ -92,6 +100,7 @@ export class WebViewBridge {
           break;
         case 'analytics':
           // Handle analytics if needed
+          console.log('[WebViewBridge] Analytics event:', message.params);
           break;
         default:
           console.warn(`Unhandled event: ${message.type}`);
@@ -159,7 +168,7 @@ export class WebViewBridge {
               const tokens = await this.onRampService.getOnRampTokens();
               const token = tokens.find((t) => t.id === this.tokenId);
               if (token) {
-                console.log('[WebViewBridge] Token found:', token.iconUrl);
+                // console.log('[WebViewBridge] Token found:', token.iconUrl);
                 this.sendResponse({
                   type: message.type,
                   response: {
@@ -167,7 +176,7 @@ export class WebViewBridge {
                       id: token.id,
                       name: token.name,
                       symbol: token.symbol,
-                      iconUrl: token.iconUrl.trim().replace(/\\+$/, ''),
+                      iconUrl: token.iconUrl,
                       networkId: token.networkId,
                       networkName: token.networkName,
                       address: token.address,
