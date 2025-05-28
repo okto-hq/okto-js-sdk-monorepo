@@ -20,7 +20,9 @@ const INJECTED_JAVASCRIPT = `
     function sendMessage(msg) {
       try {
         if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          window.ReactNativeWebView.postMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+          const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+          console.log('[WebViewBridge] Sending message to React Native:', stringifiedMsg);
+          window.ReactNativeWebView.postMessage(stringifiedMsg);
         } else {
           console.warn('ReactNativeWebView.postMessage not found');
         }
