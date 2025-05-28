@@ -45,6 +45,8 @@ export const WebKeys = {
   SOURCE: 'source',
   FORWARD_TO_ROUTE: 'forwardToRoute',
   TOKEN_DATA: 'tokenData',
+  ORDER_SUCCESS: 'orderSuccessBottomSheet',
+  ORDER_FAILURE: 'orderFailureBottomSheet',
 } as const;
 
 export type OnRampParamList = {

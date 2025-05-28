@@ -250,11 +250,6 @@ export class WebViewBridge {
       JSON.stringify(response),
     );
 
-    if (!response || Object.keys(response).length === 0) {
-      console.log('[WebViewBridge] Empty response, not injecting JavaScript.');
-      return;
-    }
-
     const responseString = JSON.stringify(response);
     
     const js = `
