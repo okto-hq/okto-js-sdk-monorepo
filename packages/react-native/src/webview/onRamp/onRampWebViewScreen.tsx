@@ -49,7 +49,6 @@ const INJECTED_JAVASCRIPT = `
   })();
 `;
 
-
 export const OnRampScreen = ({ route, navigation }: Props) => {
   console.log('[OnRampScreen] Initializing with route params:', route.params);
   const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
@@ -88,7 +87,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   const handleClose = useCallback(() => {
     console.log('[OnRampScreen] Close callback triggered');
     navigation.goBack();
-}, [onClose, navigation]);
+  }, [onClose, navigation]);
 
   const handleProgress = useCallback(
     (progress: number) => {

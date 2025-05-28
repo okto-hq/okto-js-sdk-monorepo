@@ -61,7 +61,6 @@ export class WebViewBridge {
       if (message.params?.source === this.SOURCE_NAME) {
         return;
       }
-  
 
       console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
         params: message.params,
@@ -140,12 +139,25 @@ export class WebViewBridge {
           case 'transactionId':
             console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
+            this.sendResponse({
+              type: message.type,
+              response: { [key]: result },
+              source: this.SOURCE_NAME,
+              id: messageId,
+            });
             break;
           case 'tokenData':
             console.log('[WebViewBridge] Fetching token data');
             if (source === this.tokenId) {
+              // const tokenData = await this.onRampService.getOnRampTokens();
               const tokenData = await this.onRampService.getOnRampTokens();
-              result = JSON.stringify(tokenData);
+              this.sendResponse({
+                type: message.type,
+                response: { [key]: tokenData },
+                source: this.SOURCE_NAME,
+                id: messageId,
+              });
+              return;
             }
             break;
           default:
@@ -162,12 +174,12 @@ export class WebViewBridge {
         },
       );
 
-      this.sendResponse({
-        type: message.type,
-        response: { [key]: result },
-        source: this.SOURCE_NAME,
-        id: messageId,
-      });
+      // this.sendResponse({
+      //   type: message.type,
+      //   response: { [key]: result },
+      //   source: this.SOURCE_NAME,
+      //   id: messageId,
+      // });
     } catch (error) {
       this.sendResponse({
         type: message.type,
@@ -216,9 +228,11 @@ export class WebViewBridge {
     });
   }
 
-  private sendResponse( response: WebViewResponse): void{
-    if(!this.webViewRef.current){
-      console.warn('[WebViewBridge] WebView reference is null, cannot send response');
+  private sendResponse(response: WebViewResponse): void {
+    if (!this.webViewRef.current) {
+      console.warn(
+        '[WebViewBridge] WebView reference is null, cannot send response',
+      );
     }
 
     console.log('[WebViewBridge] Sending response to WebView:', {
@@ -239,7 +253,7 @@ export class WebViewBridge {
       })();
     `;
     this.webViewRef.current?.injectJavaScript(js);
-  };
+  }
 
   cleanup(): void {
     // Clean up resources if needed
