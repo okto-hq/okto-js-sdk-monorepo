@@ -256,10 +256,10 @@ export class WebViewBridge {
   }
 
   private sendResponse(response: WebViewResponse): void {
-    if (!this.webViewRef.current) {
-      console.error('[WebViewBridge] WebView reference is null, cannot send response');
-      return;
-    }
+    // if (!this.webViewRef.current) {
+    //   console.error('[WebViewBridge] WebView reference is null, cannot send response');
+    //   return;
+    // }
 
     console.log('[WebViewBridge] Sending response to WebView:', {
       type: response.type,
@@ -286,7 +286,7 @@ export class WebViewBridge {
       })();
     `;
 
-    this.webViewRef.current.injectJavaScript(js);
+    this.webViewRef.current?.injectJavaScript(js);
   }
 
   private sendErrorResponse(errorMessage: string, messageId?: string): void {
