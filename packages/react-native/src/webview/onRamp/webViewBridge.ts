@@ -249,13 +249,13 @@ export class WebViewBridge {
       '[WebViewBridge] Sending response to WebView:',
       JSON.stringify(response),
     );
-    // Ensure response is a valid JSON string
-    const responseString = JSON.stringify(JSON.stringify(response));
+
+    const responseString = JSON.stringify(response);
     
     const js = `
       (function() {
         try {
-          const msg = JSON.parse(${responseString});
+          const msg = KARAN;
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
   
           // First try the responseChannel
@@ -263,7 +263,7 @@ export class WebViewBridge {
             window.responseChannel(msg);
           }
           
-          // Then try postMessage as fallback
+          // // Then try postMessage as fallback
           if (window.postMessage) {
             window.postMessage(msg, '*');
           }
@@ -279,6 +279,7 @@ export class WebViewBridge {
 
     this.webViewRef.current?.injectJavaScript(js);
   }
+
   cleanup(): void {
     // Clean up resources if needed
   }
