@@ -2,6 +2,7 @@ import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
+import { Linking } from 'react-native';
 
 type WebViewParams = {
   control?: boolean;
@@ -161,11 +162,11 @@ export class WebViewBridge {
                 this.sendResponse({
                   type: message.type,
                   response: {
-                    tokenData: JSON.stringify({
+                    [key]: JSON.stringify({
                       id: token.id,
                       name: token.name,
                       symbol: token.symbol,
-                      iconUrl: token.iconUrl,
+                      iconUrl: token.iconUrl.replaceAll(RegExp('\\+$'), ''),
                       networkId: token.networkId,
                       networkName: token.networkName,
                       address: token.address,
@@ -202,7 +203,10 @@ export class WebViewBridge {
 
   private handleUrl(params?: { url?: string }): void {
     if (params?.url) {
-      // Handle URL navigation if needed
+      console.log('[WebViewBridge] Opening URL in external browser:', params.url);
+      Linking.openURL(params.url).catch((err) =>
+        console.error('Failed to open URL:', err),
+      );
     }
   }
 
