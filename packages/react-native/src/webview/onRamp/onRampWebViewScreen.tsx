@@ -90,10 +90,10 @@ const INJECTED_JAVASCRIPT = `
         // Send to native if not from native
         if (typeof message === 'string') {
           try {
-            const parsed = JSON.parse(message);
-            if (!parsed.source || parsed.source !== 'okto_web') {
-              sendToNative(message);
-            }
+            // const parsed = JSON.parse(message);
+            // if (!parsed.source || parsed.source !== 'okto_web') {
+            //   sendToNative(message);
+            // }
           } catch (e) {
             sendToNative(message);
           }
