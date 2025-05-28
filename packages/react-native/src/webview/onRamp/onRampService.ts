@@ -133,8 +133,7 @@ export class OnRampService {
   async requestCameraPermission(): Promise<PermissionResponse> {
     try {
       const result = await request(this.CAMERA_PERMISSION);
-      console.log(
-        `[OnRampService] Camera permission status: ${result}`,)
+      console.log(`[OnRampService] Camera permission status: ${result}`);
       return {
         permission: 'camera',
         ...this.mapPermissionStatus(result),

@@ -149,14 +149,30 @@ export class WebViewBridge {
           case 'tokenData':
             console.log('[WebViewBridge] Fetching token data');
             if (source === this.tokenId) {
-              // const tokenData = await this.onRampService.getOnRampTokens();
-              const tokenData = await this.onRampService.getOnRampTokens();
-              this.sendResponse({
-                type: message.type,
-                response: { [key]: tokenData },
-                source: this.SOURCE_NAME,
-                id: messageId,
-              });
+              const tokens = await this.onRampService.getOnRampTokens();
+              const token = tokens.find((t) => t.id === this.tokenId);
+              if (token) {
+                this.sendResponse({
+                  type: message.type,
+                  response: {
+                    [key]: {
+                      id: token.id,
+                      name: token.name,
+                      symbol: token.symbol,
+                      iconUrl: token.iconUrl,
+                      networkId: token.networkId,
+                      networkName: token.networkName,
+                      address: token.address,
+                      precision: token.precision,
+                      chainId: token.chainId,
+                    },
+                  },
+                  source: this.SOURCE_NAME,
+                  id: messageId,
+                });
+              } else {
+                throw new Error(`Token with id ${this.tokenId} not found`);
+              }
               return;
             }
             break;
@@ -165,21 +181,6 @@ export class WebViewBridge {
             return;
         }
       }
-      console.log(
-        '[WebViewBridge] Data request successful, sending response:',
-        {
-          key,
-          result:
-            result.length > 100 ? `${result.substring(0, 100)}...` : result,
-        },
-      );
-
-      // this.sendResponse({
-      //   type: message.type,
-      //   response: { [key]: result },
-      //   source: this.SOURCE_NAME,
-      //   id: messageId,
-      // });
     } catch (error) {
       this.sendResponse({
         type: message.type,
@@ -235,8 +236,11 @@ export class WebViewBridge {
       );
       return;
     }
-    
-    console.log('[WebViewBridge] Sending response to WebView:', JSON.stringify(response));
+
+    console.log(
+      '[WebViewBridge] Sending response to WebView:',
+      JSON.stringify(response),
+    );
 
     const js = `
       (function() {
