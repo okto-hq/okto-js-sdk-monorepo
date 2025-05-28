@@ -98,7 +98,6 @@ const INJECTED_JAVASCRIPT = `
     // Override window.postMessage to handle bidirectional communication
     window.postMessage = function(message, targetOrigin) {
       try {
-        console.log('[WebViewBridge] postMessage intercepted:', message);
         
         // If this is a message FROM native (has source: 'okto_web'), handle it locally
         if (typeof message === 'object' && message.source === 'okto_web') {
@@ -147,26 +146,22 @@ const INJECTED_JAVASCRIPT = `
 
     // Handle messages from parent (native)
     window.addEventListener('message', function(event) {
-      console.log('[WebViewBridge] Received message event:', event.data);
-      
-      // If this is from native (has source: 'okto_web'), process it
+      console.log('[WebViewBridge] Received message event:', event.data)
+
       if (event.data && event.data.source === 'okto_web') {
         console.log('[WebViewBridge] Processing native message:', event.data);
         
-        // Call responseChannel if available
         if (window.responseChannel && typeof window.responseChannel === 'function') {
           window.responseChannel(event.data);
         }
       }
     });
 
-    // Send initialization message
     sendToNative({
       type: 'bridge_ready',
       message: 'WebView bridge initialized successfully'
     });
 
-    console.log('[WebViewBridge] Bridge initialization complete');
   })();
 `;
 
@@ -188,74 +183,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     },
     [onSuccess, onClose],
   );
-
-  const initialTokenData = {
-    type: "data",
-    response: {
-      tokenData: JSON.stringify({
-        id: "b5a9350d-2d00-3381-b913-ee9f989d48f7",
-        name: "(PoS) Tether USD",
-        symbol: "USDT",
-        iconUrl: "https://images.okto.tech/token_logos/USDT.png",
-        networkId: "ae506585-0ba7-32f3-8b92-120ddf940198",
-        networkName: "POLYGON",
-        address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-        precision: "4",
-        chainId: "137"
-      })
-    },
-    source: "okto_web",
-    id: "b5a9350d-2d00-3381-b913-ee9f989d48f7"
-  };
-
-  const sendInitialTokenData = useCallback(() => {
-
-    const jsCode = `
-      (function() {
-        try {
-          const msg = ${JSON.stringify(initialTokenData)};
-          console.log('[karan] Posting message from React Native to WebView:', msg);
-          window.postMessage(msg, '*');
-        } catch (e) {
-          console.error('Failed to post message to WebView:', e);
-        }
-      })();
-    `;
-    // const jsCode = `
-    //   (function() {
-    //     try {
-    //       const message = ${JSON.stringify(initialTokenData)};
-    //       if (window.handleNativeResponse) {
-    //          window.postMessage(msg, '*');
-    //         console.log('[KARAN] Forwarding request to web', message);
-    //       } else {
-    //         // Fallback if handler not registered yet
-    //         setTimeout(() => {
-    //           if (window.handleNativeResponse) {
-    //             console.log('Sending initial token data after delay);
-    //             console.log('[KARAN] Forwarding request to web: check', message);
-    //             window.handleNativeResponse(message);
-    //           } else {
-    //             console.warn('handleNativeResponse not available');
-    //           }
-    //         }, 500);
-    //       }
-    //       true;
-    //     } catch(e) {
-    //       console.error('Error sending initial token data:', e);
-    //       true;
-    //     }
-    //   })();
-    // `;
-    webViewRef.current?.injectJavaScript(jsCode);
-  }, []);
-
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
 
   const handleError = useCallback(
     (error: string) => {
@@ -324,20 +251,14 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       event.nativeEvent.data,
     );
     try {
+      // Verify the message can be parsed
       const parsed = JSON.parse(event.nativeEvent.data);
       console.log('Parsed message:', parsed);
-      
-      // Check if this is a tokenData request
-      if (parsed.type === 'data' && parsed.params?.key === 'tokenData') {
-        console.log('[OnRampScreen] Detected tokenData request, sending initial data');
-        sendInitialTokenData();
-        return; 
-      }
       bridgeRef.current?.handleMessage(event);
     } catch (e) {
       console.error('Failed to parse message:', e);
     }
-  }, [sendInitialTokenData]);
+  }, []);
 
   const handleWebViewError = useCallback(() => {
     handleError(

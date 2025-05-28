@@ -56,48 +56,34 @@ export class WebViewBridge {
 
   async handleMessage(event: WebViewMessageEvent): Promise<void> {
     try {
-      console.log('[WebViewBridge] Raw message received:', event.nativeEvent.data);
+      console.log(
+        '[WebViewBridge] Raw message received:',
+        event.nativeEvent.data,
+      );
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
-  
+
       // Skip processing messages that are responses from our own bridge
       if (message.params?.source === this.SOURCE_NAME) {
         console.log('[WebViewBridge] Skipping own response message');
         return;
       }
-  
+
       // Handle bridge ready message
       if (message.type === 'bridge_ready') {
         console.log('[WebViewBridge] Bridge is ready');
         return;
       }
-  
-      // Handle channel-based messages from the web app
-      if (message.channel) {
-        console.log(`[WebViewBridge] Processing ${message.channel} channel message:`, message);
-        
-        switch (message.channel) {
-          case 'launch':
-            await this.handleLaunchMessage(message);
-            break;
-          case 'info':
-            await this.handleInfoMessage(message);
-            break;
-          case 'request':
-            await this.handleRequestMessage(message);
-            break;
-          default:
-            console.warn(`[WebViewBridge] Unknown channel: ${message.channel}`);
-        }
-        return;
-      }
-  
+
       // Handle legacy message format
-      console.log(`[WebViewBridge] Processing legacy message type: ${message.type} ${message.channel}`, {
-        params: message.params,
-        id: message.id,
-      });
-  
+      console.log(
+        `[WebViewBridge] Processing legacy message type: ${message.type} ${message.channel}`,
+        {
+          params: message.params,
+          id: message.id,
+        },
+      );
+
       switch (message.type) {
         case 'nativeBack':
           console.log('[WebViewBridge] Handling nativeBack event');
@@ -128,51 +114,6 @@ export class WebViewBridge {
       }
     } catch (error) {
       console.error('[WebViewBridge] Error handling WebView message:', error);
-    }
-  }
-  
-  private async handleLaunchMessage(message: any): Promise<void> {
-    console.log('[WebViewBridge] Handling launch message:', message);
-    
-    // Parse the message type from the launch data
-    if (message.type) {
-      switch (message.type) {
-        case 'close':
-          console.log('[WebViewBridge] Launch close event');
-          this.callbacks.onClose?.();
-          break;
-        case 'data':
-          await this.handleDataRequest(message);
-          break;
-        default:
-          console.log(`[WebViewBridge] Unhandled launch type: ${message.type}`);
-      }
-    }
-  }
-  
-  private async handleInfoMessage(message: any): Promise<void> {
-    console.log('[WebViewBridge] Handling info message:', message);
-    // Handle info channel messages if needed
-  }
-  
-  private async handleRequestMessage(message: any): Promise<void> {
-    console.log('[WebViewBridge] Handling request message:', message);
-    
-    // Parse the message type from the request data
-    if (message.type) {
-      switch (message.type) {
-        case 'data':
-          await this.handleDataRequest(message);
-          break;
-        case 'requestPermission':
-          await this.handlePermissionRequest(message);
-          break;
-          case 'requestPermissionAck':
-          this.handlePermissionAck(message);
-          break;
-        default:
-          console.log(`[WebViewBridge] Unhandled request type: ${message.type}`);
-      }
     }
   }
 
@@ -279,7 +220,10 @@ export class WebViewBridge {
 
   private handleUrl(params?: { url?: string }): void {
     if (params?.url) {
-      console.log('[WebViewBridge] Opening URL in external browser:', params.url);
+      console.log(
+        '[WebViewBridge] Opening URL in external browser:',
+        params.url,
+      );
       Linking.openURL(params.url).catch((err) =>
         console.error('Failed to open URL:', err),
       );
@@ -317,12 +261,17 @@ export class WebViewBridge {
 
   private sendResponse(response: WebViewResponse): void {
     if (!this.webViewRef.current) {
-      console.warn('[WebViewBridge] WebView reference is null, cannot send response');
+      console.warn(
+        '[WebViewBridge] WebView reference is null, cannot send response',
+      );
       return;
     }
-  
-    console.log('[WebViewBridge] Sending response to WebView:', JSON.stringify(response));
-  
+
+    console.log(
+      '[WebViewBridge] Sending response to WebView:',
+      JSON.stringify(response),
+    );
+
     const js = `
       (function() {
         try {
@@ -346,50 +295,7 @@ export class WebViewBridge {
         }
       })();
     `;
-    
-    this.webViewRef.current?.injectJavaScript(js);
-  }
-  
-  // Alternative method for sending responses through specific channels
-  private sendChannelResponse(channel: string, response: any): void {
-    if (!this.webViewRef.current) {
-      console.warn('[WebViewBridge] WebView reference is null, cannot send channel response');
-      return;
-    }
-  
-    const responseWithSource = {
-      ...response,
-      source: this.SOURCE_NAME,
-      channel
-    };
-  
-    console.log(`[WebViewBridge] Sending ${channel} channel response:`, responseWithSource);
-  
-    const js = `
-      (function() {
-        try {
-          const msg = ${JSON.stringify(responseWithSource)};
-          console.log('[WebViewBridge] Posting ${channel} response:', msg);
-          
-          // Call the appropriate response handler
-          if (window.responseChannel && typeof window.responseChannel === 'function') {
-            window.responseChannel(msg);
-          }
-          
-          // Also trigger message event
-          const event = new MessageEvent('message', {
-            data: msg,
-            origin: window.location.origin,
-            source: window
-          });
-          window.dispatchEvent(event);
-          
-        } catch (e) {
-          console.error('[WebViewBridge] Failed to post ${channel} response:', e);
-        }
-      })();
-    `;
-    
+
     this.webViewRef.current?.injectJavaScript(js);
   }
 
