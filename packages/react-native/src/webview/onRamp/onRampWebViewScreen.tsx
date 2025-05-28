@@ -42,9 +42,9 @@ const INJECTED_JAVASCRIPT = `
     const originalPostMessage = window.postMessage;
     window.postMessage = function(msg) {
       sendMessage(msg);
-      if (typeof originalPostMessage === 'function') {
-        originalPostMessage.apply(window, arguments);
-      }
+      // if (typeof originalPostMessage === 'function') {
+      //   originalPostMessage.apply(window, arguments);
+      // }
     };
   })();
 `;
