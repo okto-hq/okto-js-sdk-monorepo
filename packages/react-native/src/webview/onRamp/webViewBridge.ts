@@ -166,7 +166,7 @@ export class WebViewBridge {
                       id: token.id,
                       name: token.name,
                       symbol: token.symbol,
-                      iconUrl: token.iconUrl.replace(/\\+$/, ''),
+                      iconUrl: token.iconUrl.trim().replace(/\\$/, ''),
                       networkId: token.networkId,
                       networkName: token.networkName,
                       address: token.address,
