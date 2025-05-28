@@ -216,26 +216,47 @@ export class WebViewBridge {
     });
   }
 
-  private sendResponse(response: WebViewResponse): void {
-    try {
-      console.log('[WebViewBridge] Sending response to WebView:', {
-        type: response.type,
-        id: response.id,
-        responseSize: JSON.stringify(response.response)?.length,
-        response: JSON.stringify(response.response),
-      });
+  // private sendResponse(response: WebViewResponse): void {
+  //   try {
+  //     console.log('[WebViewBridge] Sending response to WebView:', {
+  //       type: response.type,
+  //       id: response.id,
+  //       responseSize: JSON.stringify(response.response)?.length,
+  //       response: JSON.stringify(response.response),
+  //     });
 
-      console.log(
-        'KARAN :: [WebViewBridge] WebView reference exists:', JSON.stringify(response));
+  //     console.log(
+  //       'KARAN :: [WebViewBridge] WebView reference exists:', JSON.stringify(response));
 
-      if(!this.webViewRef.current) {
-        console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
+  //     if(!this.webViewRef.current) {
+  //       console.warn('[WebViewBridge] WebView reference is null, cannot send response');}
 
-      this.webViewRef.current?.postMessage(JSON.stringify(response));
-    } catch (error) {
-      console.error('Failed to send response to WebView:', error);
-    }
-  }
+  //     this.webViewRef.current?.postMessage(JSON.stringify(response));
+  //   } catch (error) {
+  //     console.error('Failed to send response to WebView:', error);
+  //   }
+  // }
+
+  private sendResponse( response: WebViewResponse): void{
+    console.log('[WebViewBridge] Sending response to WebView:', {
+      type: response.type,
+      id: response.id,
+      responseSize: JSON.stringify(response.response)?.length,
+      response: JSON.stringify(response.response),
+    });
+
+    const js = `
+      (function() {
+        try {
+          const msg = ${JSON.stringify(response)};
+          window.postMessage(msg, '*');
+        } catch (e) {
+          console.error('Failed to post message to WebView:', e);
+        }
+      })();
+    `;
+    this.webViewRef.current?.injectJavaScript(js);
+  };
 
   cleanup(): void {
     // Clean up resources if needed

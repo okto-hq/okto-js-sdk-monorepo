@@ -17,24 +17,38 @@ type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
-    window.ReactNativeWebView = window.ReactNativeWebView || {};
-    
-    window.sendToReactNative = function(message) {
-      console.log('[WebView -> React Native] Sending message:', message);
-      if (window.ReactNativeWebView.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+    function sendMessage(msg) {
+      try {
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+        } else {
+          console.warn('ReactNativeWebView.postMessage not found');
+        }
+      } catch (e) {
+        console.error('Error sending message to React Native:', e);
       }
+    }
+
+    window.ReactNativeBridge = {
+      postMessage: sendMessage
     };
-    
-    // Only log messages received from React Native, don't send them back
-    window.addEventListener('message', function(event) {
-      console.log('[React Native -> WebView] Received message:', event.data);
+
+    // Test bridge
+    sendMessage({
+      type: 'test',
+      message: 'Bridge initialized'
     });
 
-    console.log('[WebView] Bridge script initialized');
+    const originalPostMessage = window.postMessage;
+    window.postMessage = function(msg) {
+      sendMessage(msg);
+      if (typeof originalPostMessage === 'function') {
+        originalPostMessage.apply(window, arguments);
+      }
+    };
   })();
-  true;
 `;
+
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
   console.log('[OnRampScreen] Initializing with route params:', route.params);
@@ -128,7 +142,14 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       '[OnRampScreen] Received message from WebView:',
       event.nativeEvent.data,
     );
-    bridgeRef.current?.handleMessage(event);
+    try {
+      // Verify the message can be parsed
+      const parsed = JSON.parse(event.nativeEvent.data);
+      console.log('Parsed message:', parsed);
+      bridgeRef.current?.handleMessage(event);
+    } catch (e) {
+      console.error('Failed to parse message:', e);
+    }
   }, []);
 
   const handleWebViewError = useCallback(() => {
