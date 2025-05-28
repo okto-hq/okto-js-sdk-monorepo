@@ -272,10 +272,12 @@ export class WebViewBridge {
       JSON.stringify(response),
     );
 
+    const responseString = JSON.stringify(response);
+    
     const js = `
       (function() {
         try {
-          const msg = ${JSON.stringify(response)};
+          const msg = ${responseString};
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
   
           // First try the responseChannel
@@ -297,7 +299,6 @@ export class WebViewBridge {
       })();
     `;
 
-    // Remove the duplicate injection
     this.webViewRef.current?.injectJavaScript(js);
   }
 
