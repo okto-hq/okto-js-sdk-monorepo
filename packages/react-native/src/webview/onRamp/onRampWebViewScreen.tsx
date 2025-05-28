@@ -17,56 +17,156 @@ type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
-    function sendMessage(msg) {
+    console.log('[WebViewBridge] Initializing bridge...');
+    
+    // Store original postMessage to avoid infinite loops
+    const originalPostMessage = window.postMessage;
+    
+    // Function to send messages to React Native
+    function sendToNative(message) {
       try {
         if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
-          console.log('[WebViewBridge] Sending message to React Native:', stringifiedMsg);
-          window.ReactNativeWebView.postMessage(stringifiedMsg);
+          const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
+          console.log('[WebViewBridge] Sending to Native:', messageStr);
+          window.ReactNativeWebView.postMessage(messageStr);
         } else {
-          console.warn('ReactNativeWebView.postMessage not found');
+          console.warn('[WebViewBridge] ReactNativeWebView.postMessage not available');
         }
       } catch (e) {
-        console.error('Error sending message to React Native:', e);
+        console.error('[WebViewBridge] Error sending to native:', e);
       }
     }
 
+    // Create the bridge object that the web app expects
     window.ReactNativeBridge = {
-      postMessage: sendMessage
+      postMessage: sendToNative
     };
 
-    // Test bridge
-    sendMessage({
-      type: 'test',
-      message: 'Bridge initialized'
-    });
+    // Create the channel objects that your web app expects
+    window.launchChannel = {
+      postMessage: (eventData) => {
+        try {
+          const parsedData = typeof eventData === 'string' ? JSON.parse(eventData) : eventData;
+          console.log('[WebViewBridge] Launch channel message:', parsedData);
+          sendToNative({
+            channel: 'launch',
+            ...parsedData
+          });
+        } catch (e) {
+          console.error('[WebViewBridge] Error in launch channel:', e);
+        }
+      }
+    };
 
-    // Store original postMessage
-    const originalPostMessage = window.postMessage;
-    
-    // Override postMessage to intercept WebView -> Native communication
-    window.postMessage = function(msg) {
+    window.infoChannel = {
+      postMessage: (eventData) => {
+        try {
+          const parsedData = typeof eventData === 'string' ? JSON.parse(eventData) : eventData;
+          console.log('[WebViewBridge] Info channel message:', parsedData);
+          sendToNative({
+            channel: 'info',
+            ...parsedData
+          });
+        } catch (e) {
+          console.error('[WebViewBridge] Error in info channel:', e);
+        }
+      }
+    };
+
+    window.requestChannel = {
+      postMessage: (eventData) => {
+        try {
+          const parsedData = typeof eventData === 'string' ? JSON.parse(eventData) : eventData;
+          console.log('[WebViewBridge] Request channel message:', parsedData);
+          sendToNative({
+            channel: 'request',
+            ...parsedData
+          });
+        } catch (e) {
+          console.error('[WebViewBridge] Error in request channel:', e);
+        }
+      }
+    };
+
+    // Global response channel handler (called by native)
+    window.responseChannel = (hostRes) => {
+      console.log('[WebViewBridge] Response channel called:', hostRes);
+      // This will be called by your native code when sending responses
+      // The web app already defines this globally, so we just log it
+    };
+
+    // Override window.postMessage to handle bidirectional communication
+    window.postMessage = function(message, targetOrigin) {
       try {
-        const parsedMsg = typeof msg === 'string' ? JSON.parse(msg) : msg;
+        console.log('[WebViewBridge] postMessage intercepted:', message);
         
-        // Only forward messages that are NOT responses from the native bridge
-        // Responses have 'source' === 'okto_web' or contain 'response' field
-        if (parsedMsg.source !== 'okto_web' && parsedMsg.response === undefined) {
-          console.log('[WebViewBridge] Forwarding request to React Native:', parsedMsg);
-          sendMessage(msg);
+        // If this is a message FROM native (has source: 'okto_web'), handle it locally
+        if (typeof message === 'object' && message.source === 'okto_web') {
+          console.log('[WebViewBridge] Handling native response:', message);
+          
+          // Call the global responseChannel if it exists
+          if (window.responseChannel && typeof window.responseChannel === 'function') {
+            window.responseChannel(message);
+          }
+          
+          // Also dispatch as MessageEvent for addEventListener handlers
+          const event = new MessageEvent('message', {
+            data: message,
+            origin: window.location.origin,
+            source: window
+          });
+          window.dispatchEvent(event);
+          
+          return;
+        }
+        
+        // For messages TO native, send through our bridge
+        if (typeof message === 'string') {
+          try {
+            const parsed = JSON.parse(message);
+            // Only send to native if it's not already a response from native
+            if (!parsed.source || parsed.source !== 'okto_web') {
+              sendToNative(message);
+            }
+          } catch (e) {
+            // If it's not JSON, send as is
+            sendToNative(message);
+          }
         } else {
-          console.log('[WebViewBridge] Handling response from React Native:', parsedMsg);
-          // Handle the response in the WebView (this is where your web app would process the data)
-          if (window.handleNativeResponse) {
-            window.handleNativeResponse(parsedMsg);
+          // Object message
+          if (!message.source || message.source !== 'okto_web') {
+            sendToNative(message);
           }
         }
       } catch (e) {
-        console.error('[WebViewBridge] Error processing message:', e);
-        // Fallback: send the message anyway
-        sendMessage(msg);
+        console.error('[WebViewBridge] Error in postMessage override:', e);
+        // Fallback to original postMessage
+        originalPostMessage.call(window, message, targetOrigin);
       }
     };
+
+    // Handle messages from parent (native)
+    window.addEventListener('message', function(event) {
+      console.log('[WebViewBridge] Received message event:', event.data);
+      
+      // If this is from native (has source: 'okto_web'), process it
+      if (event.data && event.data.source === 'okto_web') {
+        console.log('[WebViewBridge] Processing native message:', event.data);
+        
+        // Call responseChannel if available
+        if (window.responseChannel && typeof window.responseChannel === 'function') {
+          window.responseChannel(event.data);
+        }
+      }
+    });
+
+    // Send initialization message
+    sendToNative({
+      type: 'bridge_ready',
+      message: 'WebView bridge initialized successfully'
+    });
+
+    console.log('[WebViewBridge] Bridge initialization complete');
   })();
 `;
 
@@ -253,10 +353,8 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
-          injectedJavaScript={INJECTED_JAVASCRIPT}
+          injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
-          onLoadStart={sendInitialTokenData}
-          onLoadEnd={sendInitialTokenData}
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="compatibility"
