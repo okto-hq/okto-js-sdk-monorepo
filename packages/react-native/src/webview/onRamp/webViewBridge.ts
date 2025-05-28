@@ -155,7 +155,7 @@ export class WebViewBridge {
                 this.sendResponse({
                   type: message.type,
                   response: {
-                    [key]: {
+                    tokenData: JSON.stringify({
                       id: token.id,
                       name: token.name,
                       symbol: token.symbol,
@@ -165,7 +165,7 @@ export class WebViewBridge {
                       address: token.address,
                       precision: token.precision,
                       chainId: token.chainId,
-                    },
+                    }),
                   },
                   source: this.SOURCE_NAME,
                   id: messageId,
