@@ -273,27 +273,31 @@ export class WebViewBridge {
     );
 
     const js = `
-  (function() {
-    try {
-      const msg = ${JSON.stringify(response)};
-      console.log('[WebViewBridge] Posting response message to WebView:', msg);
+      (function() {
+        try {
+          const msg = ${JSON.stringify(response)};
+          console.log('[WebViewBridge] Posting response message to WebView:', msg);
+  
+          // First try the responseChannel
+          if (window.responseChannel && typeof window.responseChannel === 'function') {
+            window.responseChannel(msg);
+          }
+          
+          // Then try postMessage as fallback
+          if (window.postMessage) {
+            window.postMessage(msg, '*');
+          }
+          
+          // Finally dispatch as custom event
+          const event = new CustomEvent('nativeResponse', { detail: msg });
+          window.dispatchEvent(event);
+        } catch (e) {
+          console.error('[WebViewBridge] Failed to post response to WebView:', e);
+        }
+      })();
+    `;
 
-      if (window.responseChannel && typeof window.responseChannel === 'function') {
-        window.responseChannel(msg);
-      }
-
-      window.postMessage(msg, '*');
-
-      const event = new CustomEvent('nativeResponse', { detail: msg });
-      window.dispatchEvent(event);
-    } catch (e) {
-      console.error('[WebViewBridge] Failed to post response to WebView:', e);
-    }
-  })();
-`;
-
-    this.webViewRef.current?.injectJavaScript(js);
-
+    // Remove the duplicate injection
     this.webViewRef.current?.injectJavaScript(js);
   }
 
