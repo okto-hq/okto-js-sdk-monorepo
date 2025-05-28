@@ -134,6 +134,12 @@ export class WebViewBridge {
       console.log('[WebViewBridge] Data request details:', { key, source });
       if (source === 'remote-config') {
         result = await this.onRampService.getRemoteConfigValue(key);
+        this.sendResponse({
+          type: message.type,
+          response: { [key]: result },
+          source: this.SOURCE_NAME,
+          id: messageId,
+        });
       } else {
         switch (key) {
           case 'payToken':
