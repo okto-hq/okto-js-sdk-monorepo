@@ -249,21 +249,21 @@ export class WebViewBridge {
       '[WebViewBridge] Sending response to WebView:',
       JSON.stringify(response),
     );
-
-    const responseString = JSON.stringify(response);
+    // Ensure response is a valid JSON string
+    const responseString = JSON.stringify(JSON.stringify(response));
     
     const js = `
       (function() {
         try {
-          const msg = ${responseString};
+          const msg = JSON.parse(${responseString});
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
   
-          // // First try the responseChannel
-          // if (window.responseChannel && typeof window.responseChannel === 'function') {
-          //   window.responseChannel(msg);
-          // }
+          // First try the responseChannel
+          if (window.responseChannel && typeof window.responseChannel === 'function') {
+            window.responseChannel(msg);
+          }
           
-          // // Then try postMessage as fallback
+          // Then try postMessage as fallback
           if (window.postMessage) {
             window.postMessage(msg, '*');
           }
@@ -272,14 +272,13 @@ export class WebViewBridge {
           const event = new CustomEvent('nativeResponse', { detail: msg });
           window.dispatchEvent(event);
         } catch (e) {
-          console.error('[WebViewBridge] Failed to post response to WebView:', e);
+          console.log('[WebViewBridge] Failed to post response to WebView:', e);
         }
       })();
     `;
 
     this.webViewRef.current?.injectJavaScript(js);
   }
-
   cleanup(): void {
     // Clean up resources if needed
   }
