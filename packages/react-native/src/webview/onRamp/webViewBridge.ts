@@ -240,9 +240,9 @@ export class WebViewBridge {
     const js = `
       (function() {
         try {
-          const msg = ${JSON.stringify(response)};
-          console.log('[WebViewBridge] Posting message from React Native to WebView:', msg);
-          window.postMessage(msg, '*');
+         const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+          console.log('[WebViewBridge] Posting message from React Native to WebView:', stringifiedMsg);
+          window.postMessage(stringifiedMsg, '*');
         } catch (e) {
           console.error('Failed to post message to WebView:', e);
         }
