@@ -250,12 +250,17 @@ export class WebViewBridge {
       JSON.stringify(response),
     );
 
+    if (!response || Object.keys(response).length === 0) {
+      console.log('[WebViewBridge] Empty response, not injecting JavaScript.');
+      return;
+    }
+
     const responseString = JSON.stringify(response);
     
     const js = `
       (function() {
         try {
-          const msg = KARAN;
+          const msg = ${responseString};
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
   
           // First try the responseChannel
