@@ -136,7 +136,7 @@ export class WebViewBridge {
         result = await this.onRampService.getRemoteConfigValue(key);
       } else {
         switch (key) {
-          case 'transactionId':
+          case 'payToken':
             console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
             this.sendResponse({
@@ -233,8 +233,9 @@ export class WebViewBridge {
       console.warn(
         '[WebViewBridge] WebView reference is null, cannot send response',
       );
+      return;
     }
-
+    
     console.log('[WebViewBridge] Sending response to WebView:', JSON.stringify(response));
 
     const js = `
