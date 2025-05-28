@@ -109,33 +109,44 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   };
 
   const sendInitialTokenData = useCallback(() => {
+
     const jsCode = `
       (function() {
         try {
-          const message = ${JSON.stringify(initialTokenData)};
-          if (window.handleNativeResponse) {
-            window.handleNativeResponse(message);
-            console.log('[KARAN] Forwarding request to web', message);
-          } else {
-            // Fallback if handler not registered yet
-            setTimeout(() => {
-              if (window.handleNativeResponse) {
-                console.log('Sending initial token data after delay);
-                console.log('[KARAN] Forwarding request to web: check', message);
-                window.handleNativeResponse(message);
-              } else {
-                console.warn('handleNativeResponse not available');
-              }
-            }, 500);
-          }
-          true;
-        } catch(e) {
-          console.error('Error sending initial token data:', e);
-          true;
+          const msg = ${JSON.stringify(initialTokenData)};
+          console.log('[WebViewBridge] Posting message from React Native to WebView:', msg);
+          window.postMessage(msg, '*');
+        } catch (e) {
+          console.error('Failed to post message to WebView:', e);
         }
       })();
     `;
-  
+    // const jsCode = `
+    //   (function() {
+    //     try {
+    //       const message = ${JSON.stringify(initialTokenData)};
+    //       if (window.handleNativeResponse) {
+    //          window.postMessage(msg, '*');
+    //         console.log('[KARAN] Forwarding request to web', message);
+    //       } else {
+    //         // Fallback if handler not registered yet
+    //         setTimeout(() => {
+    //           if (window.handleNativeResponse) {
+    //             console.log('Sending initial token data after delay);
+    //             console.log('[KARAN] Forwarding request to web: check', message);
+    //             window.handleNativeResponse(message);
+    //           } else {
+    //             console.warn('handleNativeResponse not available');
+    //           }
+    //         }, 500);
+    //       }
+    //       true;
+    //     } catch(e) {
+    //       console.error('Error sending initial token data:', e);
+    //       true;
+    //     }
+    //   })();
+    // `;
     webViewRef.current?.injectJavaScript(jsCode);
   }, []);
 
@@ -244,6 +255,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           onMessage={handleWebViewMessage}
           injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
+          onLoadStart={sendInitialTokenData}
           onLoadEnd={sendInitialTokenData}
           javaScriptEnabled
           domStorageEnabled
