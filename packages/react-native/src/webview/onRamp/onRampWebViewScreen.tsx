@@ -115,10 +115,13 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           const message = ${JSON.stringify(initialTokenData)};
           if (window.handleNativeResponse) {
             window.handleNativeResponse(message);
+            console.log('[KARAN] Forwarding request to web', message);
           } else {
             // Fallback if handler not registered yet
             setTimeout(() => {
               if (window.handleNativeResponse) {
+                console.log('Sending initial token data after delay);
+                console.log('[KARAN] Forwarding request to web: check', message);
                 window.handleNativeResponse(message);
               } else {
                 console.warn('handleNativeResponse not available');
@@ -210,14 +213,20 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       event.nativeEvent.data,
     );
     try {
-      // Verify the message can be parsed
       const parsed = JSON.parse(event.nativeEvent.data);
       console.log('Parsed message:', parsed);
+      
+      // Check if this is a tokenData request
+      if (parsed.type === 'data' && parsed.params?.key === 'tokenData') {
+        console.log('[OnRampScreen] Detected tokenData request, sending initial data');
+        sendInitialTokenData();
+        return; 
+      }
       bridgeRef.current?.handleMessage(event);
     } catch (e) {
       console.error('Failed to parse message:', e);
     }
-  }, []);
+  }, [sendInitialTokenData]);
 
   const handleWebViewError = useCallback(() => {
     handleError(
@@ -239,7 +248,6 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="compatibility"
-          allowsInlineMediaPlayback
           style={styles.webView}
           allowsBackForwardNavigationGestures={false}
           bounces={false}
