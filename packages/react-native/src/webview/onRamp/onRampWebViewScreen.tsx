@@ -88,7 +88,7 @@ const INJECTED_JAVASCRIPT = `
         }
         
         // Send to native if not from native
-        if (typeof message === 'string') {
+        if (typeof message === 'string'  && message.trim() !== '' ) {
           try {
             const parsed = JSON.parse(message);
             if (!parsed.source || parsed.source !== 'okto_web') {
