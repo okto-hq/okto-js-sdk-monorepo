@@ -32,6 +32,8 @@ export class WebViewBridge {
   private readonly onRampService: OnRampService;
   private readonly tokenId: string;
   private readonly SOURCE_NAME = 'okto_web';
+  private isBridgeReady = false;
+  private messageQueue: WebViewMessageEvent[] = [];
 
   constructor(
     webViewRef: MutableRefObject<WebView | null>,
@@ -54,7 +56,6 @@ export class WebViewBridge {
 
   async handleMessage(event: WebViewMessageEvent): Promise<void> {
     try {
-      console.log('[WebViewBridge] Raw message received:', event);
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
 
@@ -62,41 +63,60 @@ export class WebViewBridge {
         return;
       }
 
-      console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
-        params: message.params,
-        id: message.id,
-      });
-
-      switch (message.type) {
-        case 'nativeBack':
-          console.log('[WebViewBridge] Handling nativeBack event');
-          this.handleNativeBack(message.params);
-          break;
-        case 'data':
-          console.log('[WebViewBridge] Handling data request');
-          await this.handleDataRequest(message);
-          break;
-        case 'close':
-          console.log('[WebViewBridge] Handling close event');
-          this.callbacks.onClose?.();
-          break;
-        case 'url':
-          this.handleUrl({ url: message.params?.url });
-          break;
-        case 'requestPermission':
-          await this.handlePermissionRequest(message);
-          break;
-        case 'requestPermissionAck':
-          this.handlePermissionAck(message);
-          break;
-        case 'analytics':
-          // Handle analytics if needed
-          break;
-        default:
-          console.warn(`Unhandled event: ${message.type}`);
+      // Handle bridge ready message
+      if (message.type === 'bridgeReady') {
+        this.isBridgeReady = true;
+        // Process queued messages
+        this.messageQueue.forEach(queuedEvent => this.processMessage(queuedEvent));
+        this.messageQueue = [];
+        return;
       }
+
+      // Don't process other messages until bridge is ready
+      if (!this.isBridgeReady) {
+        console.log('[WebViewBridge] Bridge not ready, queuing message:', message.type);
+        this.messageQueue.push(event);
+        return;
+      }
+
+      await this.processMessage(event);
     } catch (error) {
       console.error('Error handling WebView message:', error);
+    }
+  }
+
+  private async processMessage(event: WebViewMessageEvent): Promise<void> {
+    const message = this.parseMessage(event.nativeEvent.data);
+    if (!message) return;
+
+    console.log(`[WebViewBridge] Processing message type: ${message.type}`, {
+      params: message.params,
+      id: message.id,
+    });
+
+    switch (message.type) {
+      case 'nativeBack':
+        this.handleNativeBack(message.params);
+        break;
+      case 'data':
+        await this.handleDataRequest(message);
+        break;
+      case 'close':
+        this.callbacks.onClose?.();
+        break;
+      case 'url':
+        this.handleUrl({ url: message.params?.url });
+        break;
+      case 'requestPermission':
+        await this.handlePermissionRequest(message);
+        break;
+      case 'requestPermissionAck':
+        this.handlePermissionAck(message);
+        break;
+      case 'analytics':
+        break;
+      default:
+        console.warn(`Unhandled event: ${message.type}`);
     }
   }
 
@@ -111,27 +131,27 @@ export class WebViewBridge {
 
   private handleNativeBack(params?: { control?: boolean }): void {
     if (params?.control) {
-      // this.callbacks.onClose?.();
+      this.callbacks.onClose?.();
     }
-    // Add other back navigation logic if needed
   }
 
   private async handleDataRequest(message: WebViewMessage): Promise<void> {
-    console.log('[WebViewBridge] Processing data request:', {
-      key: message.params?.key,
-      source: message.params?.source,
-      id: message.id,
-    });
-
     const { params, id } = message;
     if (!params?.key) return;
 
     const { key, source = '' } = params;
     const messageId = id || '';
 
+    // Send immediate acknowledgment
+    this.sendResponse({
+      type: 'ack',
+      response: { received: true, key },
+      source: this.SOURCE_NAME,
+      id: messageId,
+    });
+
     try {
       let result = '';
-      console.log('[WebViewBridge] Data request details:', { key, source });
       if (source === 'remote-config') {
         result = await this.onRampService.getRemoteConfigValue(key);
         this.sendResponse({
@@ -143,7 +163,6 @@ export class WebViewBridge {
       } else {
         switch (key) {
           case 'payToken':
-            console.log('[WebViewBridge] Fetching transaction token');
             result = await this.onRampService.getTransactionToken();
             this.sendResponse({
               type: message.type,
@@ -153,7 +172,6 @@ export class WebViewBridge {
             });
             break;
           case 'tokenData':
-            console.log('[WebViewBridge] Fetching token data');
             if (source === this.tokenId) {
               const tokens = await this.onRampService.getOnRampTokens();
               const token = tokens.find((t) => t.id === this.tokenId);
@@ -179,12 +197,10 @@ export class WebViewBridge {
               } else {
                 throw new Error(`Token with id ${this.tokenId} not found`);
               }
-              return;
             }
             break;
           default:
             console.warn(`Unknown data key: ${key}`);
-            return;
         }
       }
     } catch (error) {
@@ -206,15 +222,11 @@ export class WebViewBridge {
     }
   }
 
-  private async handlePermissionRequest(
-    message: WebViewMessage,
-  ): Promise<void> {
+  private async handlePermissionRequest(message: WebViewMessage): Promise<void> {
     if (!message.params?.data) return;
 
     try {
-      const permissionResult =
-        await this.onRampService.requestCameraPermission();
-
+      const permissionResult = await this.onRampService.requestCameraPermission();
       this.sendResponse({
         type: 'requestPermission',
         response: permissionResult,
@@ -237,22 +249,14 @@ export class WebViewBridge {
 
   private sendResponse(response: WebViewResponse): void {
     if (!this.webViewRef.current) {
-      console.warn(
-        '[WebViewBridge] WebView reference is null, cannot send response',
-      );
+      console.warn('[WebViewBridge] WebView reference is null, cannot send response');
       return;
     }
-
-    console.log(
-      '[WebViewBridge] Sending response to WebView:',
-      JSON.stringify(response),
-    );
 
     const js = `
       (function() {
         try {
           const msg = ${JSON.stringify(response)};
-          console.log('[WebViewBridge] Posting message from React Native to WebView:', msg);
           window.postMessage(msg, '*');
         } catch (e) {
           console.error('Failed to post message to WebView:', e);
@@ -263,6 +267,6 @@ export class WebViewBridge {
   }
 
   cleanup(): void {
-    // Clean up resources if needed
+    this.messageQueue = [];
   }
 }

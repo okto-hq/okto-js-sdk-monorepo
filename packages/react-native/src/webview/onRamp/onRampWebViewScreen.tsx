@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,79 +17,66 @@ type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
-    function sendMessage(msg) {
-      try {
-        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
-          console.log('[WebViewBridge] Sending message to React Native:', stringifiedMsg);
-          window.ReactNativeWebView.postMessage(stringifiedMsg);
-        } else {
-          console.warn('ReactNativeWebView.postMessage not found');
-        }
-      } catch (e) {
-        console.error('Error sending message to React Native:', e);
+    function waitForBridge() {
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        initializeBridge();
+      } else {
+        setTimeout(waitForBridge, 100);
       }
     }
 
-    window.ReactNativeBridge = {
-      postMessage: sendMessage
-    };
+    function initializeBridge() {
+      function sendMessage(msg) {
+        try {
+          const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+          window.ReactNativeWebView.postMessage(stringifiedMsg);
+        } catch (e) {
+          console.error('Error sending message to React Native:', e);
+        }
+      }
 
-    // Test bridge
-    sendMessage({
-      type: 'test',
-      message: 'Bridge initialized'
-    });
+      window.ReactNativeBridge = {
+        postMessage: sendMessage
+      };
 
-    const originalPostMessage = window.postMessage;
-    window.postMessage = function(msg) {
-      sendMessage(msg);
-      // if (typeof originalPostMessage === 'function') {
-      //   originalPostMessage.apply(window, arguments);
-      // }
-    };
+      // Notify native that bridge is ready
+      sendMessage({
+        type: 'bridgeReady',
+        message: 'Bridge initialized'
+      });
+    }
+
+    // Start waiting for the bridge to be ready
+    waitForBridge();
   })();
 `;
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
-  console.log('[OnRampScreen] Initializing with route params:', route.params);
-  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
-    route.params;
+  const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } = route.params;
+  const [isWebViewReady, setIsWebViewReady] = useState(false);
 
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<WebViewBridge | null>(null);
 
-  console.log('[OnRampScreen] WebView and Bridge refs created');
-
   const handleSuccess = useCallback(
     (data: OnRampSuccessData) => {
-      console.log('[OnRampScreen] Success callback triggered with data:', data);
       onSuccess?.(data?.message || 'Transaction completed successfully');
-      onClose();
+      onClose?.();
     },
     [onSuccess, onClose],
   );
 
-  // const navigateBack = () => {
-  //   if (onClose) {
-  //     onClose();
-  //   }
-  //   navigation.goBack();
-  // };
-
   const handleError = useCallback(
     (error: string) => {
-      console.error('[OnRampScreen] Error callback triggered:', error);
       onError?.(error);
-      onClose();
+      onClose?.();
     },
     [onError, onClose],
   );
 
   const handleClose = useCallback(() => {
-    console.log('[OnRampScreen] Close callback triggered');
     navigation.goBack();
-  }, [onClose, navigation]);
+  }, [navigation]);
 
   const handleProgress = useCallback(
     (progress: number) => {
@@ -139,19 +126,12 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   ]);
 
   const handleWebViewMessage = useCallback((event: WebViewMessageEvent) => {
-    console.log(
-      '[OnRampScreen] Received message from WebView:',
-      event.nativeEvent.data,
-    );
-    try {
-      // Verify the message can be parsed
-      const parsed = JSON.parse(event.nativeEvent.data);
-      console.log('Parsed message:', parsed);
-      bridgeRef.current?.handleMessage(event);
-    } catch (e) {
-      console.error('Failed to parse message:', e);
+    if (!isWebViewReady) {
+      setTimeout(() => handleWebViewMessage(event), 100);
+      return;
     }
-  }, []);
+    bridgeRef.current?.handleMessage(event);
+  }, [isWebViewReady]);
 
   const handleWebViewError = useCallback(() => {
     handleError(
@@ -169,6 +149,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           onMessage={handleWebViewMessage}
           injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
+          onLoadEnd={() => setIsWebViewReady(true)}
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="compatibility"
@@ -180,6 +161,9 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           showsVerticalScrollIndicator={false}
           startInLoadingState
           allowsLinkPreview={false}
+          cacheEnabled={true}
+          thirdPartyCookiesEnabled={true}
+          renderToHardwareTextureAndroid={true}
         />
       </View>
     </SafeAreaView>
