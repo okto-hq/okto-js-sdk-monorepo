@@ -63,32 +63,17 @@ export class WebViewBridge {
       const message = this.parseMessage(event.nativeEvent.data);
       if (!message) return;
 
-      // Skip processing messages that are responses from our own bridge
       if (message.params?.source === this.SOURCE_NAME) {
         console.log('[WebViewBridge] Skipping own response message');
         return;
       }
 
-      // Handle bridge ready message
       if (message.type === 'bridge_ready') {
         console.log('[WebViewBridge] Bridge is ready');
         return;
       }
 
-      // Handle legacy message format
-      console.log(
-        `[WebViewBridge] Processing legacy message type: ${message.type} ${message.channel}`,
-        {
-          params: message.params,
-          id: message.id,
-        },
-      );
-
       switch (message.type) {
-        case 'nativeBack':
-          console.log('[WebViewBridge] Handling nativeBack event');
-          this.handleNativeBack(message.params);
-          break;
         case 'data':
           console.log('[WebViewBridge] Handling data request');
           await this.handleDataRequest(message);
@@ -124,13 +109,6 @@ export class WebViewBridge {
       console.error('Error parsing message:', error);
       return null;
     }
-  }
-
-  private handleNativeBack(params?: { control?: boolean }): void {
-    if (params?.control) {
-      // this.callbacks.onClose?.();
-    }
-    // Add other back navigation logic if needed
   }
 
   private async handleDataRequest(message: WebViewMessage): Promise<void> {
@@ -285,10 +263,10 @@ export class WebViewBridge {
             window.responseChannel(msg);
           }
           
-          // Then try postMessage as fallback
-          if (window.postMessage) {
-            window.postMessage(msg, '*');
-          }
+          // // Then try postMessage as fallback
+          // if (window.postMessage) {
+          //   window.postMessage(msg, '*');
+          // }
           
           // Finally dispatch as custom event
           const event = new CustomEvent('nativeResponse', { detail: msg });
