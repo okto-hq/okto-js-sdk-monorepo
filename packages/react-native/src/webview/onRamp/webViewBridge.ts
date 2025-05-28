@@ -264,13 +264,13 @@ export class WebViewBridge {
           }
           
           // // Then try postMessage as fallback
-          // if (window.postMessage) {
-          //   window.postMessage(msg, '*');
-          // }
+          if (window.postMessage) {
+            window.postMessage(msg, '*');
+          }
           
-          // Finally dispatch as custom event
-          const event = new CustomEvent('nativeResponse', { detail: msg });
-          window.dispatchEvent(event);
+          // // Finally dispatch as custom event
+          // const event = new CustomEvent('nativeResponse', { detail: msg });
+          // window.dispatchEvent(event);
         } catch (e) {
           console.error('[WebViewBridge] Failed to post response to WebView:', e);
         }
