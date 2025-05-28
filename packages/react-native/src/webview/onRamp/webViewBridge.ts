@@ -217,6 +217,10 @@ export class WebViewBridge {
   }
 
   private sendResponse( response: WebViewResponse): void{
+    if(!this.webViewRef.current){
+      console.warn('[WebViewBridge] WebView reference is null, cannot send response');
+    }
+
     console.log('[WebViewBridge] Sending response to WebView:', {
       type: response.type,
       id: response.id,
@@ -227,7 +231,7 @@ export class WebViewBridge {
     const js = `
       (function() {
         try {
-          const msg = ${response};
+          const msg = ${JSON.stringify(response)};
           window.postMessage(msg, '*');
         } catch (e) {
           console.error('Failed to post message to WebView:', e);
