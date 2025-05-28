@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -69,6 +69,58 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
     },
     [onSuccess, onClose],
   );
+
+  const [injectedData, setInjectedData] = useState('');
+
+useEffect(() => {
+  const prepareData = async () => {
+    const onRampService = new OnRampService({}, oktoClient);
+    const remoteConfigValue = await onRampService.getRemoteConfigValue('yourKey');
+    const tokens = await onRampService.getOnRampTokens();
+    const token = tokens.find(t => t.id === tokenId);
+
+    const payloads = [];
+
+    if (token) {
+      payloads.push(`
+        window.postMessage({
+          type: 'data',
+          response: {
+            tokenData: ${JSON.stringify({
+              id: token.id,
+              name: token.name,
+              symbol: token.symbol,
+              iconUrl: token.iconUrl,
+              networkId: token.networkId,
+              networkName: token.networkName,
+              address: token.address,
+              precision: token.precision,
+              chainId: token.chainId,
+            })}
+          },
+          source: 'okto_web',
+          id: ${token.id}
+        }, '*');
+      `);
+    }
+
+    payloads.push(`
+      window.postMessage({
+        type: 'data',
+        response: {
+          yourKey: ${JSON.stringify(remoteConfigValue)}
+        },
+        source: 'okto_web',
+        id: 'remote-config'
+      }, '*');
+    `);
+
+    setInjectedData(payloads.join('\n'));
+  };
+
+  prepareData();
+}, []);
+
 
   // const navigateBack = () => {
   //   if (onClose) {
@@ -167,6 +219,23 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
           ref={webViewRef}
           source={{ uri: url }}
           onMessage={handleWebViewMessage}
+          injectedJavaScriptBeforeContentLoaded={`
+            (function() {
+              // Bridge Setup
+              window.ReactNativeBridge = {
+                postMessage: function(msg) {
+                  try {
+                    const stringifiedMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+                    window.ReactNativeWebView?.postMessage(stringifiedMsg);
+                  } catch (e) {
+                    console.error('Bridge error:', e);
+                  }
+                }
+              };
+        
+              ${injectedData}
+            })();
+          `}
           injectedJavaScript={INJECTED_JAVASCRIPT}
           onError={handleWebViewError}
           javaScriptEnabled
