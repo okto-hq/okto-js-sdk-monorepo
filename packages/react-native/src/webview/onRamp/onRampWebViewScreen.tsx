@@ -114,7 +114,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
       (function() {
         try {
           const msg = ${JSON.stringify(initialTokenData)};
-          console.log('[WebViewBridge] Posting message from React Native to WebView:', msg);
+          console.log('[karan] Posting message from React Native to WebView:', msg);
           window.postMessage(msg, '*');
         } catch (e) {
           console.error('Failed to post message to WebView:', e);
