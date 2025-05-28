@@ -48,18 +48,43 @@ const INJECTED_JAVASCRIPT = `
     // Create the bridge object
     window.ReactNativeBridge = { postMessage: sendToNative };
     
-    // Response channel with validation
+    // Enhanced response channel with better JSON handling
     window.responseChannel = function(hostRes) {
       try {
         if (!hostRes) {
           console.warn('[WebViewBridge] Empty response received');
-          return;
+          return null;
         }
-        console.log('[WebViewBridge] Response channel called:', hostRes);
         
-        // Handle the response here if needed
+        // If hostRes is already an object, use it directly
+        if (typeof hostRes === 'object') {
+          console.log('[WebViewBridge] Response channel received object:', hostRes);
+          return hostRes;
+        }
+        
+        // If it's a string, try to parse it
+        if (typeof hostRes === 'string') {
+          // Check if string is empty or just whitespace
+          if (!hostRes.trim()) {
+            console.warn('[WebViewBridge] Empty string response received');
+            return null;
+          }
+          
+          try {
+            const parsed = JSON.parse(hostRes);
+            console.log('[WebViewBridge] Response channel parsed:', parsed);
+            return parsed;
+          } catch (e) {
+            console.error('[WebViewBridge] Failed to parse response:', e, 'Raw response:', hostRes);
+            return hostRes; // Return the raw string if parsing fails
+          }
+        }
+        
+        console.log('[WebViewBridge] Response channel received unknown type:', typeof hostRes, hostRes);
+        return hostRes;
       } catch (e) {
         console.error('[WebViewBridge] Error in responseChannel:', e);
+        return null;
       }
     };
 
@@ -75,26 +100,26 @@ const INJECTED_JAVASCRIPT = `
         if (typeof message === 'object' && message.source === 'okto_web') {
           console.log('[WebViewBridge] Handling native response:', message);
           
-          if (typeof window.responseChannel === 'function') {
-            window.responseChannel(message);
+          const response = window.responseChannel(message);
+          if (response) {
+            const event = new MessageEvent('message', {
+              data: response,
+              origin: targetOrigin || window.location.origin,
+            });
+            window.dispatchEvent(event);
           }
-          
-          const event = new MessageEvent('message', {
-            data: message,
-            origin: targetOrigin || window.location.origin,
-          });
-          window.dispatchEvent(event);
           return;
         }
         
         // Send to native if not from native
-        if (typeof message === 'string'  && message.trim() !== '' ) {
+        if (typeof message === 'string') {
           try {
             const parsed = JSON.parse(message);
             if (!parsed.source || parsed.source !== 'okto_web') {
               sendToNative(message);
             }
           } catch (e) {
+            // If parsing fails, it's not JSON - send as-is
             sendToNative(message);
           }
         } else if (!message.source || message.source !== 'okto_web') {
@@ -112,10 +137,9 @@ const INJECTED_JAVASCRIPT = `
         if (!event?.data) return;
         
         console.log('[WebViewBridge] Received message event:', event.data);
-        if (event.data.source === 'okto_web') {
-          if (typeof window.responseChannel === 'function') {
-            window.responseChannel(event.data);
-          }
+        const response = window.responseChannel(event.data);
+        if (response && response.source === 'okto_web') {
+          // Handle the response as needed
         }
       } catch (e) {
         console.error('[WebViewBridge] Error in message handler:', e);
