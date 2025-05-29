@@ -74,6 +74,9 @@ export class WebViewBridge {
       }
 
       console.log(
+        'KARAN :: [WebViewBridge] Handling message:',message)
+
+      console.log(
         '[WebViewBridge] Handling message type :',message.type)
 
       switch (message.type) {
@@ -92,7 +95,7 @@ export class WebViewBridge {
           console.log('[WebViewBridge] Handling requestPermission ');
           await this.handlePermissionRequest(message);
           break;
-        case 'requestPermissionAck':
+        case 'requestPermission_ack':
           console.log('[WebViewBridge] Handling requestPermission ACK');
           this.handlePermissionAck(message);
           break;
