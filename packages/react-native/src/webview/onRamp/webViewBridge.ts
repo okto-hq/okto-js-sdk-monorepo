@@ -2,7 +2,6 @@ import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.js';
 import type { OnRampService } from './onRampService.js';
-import { Linking } from 'react-native';
 
 type WebViewParams = {
   control?: boolean;
@@ -207,12 +206,28 @@ export class WebViewBridge {
   private handleUrl(params?: { url?: string }): void {
     if (params?.url) {
       console.log(
-        '[WebViewBridge] Opening URL in external browser:',
+        '[WebViewBridge] Navigating to URL within WebView:',
         params.url,
       );
-      Linking.openURL(params.url).catch((err) =>
-        console.error('Failed to open URL:', err),
-      );
+      
+      // Navigate within the same WebView instead of opening externally
+      if (this.webViewRef.current) {
+        const navigationJS = `
+          (function() {
+            try {
+              console.log('[WebViewBridge] Navigating to: ${params.url}');
+              window.location.href = '${params.url}';
+            } catch (e) {
+              console.error('[WebViewBridge] Navigation error:', e);
+            }
+          })();
+        `;
+        
+        this.webViewRef.current.injectJavaScript(navigationJS);
+        // this.webViewRef.current.reload();
+      } else {
+        console.warn('[WebViewBridge] WebView reference is null, cannot navigate');
+      }
     }
   }
 
