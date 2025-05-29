@@ -73,6 +73,9 @@ export class WebViewBridge {
         return;
       }
 
+      console.log(
+        '[WebViewBridge] Handling message type :',message.type)
+
       switch (message.type) {
         case 'data':
           console.log('[WebViewBridge] Handling data request');
@@ -86,9 +89,11 @@ export class WebViewBridge {
           this.handleUrl({ url: message.params?.url });
           break;
         case 'requestPermission':
+          console.log('[WebViewBridge] Handling requestPermission ');
           await this.handlePermissionRequest(message);
           break;
         case 'requestPermissionAck':
+          console.log('[WebViewBridge] Handling requestPermission ACK');
           this.handlePermissionAck(message);
           break;
         case 'analytics':
