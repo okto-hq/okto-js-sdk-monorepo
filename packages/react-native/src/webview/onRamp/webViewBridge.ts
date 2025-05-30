@@ -17,7 +17,11 @@ type WebViewMessage = {
   params?: WebViewParams;
   id?: string;
   response?: Record<string, unknown>;
-  channel?: string; // Added to support channel-based messages
+  channel?: string;
+  detail?: {
+    paymentStatus?: string;
+    [key: string]: unknown;
+  };
 };
 
 type WebViewResponse = {
@@ -77,6 +81,17 @@ export class WebViewBridge {
 
       console.log(
         '[WebViewBridge] Handling message type :',message.type)
+
+        if (message.type === 'onMetaHandler') {
+          this.handleMetaEvent(message);
+          return;
+        }
+    
+        // Handle special cases
+        if (message.type === 'onRampCompleted') {
+          this.handleOnRampCompleted();
+          return;
+        }
 
       switch (message.type) {
         case 'data':
@@ -185,6 +200,13 @@ export class WebViewBridge {
               return;
             }
             break;
+            case 'orderSuccessBottomSheet':
+              this.handleOrderSuccess();
+              break;
+            case 'orderFailureBottomSheet':
+              this.handleOrderFailure();
+              break;
+
           default:
             console.warn(`Unknown data key: ${key}`);
             return;
@@ -203,14 +225,46 @@ export class WebViewBridge {
     }
   }
 
+  private handleMetaEvent(message: WebViewMessage): void {
+    try {
+      const detail = message.detail;
+      if (!detail) return;
+
+      this.callbacks.onClose?.();
+
+      if (detail.paymentStatus === 'success') {
+        this.callbacks.onSuccess?.(JSON.stringify(detail, null, 2));
+      } else if (detail.paymentStatus === 'failed') {
+        this.callbacks.onError?.(JSON.stringify(detail, null, 2));
+      }
+    } catch (error) {
+      console.error('[WebViewBridge] Error handling meta event:', error);
+    }
+  }
+
+  private handleOnRampCompleted(): void {
+    this.callbacks.onClose?.();
+    this.callbacks.onSuccess?.(
+      'Transaction successful. It may take a few minutes to complete!',
+    );
+  }
+
+  private handleOrderSuccess(): void {
+    this.handleOnRampCompleted();
+  }
+
+  private handleOrderFailure(): void {
+    this.callbacks.onClose?.();
+    this.callbacks.onError?.('Transaction failed. Please try again');
+  }
+
   private handleUrl(params?: { url?: string }): void {
     if (params?.url) {
       console.log(
         '[WebViewBridge] Navigating to URL within WebView:',
         params.url,
       );
-      
-      // Navigate within the same WebView instead of opening externally
+    
       if (this.webViewRef.current) {
         const navigationJS = `
           (function() {
@@ -224,8 +278,6 @@ export class WebViewBridge {
         `;
         
         this.webViewRef.current.injectJavaScript(navigationJS);
-        
-        // this.webViewRef.current.reload();
       } else {
         console.warn('[WebViewBridge] WebView reference is null, cannot navigate');
       }
