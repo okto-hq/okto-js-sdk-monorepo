@@ -58,6 +58,7 @@ export class Constants {
       ENTRYPOINT_CONTRACT_ADDRESS:
         '0x0b643Bcd21a72b10075F1938Ebebba6E077A1742' as Hex,
       CHAIN_ID: 8088,
+      ON_RAMP_URL: 'https://pay.okto.tech',
       AUTH_PAGE_URL: 'https://onboarding.okto.tech/',
       AUTH_REDIRECT_URL: 'https://onboarding.okto.tech/__/auth/handler',
     },

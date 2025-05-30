@@ -35,4 +35,5 @@ export const productionEnvConfig: EnvConfig = {
   chainId: Constants.ENV_CONFIG.PRODUCTION.CHAIN_ID,
   authPageUrl: Constants.ENV_CONFIG.PRODUCTION.AUTH_PAGE_URL,
   authRedirectUrl: Constants.ENV_CONFIG.PRODUCTION.AUTH_REDIRECT_URL,
+  onrampUrl: Constants.ENV_CONFIG.PRODUCTION.ON_RAMP_URL,
 };
