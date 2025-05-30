@@ -1,5 +1,5 @@
-import { getStorage } from '../../utils/storageUtils.js';
 import type { OnrampConfig } from './types.js';
+import localConfig from './localConfig.json' with { type: 'json' };
 
 interface ConfigValue {
   stringValue: string;
@@ -49,21 +49,15 @@ export class RemoteConfigService {
 
   public async initialize(): Promise<void> {
     if (this.isLoaded) return;
-
+  
     try {
-      const storedConfig = getStorage('okto_remote_config');
-      if (storedConfig) {
-        this.parseConfig(JSON.parse(storedConfig) as RemoteConfigData);
-      } else {
-        this.setDefaultConfig();
-      }
+      this.parseConfig(localConfig as RemoteConfigData);
     } catch (error) {
       console.error('Error loading config:', error);
       this.setDefaultConfig();
     }
     this.isLoaded = true;
   }
-
   public async getConfigValue(key: string): Promise<ConfigValue> {
     await this.initialize();
     return this.configValues.get(key) || this.createConfigValue('', 'STRING');
