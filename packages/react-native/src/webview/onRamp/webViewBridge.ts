@@ -282,10 +282,10 @@ export class WebViewBridge {
           const msg = ${responseString};
           console.log('[WebViewBridge] Posting response message to WebView:', msg);
   
-          // First try the responseChannel
-          if (window.responseChannel && typeof window.responseChannel === 'function') {
-            window.responseChannel(msg);
-          }
+          // // First try the responseChannel
+          // if (window.responseChannel && typeof window.responseChannel === 'function') {
+          //   window.responseChannel(msg);
+          // }
           
           // // Then try postMessage as fallback
           if (window.postMessage) {
