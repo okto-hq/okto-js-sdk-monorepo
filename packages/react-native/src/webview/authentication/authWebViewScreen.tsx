@@ -8,6 +8,7 @@ import { WebViewBridge } from './webViewBridge.js';
 import type { WebViewParamList } from './types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
+import type { Env } from '@okto_web3/core-js-sdk/core';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
@@ -38,7 +39,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   if (!oktoClientRef.current) {
     oktoClientRef.current = new OktoClient({
-      environment: clientConfig.environment as 'staging' | 'sandbox',
+      environment: clientConfig.environment as Env,
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
     });
