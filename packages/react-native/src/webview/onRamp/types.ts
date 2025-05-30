@@ -1,5 +1,7 @@
+import type { OktoClient } from '@okto_web3/core-js-sdk';
+
 export interface OnrampCallbacks {
-  onSuccess?: (data?: any) => void;
+  onSuccess?: (data?: string) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
   onProgress?: (progress: number) => void;
@@ -14,7 +16,6 @@ export interface OnrampConfig {
   maxRetries: number;
 }
 
-// WebEvents enum matching Flutter implementation
 export enum WebEvent {
   ANALYTICS = 'analytics',
   CLOSE = 'close',
@@ -37,7 +38,6 @@ export type OnRampToken = {
   chainId: string | number;
 };
 
-// WebKeys matching Flutter implementation
 export const WebKeys = {
   REMOTE_CONFIG: 'remote-config',
   TRANSACTION_ID: 'payToken',
@@ -53,9 +53,9 @@ export type OnRampParamList = {
   OnRampScreen: {
     url: string;
     tokenId: string;
-    oktoClient: any;
+    oktoClient: OktoClient;
     onClose: () => void;
-    onSuccess?: (data?: any) => void;
+    onSuccess?: (data?: string) => void;
     onError?: (error: string) => void;
     onProgress?: (progress: number) => void;
   };

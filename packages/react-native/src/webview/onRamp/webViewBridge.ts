@@ -237,9 +237,9 @@ export class WebViewBridge {
 
   private handleUrl(url?: string): void {
     if (!url) return;
-  
+
     console.log('[WebViewBridge] Handling URL:', url);
-  
+
     if (!this.webViewRef.current) {
       console.warn('[WebViewBridge] WebView reference is null');
       return;
@@ -254,7 +254,7 @@ export class WebViewBridge {
         }
       })();
     `;
-  
+
     this.webViewRef.current.injectJavaScript(js);
   }
 
@@ -429,7 +429,7 @@ export class WebViewBridge {
     );
 
     const responseString = JSON.stringify(response);
-    
+
     const js = `
       (function() {
         try {

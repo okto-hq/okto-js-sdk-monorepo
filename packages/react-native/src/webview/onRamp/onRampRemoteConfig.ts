@@ -49,7 +49,7 @@ export class RemoteConfigService {
 
   public async initialize(): Promise<void> {
     if (this.isLoaded) return;
-  
+
     try {
       this.parseConfig(localConfig as RemoteConfigData);
     } catch (error) {

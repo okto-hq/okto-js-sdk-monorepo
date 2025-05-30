@@ -13,7 +13,6 @@ import type { OnrampCallbacks, OnRampParamList } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
-type OnRampSuccessData = { message?: string };
 
 const INJECTED_JAVASCRIPT = `
   (function() {
@@ -172,9 +171,9 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   console.log('[OnRampScreen] WebView and Bridge refs created');
 
   const handleSuccess = useCallback(
-    (data: OnRampSuccessData) => {
+    (data?: string) => {
       console.log('[OnRampScreen] Success callback triggered with data:', data);
-      onSuccess?.(data?.message || 'Transaction completed successfully');
+      onSuccess?.(data || 'Transaction completed successfully');
       onClose();
     },
     [onSuccess, onClose],

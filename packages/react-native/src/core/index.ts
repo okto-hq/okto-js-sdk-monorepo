@@ -172,7 +172,6 @@ class OktoClient extends OktoCoreClient {
     } = {},
   ): Promise<void> {
     try {
-      // Check if OnRamp is enabled
       const remoteConfig = RemoteConfigService.getInstance();
       const config = await remoteConfig.getOnrampConfig();
 
