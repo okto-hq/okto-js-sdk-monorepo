@@ -6,6 +6,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type {
   Address,
   AuthData,
+  OnrampOptions,
   SocialAuthType,
 } from '@okto_web3/core-js-sdk/types';
 
@@ -23,10 +24,13 @@ import type {
   WebViewResponseOptions,
 } from 'src/webview/types.js';
 import { WebViewManager } from '../webview/webViewManager.js';
+import { OktoOnrampWebView } from '../webview/onramp/onrampWebView.js';
+import { OnrampRequestHandler } from '../webview/onramp/onrampRequestHandler.js';
 
 class OktoClient extends OktoCoreClient {
   private webViewManager: WebViewManager | undefined;
   private authWebView: OktoAuthWebView | undefined;
+  private oktoOnrampWebView: OktoOnrampWebView | undefined;
 
   constructor(config: OktoClientConfig) {
     super(config);
@@ -49,6 +53,14 @@ class OktoClient extends OktoCoreClient {
     this.webViewManager = new WebViewManager(debugMode, options);
     const authHandler = new AuthRequestHandler(this.webViewManager, this);
     this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
+    const onrampRequestHandler = new OnrampRequestHandler(
+      this.webViewManager,
+      this,
+    );
+    this.oktoOnrampWebView = new OktoOnrampWebView(
+      this.webViewManager,
+      onrampRequestHandler,
+    );
   }
 
   public authenticateWithWebView(
@@ -189,6 +201,25 @@ class OktoClient extends OktoCoreClient {
   override sessionClear(): void {
     clearLocalStorage('okto_session');
     return super.sessionClear();
+  }
+
+  public async openOnrampWebView(tokenId: string, options?: OnrampOptions) {
+    if (!this.webViewManager) {
+      throw new Error('WebViewManager is not initialized.');
+    }
+    const onrampUrl = await this.generateOnrampUrl(tokenId, options);
+    return this.oktoOnrampWebView?.open({
+      url: onrampUrl,
+      onSuccess: (data) => {
+        console.log('Onramp WebView closed successfully:', data);
+      },
+      onClose: () => {
+        console.log('Onramp WebView closed by user.');
+      },
+      onError: (error) => {
+        console.error('Error in Onramp WebView:', error);
+      },
+    });
   }
 }
 
