@@ -393,8 +393,18 @@ export class WebViewBridge {
       (function() {
         try {
           const msg = ${message};
-          if (window.postMessage) window.postMessage(msg, '*');
-          const event = new CustomEvent('nativeMessage', { detail: msg });
+          // First try the responseChannel
+          if (window.responseChannel && typeof window.responseChannel === 'function') {
+            window.responseChannel(msg);
+          }
+          
+          // // Then try postMessage as fallback
+          if (window.postMessage) {
+            window.postMessage(msg, '*');
+          }
+          
+          // Finally dispatch as custom event
+          const event = new CustomEvent('nativeResponse', { detail: msg });
           window.dispatchEvent(event);
         } catch (e) {
           console.error('Failed to post message:', e);
@@ -407,24 +417,44 @@ export class WebViewBridge {
 
   private sendResponse(response: WebViewResponse): void {
     if (!this.webViewRef.current) {
-      console.warn('[WebViewBridge] WebView reference is null');
+      console.warn(
+        '[WebViewBridge] WebView reference is null, cannot send response',
+      );
       return;
     }
 
+    console.log(
+      '[WebViewBridge] Sending response to WebView:',
+      JSON.stringify(response),
+    );
+
+    const responseString = JSON.stringify(response);
+    
     const js = `
       (function() {
         try {
-          const msg = ${JSON.stringify(response)};
-          if (window.responseChannel) window.responseChannel(msg);
-          if (window.postMessage) window.postMessage(msg, '*');
+          const msg = ${responseString};
+          console.log('[WebViewBridge] Posting response message to WebView:', msg);
+  
+          // First try the responseChannel
+          if (window.responseChannel && typeof window.responseChannel === 'function') {
+            window.responseChannel(msg);
+          }
+          
+          // // Then try postMessage as fallback
+          if (window.postMessage) {
+            window.postMessage(msg, '*');
+          }
+          
+          // Finally dispatch as custom event
           const event = new CustomEvent('nativeResponse', { detail: msg });
           window.dispatchEvent(event);
         } catch (e) {
-          console.error('Failed to post response:', e);
+          console.log('[WebViewBridge] Failed to post response to WebView:', e);
         }
       })();
     `;
 
-    this.webViewRef.current.injectJavaScript(js);
+    this.webViewRef.current?.injectJavaScript(js);
   }
 }
