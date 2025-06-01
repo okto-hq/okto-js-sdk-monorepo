@@ -3,3 +3,4 @@ export * from './bff/index.js';
 export * from './core.js';
 export * from './gateway/index.js';
 export * from './auth/social.js';
+export * from './onramp.js';
