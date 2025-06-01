@@ -1,4 +1,8 @@
-import type { ApiResponse, ApiResponseWithCount, UserOp } from '@/types/index.js';
+import type {
+  ApiResponse,
+  ApiResponseWithCount,
+  UserOp,
+} from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
 import type {
@@ -13,9 +17,17 @@ import type {
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type { Token } from '@/types/bff/tokens.js';
-import type { AuthenticatePayloadParam, AuthenticateResult, UserSessionResponse } from '@/types/gateway/authenticate.js';
+import type {
+  AuthenticatePayloadParam,
+  AuthenticateResult,
+  UserSessionResponse,
+} from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
-import type { GetUserKeysResult, SignMessageParams, SignMessageResult } from '@/types/gateway/signMessage.js';
+import type {
+  GetUserKeysResult,
+  SignMessageParams,
+  SignMessageResult,
+} from '@/types/gateway/signMessage.js';
 import type { ExecuteResult } from '@/types/gateway/execute.js';
 import type { getUserOperationGasPriceResult } from '@/types/gateway/g.js';
 
@@ -39,7 +51,6 @@ class BffClientRepository {
     authenticate: '/api/oc/v1/authenticate',
     execute: '/api/oc/v1/execute',
     signMessage: '/api/oc/v1/signMessage',
-
   };
 
   /**

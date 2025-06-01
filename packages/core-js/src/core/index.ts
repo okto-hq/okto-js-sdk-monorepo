@@ -190,10 +190,7 @@ class OktoClient {
     );
 
     try {
-      const authRes = await BffClientRepository.authenticate(
-        this,
-        authPayload,
-      );
+      const authRes = await BffClientRepository.authenticate(this, authPayload);
 
       // TODO: Update with SessionKey Object
       this._sessionConfig = {
