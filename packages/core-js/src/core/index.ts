@@ -627,4 +627,4 @@ class OktoClient {
 }
 
 export default OktoClient;
-export type { SessionConfig } from './types.js';
+export type { SessionConfig, Env } from './types.js';

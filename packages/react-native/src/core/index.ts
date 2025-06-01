@@ -7,6 +7,7 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type {
   Address,
   AuthData,
+  OnrampOptions,
   SocialAuthType,
 } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
@@ -16,17 +17,11 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
+import { RemoteConfigService } from '../webview/onRamp/onRampRemoteConfig.js';
+import type { UIConfig } from 'src/webview/authentication/types.js';
 
 interface NavigationProps {
-  navigate: (
-    screen: string,
-    params: {
-      url: string;
-      clientConfig: OktoClientConfig;
-      redirectUrl: string;
-      onWebViewClose: () => void;
-    },
-  ) => void;
+  navigate: (screen: string, params: unknown) => void;
 }
 
 class OktoClient extends OktoCoreClient {
@@ -75,6 +70,26 @@ class OktoClient extends OktoCoreClient {
     });
   }
 
+  override loginUsingEmail(
+    email: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    return super.loginUsingEmail(
+      email,
+      otp,
+      token,
+      (session) => {
+        setStorage('okto_session', JSON.stringify(session));
+        this.setSessionConfig(session);
+        onSuccess?.(session);
+      },
+      overrideSessionConfig,
+    );
+  }
+
   override async loginUsingSocial(
     provider: SocialAuthType,
     options: { redirectUrl: string },
@@ -89,7 +104,6 @@ class OktoClient extends OktoCoreClient {
       platform: Platform.OS,
     };
 
-    // Clean up any existing sessions
     try {
       WebBrowser.maybeCompleteAuthSession();
       await WebBrowser.warmUpAsync();
@@ -115,32 +129,16 @@ class OktoClient extends OktoCoreClient {
     }
   }
 
-  override loginUsingEmail(
-    email: string,
-    otp: string,
-    token: string,
-    onSuccess?: (session: SessionConfig) => void,
-    overrideSessionConfig?: SessionConfig | undefined,
-  ): Promise<Address | RpcError | undefined> {
-    return super.loginUsingEmail(
-      email,
-      otp,
-      token,
-      (session) => {
-        setStorage('okto_session', JSON.stringify(session));
-        this.setSessionConfig(session);
-        onSuccess?.(session);
-      },
-      overrideSessionConfig,
-    );
-  }
-
   override sessionClear(): void {
     clearStorage('okto_session');
     return super.sessionClear();
   }
 
-  public openWebView(navigation: NavigationProps, redirectUrl: string): void {
+  public openWebView(
+    navigation: NavigationProps,
+    redirectUrl: string,
+    uiConfig?: UIConfig,
+  ): void {
     if (!redirectUrl) {
       throw new Error(
         '[OktoClient] redirectUrl is required for WebView authentication',
@@ -152,12 +150,67 @@ class OktoClient extends OktoCoreClient {
       url: authUrl,
       clientConfig: this.config,
       redirectUrl,
+      uiConfig,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
         console.log('Client SWA After Login', newClient.clientSWA);
         this.initializeSession();
       },
     });
+  }
+
+  /**
+   * Open OnRamp screen for purchasing tokens
+   */
+  public async openOnRamp(
+    navigation: NavigationProps,
+    tokenId: string,
+    options: OnrampOptions & {
+      onSuccess?: (message: string) => void;
+      onError?: (error: string) => void;
+      onClose?: () => void;
+    } = {},
+  ): Promise<void> {
+    try {
+      const remoteConfig = RemoteConfigService.getInstance();
+      const config = await remoteConfig.getOnrampConfig();
+
+      if (!config.onRampEnabled) {
+        throw new Error('OnRamp is currently disabled');
+      }
+
+      // Prepare onramp options
+      const onrampOptions: OnrampOptions = {
+        theme: config.theme,
+        countryCode: config.countryCode,
+        appVersion: config.appVersion,
+        screenSource: 'portfolio_screen',
+        ...options,
+      };
+
+      // Generate OnRamp URL
+      const url = await this.generateOnrampUrl(tokenId, onrampOptions);
+
+      if (!url) {
+        throw new Error('Failed to generate OnRamp URL');
+      }
+
+      // Navigate to OnRamp screen
+      navigation.navigate('OnRampScreen', {
+        url,
+        tokenId,
+        oktoClient: this,
+        onClose: options.onClose || (() => {}),
+        onSuccess: options.onSuccess,
+        onError: options.onError,
+      });
+    } catch (error) {
+      console.error('[OktoClient] OnRamp error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to open OnRamp';
+      options.onError?.(errorMessage);
+      throw error;
+    }
   }
 }
 
