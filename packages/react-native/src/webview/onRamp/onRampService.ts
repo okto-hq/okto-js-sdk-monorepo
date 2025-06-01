@@ -14,12 +14,10 @@ import {
 } from '@okto_web3/core-js-sdk/explorer';
 import type {
   UserPortfolioData,
-  SupportedRampTokensResponse,
+  WhitelistedToken,
 } from '@okto_web3/core-js-sdk/types';
 import type { OnrampConfig, OnRampToken } from './types.js';
 import { RemoteConfigService } from './onRampRemoteConfig.js';
-
-type WhitelistedToken = SupportedRampTokensResponse['onrampTokens'][number];
 
 interface PermissionResponse {
   status:
