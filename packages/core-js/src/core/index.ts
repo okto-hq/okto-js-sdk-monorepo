@@ -1,5 +1,4 @@
 import BffClientRepository from '@/api/bff.js';
-import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
@@ -191,7 +190,7 @@ class OktoClient {
     );
 
     try {
-      const authRes = await GatewayClientRepository.authenticate(
+      const authRes = await BffClientRepository.authenticate(
         this,
         authPayload,
       );
@@ -426,7 +425,7 @@ class OktoClient {
         throw new BaseError('User must be logged in to sync user keys');
       }
 
-      const res = await GatewayClientRepository.GetUserKeys(this);
+      const res = await BffClientRepository.GetUserKeys(this);
       this._userKeys = res;
 
       console.log(res);
@@ -495,7 +494,7 @@ class OktoClient {
     }
     validateUserOp(userop);
     try {
-      return await GatewayClientRepository.execute(this, userop);
+      return await BffClientRepository.execute(this, userop);
     } catch (error) {
       console.error('Error executing user operation:', error);
       throw error;
@@ -550,7 +549,7 @@ class OktoClient {
     );
 
     try {
-      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      const res = await BffClientRepository.SignMessage(this, signPayload);
       return `0x${res[0]?.signature}`;
     } catch (error) {
       if (error instanceof RpcError) {
@@ -589,7 +588,7 @@ class OktoClient {
     );
 
     try {
-      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      const res = await BffClientRepository.SignMessage(this, signPayload);
       return `0x${res[0]?.signature}`;
     } catch (error) {
       if (error instanceof RpcError) {
