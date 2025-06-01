@@ -1,37 +1,11 @@
 import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type { OnrampCallbacks } from './types.ts';
+import type {
+  OnrampCallbacks,
+  OnRampWebViewMessage,
+  OnRampWebViewResponse,
+} from './types.ts';
 import type { OnRampService } from './onRampService.ts';
-
-// Type definitions
-type WebViewParams = {
-  control?: boolean;
-  key?: string;
-  source?: string;
-  url?: string;
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
-};
-
-type WebViewMessage = {
-  type: string;
-  params?: WebViewParams;
-  id?: string;
-  response?: Record<string, unknown>;
-  channel?: string;
-  detail?: {
-    paymentStatus?: string;
-    [key: string]: unknown;
-  };
-};
-
-type WebViewResponse = {
-  type: string;
-  response: unknown;
-  source: string;
-  id: string;
-};
-
 const SOURCE_NAME = 'okto_web';
 
 export class WebViewBridge {
@@ -80,7 +54,7 @@ export class WebViewBridge {
     });
   }
 
-  private shouldSkipMessage(message: WebViewMessage): boolean {
+  private shouldSkipMessage(message: OnRampWebViewMessage): boolean {
     if (message.params?.source === SOURCE_NAME) {
       console.log('[WebViewBridge] Skipping own response message');
       return true;
@@ -94,7 +68,7 @@ export class WebViewBridge {
     return false;
   }
 
-  private async routeMessage(message: WebViewMessage): Promise<void> {
+  private async routeMessage(message: OnRampWebViewMessage): Promise<void> {
     console.log('[WebViewBridge] Handling message:', message);
 
     // Handle meta events first
@@ -134,7 +108,9 @@ export class WebViewBridge {
     }
   }
 
-  private parseMessage(data: string | WebViewMessage): WebViewMessage | null {
+  private parseMessage(
+    data: string | OnRampWebViewMessage,
+  ): OnRampWebViewMessage | null {
     try {
       return typeof data === 'string' ? JSON.parse(data) : data;
     } catch (error) {
@@ -143,7 +119,9 @@ export class WebViewBridge {
     }
   }
 
-  private async handleDataRequest(message: WebViewMessage): Promise<void> {
+  private async handleDataRequest(
+    message: OnRampWebViewMessage,
+  ): Promise<void> {
     const { params, id = '' } = message;
     if (!params?.key) return;
 
@@ -259,7 +237,7 @@ export class WebViewBridge {
   }
 
   private async handlePermissionRequest(
-    message: WebViewMessage,
+    message: OnRampWebViewMessage,
   ): Promise<void> {
     if (!message.params?.data) return;
 
@@ -272,7 +250,7 @@ export class WebViewBridge {
     }
   }
 
-  private handlePermissionGranted(message: WebViewMessage): void {
+  private handlePermissionGranted(message: OnRampWebViewMessage): void {
     if (message.params?.data) {
       const permissionData = {
         requestPermissions: message.params.data,
@@ -293,14 +271,14 @@ export class WebViewBridge {
     });
   }
 
-  private handlePermissionDenied(message: WebViewMessage): void {
+  private handlePermissionDenied(message: OnRampWebViewMessage): void {
     console.log('[WebViewBridge] Permission denied, showing retry dialog');
     this.showPermissionRetryDialog(() => {
       this.handlePermissionRequest(message);
     });
   }
 
-  private handlePermissionAck(message: WebViewMessage): void {
+  private handlePermissionAck(message: OnRampWebViewMessage): void {
     const ackModel = {
       ...message,
       type: 'requestPermission',
@@ -314,11 +292,11 @@ export class WebViewBridge {
     });
   }
 
-  private handleAnalytics(message: WebViewMessage): void {
+  private handleAnalytics(message: OnRampWebViewMessage): void {
     console.log('[WebViewBridge] Analytics event:', message.params);
   }
 
-  private handleMetaEvent(message: WebViewMessage): void {
+  private handleMetaEvent(message: OnRampWebViewMessage): void {
     try {
       const detail = message.detail;
       if (!detail) return;
@@ -356,7 +334,9 @@ export class WebViewBridge {
     setTimeout(onRetry, 2000);
   }
 
-  private createAckResponse(model: WebViewMessage): Record<string, unknown> {
+  private createAckResponse(
+    model: OnRampWebViewMessage,
+  ): Record<string, unknown> {
     return {
       type: model.type,
       id: model.id,
@@ -415,7 +395,7 @@ export class WebViewBridge {
     this.webViewRef.current.injectJavaScript(js);
   }
 
-  private sendResponse(response: WebViewResponse): void {
+  private sendResponse(response: OnRampWebViewResponse): void {
     if (!this.webViewRef.current) {
       console.warn(
         '[WebViewBridge] WebView reference is null, cannot send response',

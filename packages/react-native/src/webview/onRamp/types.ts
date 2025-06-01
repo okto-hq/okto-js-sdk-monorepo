@@ -60,3 +60,31 @@ export type OnRampParamList = {
     onProgress?: (progress: number) => void;
   };
 };
+
+export type OnRampWebViewParams = {
+  control?: boolean;
+  key?: string;
+  source?: string;
+  url?: string;
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+export type OnRampWebViewMessage = {
+  type: string;
+  params?: OnRampWebViewParams;
+  id?: string;
+  response?: Record<string, unknown>;
+  channel?: string;
+  detail?: {
+    paymentStatus?: string;
+    [key: string]: unknown;
+  };
+};
+
+export type OnRampWebViewResponse = {
+  type: string;
+  response: unknown;
+  source: string;
+  id: string;
+};
