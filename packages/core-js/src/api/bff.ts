@@ -4,6 +4,8 @@ import type OktoClient from '@/core/index.js';
 import type {
   Order,
   OrderFilterRequest,
+  ReadContractPayload,
+  ReadContractResponse,
   UserNFTBalance,
   UserPortfolioActivity,
   UserPortfolioData,
@@ -51,6 +53,7 @@ class BffClientRepository {
     // POST
     estimateOrder: '/api/oc/v1/estimate',
     verifySession: '/api/oc/v1/verify-session',
+    rawRead: '/api/oc/v1/readContractData',
   };
 
   /**
@@ -449,6 +452,29 @@ class BffClientRepository {
 
     if (!response.data.data) {
       throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Reads data from a smart contract using the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The updated request body containing advanced contract read parameters.
+   * @returns ReadContractResponse the contract read response.
+   * @throws Error if the read fails or throws error.
+   */
+  public static async rawRead(
+    oc: OktoClient,
+    requestBody: ReadContractPayload,
+  ): Promise<ReadContractResponse | undefined> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<ReadContractResponse>
+    >(this.routes.rawRead, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to read contract data');
     }
 
     return response.data.data;
