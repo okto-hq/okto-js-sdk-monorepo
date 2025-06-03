@@ -543,6 +543,7 @@ class OktoClient {
       this._sessionConfig,
       message,
       'EIP191',
+      this.env,
     );
 
     try {
@@ -582,6 +583,7 @@ class OktoClient {
       this._sessionConfig,
       data,
       'EIP712',
+      this.env,
     );
 
     try {

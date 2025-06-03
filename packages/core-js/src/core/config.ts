@@ -10,6 +10,8 @@ export const stagingEnvConfig: EnvConfig = {
   chainId: Constants.ENV_CONFIG.STAGING.CHAIN_ID,
   authPageUrl: Constants.ENV_CONFIG.STAGING.AUTH_PAGE_URL,
   authRedirectUrl: Constants.ENV_CONFIG.STAGING.AUTH_REDIRECT_URL,
+  signMessageMpcThreshold:
+    Constants.ENV_CONFIG.STAGING.SIGN_MESSAGE_MPC_THRESHOLD,
 };
 
 export const sandboxEnvConfig: EnvConfig = {
@@ -21,6 +23,8 @@ export const sandboxEnvConfig: EnvConfig = {
   chainId: Constants.ENV_CONFIG.SANDBOX.CHAIN_ID,
   authPageUrl: Constants.ENV_CONFIG.SANDBOX.AUTH_PAGE_URL,
   authRedirectUrl: Constants.ENV_CONFIG.SANDBOX.AUTH_REDIRECT_URL,
+  signMessageMpcThreshold:
+    Constants.ENV_CONFIG.SANDBOX.SIGN_MESSAGE_MPC_THRESHOLD,
 };
 
 export const productionEnvConfig: EnvConfig = {
@@ -33,4 +37,6 @@ export const productionEnvConfig: EnvConfig = {
   chainId: Constants.ENV_CONFIG.PRODUCTION.CHAIN_ID,
   authPageUrl: Constants.ENV_CONFIG.PRODUCTION.AUTH_PAGE_URL,
   authRedirectUrl: Constants.ENV_CONFIG.PRODUCTION.AUTH_REDIRECT_URL,
+  signMessageMpcThreshold:
+    Constants.ENV_CONFIG.PRODUCTION.SIGN_MESSAGE_MPC_THRESHOLD,
 };

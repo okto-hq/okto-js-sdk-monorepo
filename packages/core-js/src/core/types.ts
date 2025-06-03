@@ -11,6 +11,7 @@ export interface EnvConfig {
   chainId: number;
   authPageUrl: string;
   authRedirectUrl: string;
+  signMessageMpcThreshold: number;
 }
 
 export interface ClientConfig {
