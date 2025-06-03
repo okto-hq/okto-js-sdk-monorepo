@@ -40,6 +40,7 @@ export class Constants {
       CHAIN_ID: 124736089,
       AUTH_PAGE_URL: 'https://onboarding.oktostage.com/',
       AUTH_REDIRECT_URL: 'https://onboarding.oktostage.com/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 3,
     },
     SANDBOX: {
       PAYMASTER_ADDRESS: '0x74324fA6Fa67b833dfdea4C1b3A9898574d076e3' as Hex,
@@ -49,6 +50,7 @@ export class Constants {
       CHAIN_ID: 1802466136,
       AUTH_PAGE_URL: 'https://sandbox-onboarding.okto.tech/',
       AUTH_REDIRECT_URL: 'https://sandbox-onboarding.okto.tech/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 2,
     },
     PRODUCTION: {
       PAYMASTER_ADDRESS: '0xB0E2BD2EFb99F982F8cCB8e6737A572B3B0eCE11' as Hex,
@@ -58,6 +60,7 @@ export class Constants {
       CHAIN_ID: 8088,
       AUTH_PAGE_URL: 'https://onboarding.okto.tech/',
       AUTH_REDIRECT_URL: 'https://onboarding.okto.tech/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 2,
     },
   };
 

@@ -6,13 +6,14 @@ import { generateUUID } from '@/utils/nonce.js';
 import { sha256 } from '@noble/hashes/sha256';
 import { canonicalize } from 'json-canonicalize';
 import { signMessage } from 'viem/accounts';
-import type { SessionConfig } from './types.js';
+import type { EnvConfig, SessionConfig } from './types.js';
 
 export async function generateSignMessagePayload(
   userKeys: GetUserKeysResult,
   session: SessionConfig,
   message: string,
   signType: 'EIP191' | 'EIP712',
+  envConfig: EnvConfig,
 ): Promise<SignMessageParams> {
   //* Order of keys is important here
   const raw_message_to_sign = {
@@ -29,7 +30,7 @@ export async function generateSignMessagePayload(
   const base64_message = canonicalize(base64_message_to_sign);
 
   const setup_options = {
-    t: 3, // Threshold; 3,5 MPC
+    t: envConfig.signMessageMpcThreshold, // Threshold; 2,3 MPC
     key_id: userKeys.ecdsaKeyId,
     message: base64_message,
     // TODO: Add support for other signing algorithms (e.g. ed25519)

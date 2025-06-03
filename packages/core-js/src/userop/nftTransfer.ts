@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
@@ -17,6 +16,7 @@ import {
   NFTTransferIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
+import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -111,7 +111,7 @@ export async function nftTransfer(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const userOp: UserOp = {
     sender: oc.userSWA,
