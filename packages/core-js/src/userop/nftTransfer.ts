@@ -17,7 +17,6 @@ import {
   NFTTransferIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import GatewayClientRepository from '@/api/gateway.js';
 
 /**
  * Creates a user operation for NFT transfer.
@@ -112,19 +111,15 @@ export async function nftTransfer(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
-
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  const gasEstimation = await BffClientRepository.estimateUserOp(oc, {
+  const gasEstimation = await BffClientRepository.estimateGasLimits(oc, {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     callData: calldata,
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     paymasterData: paymasterData,
     paymaster: oc.env.paymasterAddress,
   });

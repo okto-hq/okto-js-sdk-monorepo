@@ -206,7 +206,7 @@ class BffClientRepository {
   /**
    * Estimates the gas limits for a user operation.
    */
-  public static async estimateUserOp(
+  public static async estimateGasLimits(
     oc: OktoClient,
     payload: EstimateGasLimitsPayload,
   ): Promise<EstimateGasLimitsResponse> {
