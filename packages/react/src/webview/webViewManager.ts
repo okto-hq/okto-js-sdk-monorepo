@@ -221,7 +221,8 @@ export class WebViewManager {
    */
   private get targetOrigin(): string {
     return this.validateTargetOrigin(
-      TARGET_ORIGIN_RESPONSE ??
+      this.currentTargetOrigin ??
+        TARGET_ORIGIN_RESPONSE ??
         this.allowedOrigins?.[0] ??
         window.location.origin,
     );
@@ -394,6 +395,36 @@ export class WebViewManager {
 
     if (this.debug) {
       console.groupCollapsed(`[WebViewManager] Sending response: ${method}`);
+      console.log('Request ID:', id);
+      console.log('Data:', data);
+      console.groupEnd();
+    }
+    this.webFrame?.contentWindow?.postMessage(message, this.targetOrigin);
+  }
+
+  /**
+   * @description
+   * Sends a response to the web view for onRamp requests.
+   * This method is used to send data back to the web view after processing an onRamp request.
+   * @param id The ID of the request to respond to.
+   * @param data The data to send with the response.
+   * @param method The method name to call (optional).
+   * @param source The source of the request (optional).
+   * @returns void
+   * @example
+   * webViewManager.sendOnRampResponse('requestId', { key: 'value' }, 'exampleMethod', 'sourceName');
+   */
+  public sendOnRampResponse(id: string, data: unknown, source?: string): void {
+    const payload = {
+      id,
+      data,
+      ...(source ? { source } : {}),
+    };
+
+    const message = JSON.stringify(payload);
+
+    if (this.debug) {
+      console.groupCollapsed(`[WebViewManager] Sending response: ${id}`);
       console.log('Request ID:', id);
       console.log('Data:', data);
       console.groupEnd();

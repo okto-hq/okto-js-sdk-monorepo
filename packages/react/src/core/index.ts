@@ -6,6 +6,7 @@ import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import type {
   Address,
   AuthData,
+  OnrampOptions,
   SocialAuthType,
 } from '@okto_web3/core-js-sdk/types';
 
@@ -19,14 +20,18 @@ import type { RpcError } from '@okto_web3/core-js-sdk/errors';
 import { AuthRequestHandler } from 'src/webview/auth/authRequestHandler.js';
 import { OktoAuthWebView } from 'src/webview/auth/authWebView.js';
 import type {
+  AppearanceOptions,
   WebViewOptions,
   WebViewResponseOptions,
 } from 'src/webview/types.js';
 import { WebViewManager } from '../webview/webViewManager.js';
+import { OktoOnrampWebView } from '../webview/onramp/onrampWebView.js';
+import { OnrampRequestHandler } from '../webview/onramp/onrampRequestHandler.js';
 
 class OktoClient extends OktoCoreClient {
   private webViewManager: WebViewManager | undefined;
   private authWebView: OktoAuthWebView | undefined;
+  private oktoOnrampWebView: OktoOnrampWebView | undefined;
 
   constructor(config: OktoClientConfig) {
     super(config);
@@ -49,10 +54,89 @@ class OktoClient extends OktoCoreClient {
     this.webViewManager = new WebViewManager(debugMode, options);
     const authHandler = new AuthRequestHandler(this.webViewManager, this);
     this.authWebView = new OktoAuthWebView(this.webViewManager, authHandler);
+    const onrampRequestHandler = new OnrampRequestHandler(
+      this.webViewManager,
+      this,
+    );
+    this.oktoOnrampWebView = new OktoOnrampWebView(
+      this.webViewManager,
+      onrampRequestHandler,
+    );
   }
 
+  /**
+   * Opens the authentication page in a webview and handles the response.
+   * @param options - Options for customizing the webview behavior -- onSuccess, onError and onClose.
+   * @param style - Optional appearance styles for the webview.
+   * @returns A promise that resolves to the authentication response or an error message.
+   * 
+   * @description
+   * @argument {AppearanceOptions} style - Optional appearance styles for the webview.
+   *
+   * @AppearanceOptions
+   * @description Interface for configuring the appearance of the application.
+   * @property {string} [version] - Version of the appearance configuration.
+   * @property {AppearanceTheme} [appearance] - Theme configuration.
+   * @property {VendorInfo} [vendor] - Vendor information.
+   * @property {LoginOptions} [loginOptions] - Login options configuration.
+   *
+   * @AppearanceTheme
+   * @description Interface for theme configuration.
+   * @property {"dark" | "light"} [themeName] - Pre-defined theme names.
+   * @property {Record<string, string>} [theme] - Custom theme variables.
+   * 
+   * @VendorInfo
+   * @description Interface for vendor information.
+   * @property {string} name - Name of the vendor.
+   * @property {string} logo - URL of the vendor logo.
+
+   * @LoginOptions
+   * @description Interface for login options configuration.
+   * @property {SocialLogin[]} [socialLogins] - List of social login options.
+   * @property {OtpLoginOption[]} [otpLoginOptions] - List of OTP login options.
+   * @property {ExternalWallet[]} [externalWallets] - List of external wallet options.
+
+   * @SocialLogin
+   * @description Interface for social login options.
+   * @property {string} [type] - Type of social login (e.g., "google", "steam", "twitter").
+   * @property {number} [position] - Position of the social login in the list.
+
+   * @OtpLoginOption
+   * @description Interface for OTP login options.
+   * @property {string} [type] - Type of OTP login (e.g., "email", "phone").
+   * @property {number} [position] - Position of the OTP login in the list.
+
+   * @ExternalWallet
+   * @description Interface for external wallet options.
+   * @property {string} [type] - Type of external wallet (e.g., "metamask", "walletconnect").
+   * @property {number} [position] - Position of the external wallet in the list.
+   * @property {Record<string, unknown>} [metadata] - Additional metadata for the wallet.
+
+   * @ThemeVariables
+   * @description Interface for theme variables.
+   * @property {string} [--okto-body-background] - Background for the whole page.
+   * @property {string} [--okto-body-color-tertiary] - Placeholder text color.
+   * @property {string} [--okto-accent-color] - Accent color for buttons, etc.
+   * @property {string | number} [--okto-button-font-weight] - Font weight for buttons.
+   * @property {string} [--okto-border-color] - Border color for inputs.
+   * @property {string} [--okto-stroke-divider] - Divider color.
+   * @property {string} [--okto-font-family] - Font family for the application.
+   * @property {string} [--okto-rounded-sm] - Small border radius.
+   * @property {string} [--okto-rounded-md] - Medium border radius.
+   * @property {string} [--okto-rounded-lg] - Large border radius.
+   * @property {string} [--okto-rounded-xl] - Extra large border radius.
+   * @property {string} [--okto-rounded-full] - Full border radius.
+   * @property {string} [--okto-success-color] - Success color for alerts.
+   * @property {string} [--okto-warning-color] - Warning color for alerts.
+   * @property {string} [--okto-error-color] - Error color for alerts.
+   * @property {string} [--okto-text-primary] - Primary color for texts.
+   * @property {string} [--okto-text-secondary] - Secondary color for texts (e.g., subtitles).
+   * @property {string} [--okto-background-surface] - Background color for card headers in desktop view.
+   * @property {string | number | undefined} [key: string] - Additional custom theme variables.
+   */
   public authenticateWithWebView(
     options: WebViewResponseOptions = {},
+    style?: AppearanceOptions,
   ): Promise<string | { message: string }> {
     if (!this.authWebView) {
       throw new Error('AuthWebView is not initialized.');
@@ -64,18 +148,21 @@ class OktoClient extends OktoCoreClient {
       );
     }
     const authUrl = this.getAuthPageUrl();
-    return this.authWebView.open({
-      url: authUrl,
-      onSuccess(data) {
-        options.onSuccess?.(data);
+    return this.authWebView.open(
+      {
+        url: authUrl,
+        onSuccess(data) {
+          options.onSuccess?.(data);
+        },
+        onClose() {
+          options.onClose?.();
+        },
+        onError(error) {
+          options.onError?.(error);
+        },
       },
-      onClose() {
-        options.onClose?.();
-      },
-      onError(error) {
-        options.onError?.(error);
-      },
-    });
+      style,
+    );
   }
 
   private getAuthPageUrl(): string {
@@ -166,9 +253,48 @@ class OktoClient extends OktoCoreClient {
     );
   }
 
+  override loginUsingEmail(
+    email: string,
+    otp: string,
+    token: string,
+    onSuccess?: (session: SessionConfig) => void,
+    overrideSessionConfig?: SessionConfig | undefined,
+  ): Promise<Address | RpcError | undefined> {
+    return super.loginUsingEmail(
+      email,
+      otp,
+      token,
+      (session) => {
+        setLocalStorage('okto_session', JSON.stringify(session));
+        this.setSessionConfig(session);
+        onSuccess?.(session);
+      },
+      overrideSessionConfig,
+    );
+  }
+
   override sessionClear(): void {
     clearLocalStorage('okto_session');
     return super.sessionClear();
+  }
+
+  public async openOnrampWebView(tokenId: string, options?: OnrampOptions) {
+    if (!this.webViewManager) {
+      throw new Error('WebViewManager is not initialized.');
+    }
+    const onrampUrl = await this.generateOnrampUrl(tokenId, options);
+    return this.oktoOnrampWebView?.open({
+      url: onrampUrl,
+      onSuccess: (data) => {
+        console.log('Onramp WebView closed successfully:', data);
+      },
+      onClose: () => {
+        console.log('Onramp WebView closed by user.');
+      },
+      onError: (error) => {
+        console.error('Error in Onramp WebView:', error);
+      },
+    });
   }
 }
 

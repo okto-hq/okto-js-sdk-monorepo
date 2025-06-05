@@ -163,17 +163,9 @@ export class WebViewBridge {
 
   public reinitializeBridge(): void {
     if (!this.webViewRef.current) return;
+    console.log('Re-initializing bridge');
 
-    const script = `
-      (function() {
-        console.log('Re-initializing bridge after page load');
-        if (!window.requestChannel || !window.infoChannel || !window.responseChannel) {
-          ${this.getInjectedJavaScript()}
-        }
-        true;
-      })();
-    `;
-
+    const script = this.getInjectedJavaScript();
     this.webViewRef.current.injectJavaScript(script);
   }
 }
