@@ -1,3 +1,4 @@
+import type { Address, Hash, Hex } from '../core.js';
 import type { AptosFunctionArgumentTypes } from '@/userop/types.js';
 import type { Hash } from '../core.js';
 
@@ -382,3 +383,23 @@ export type ReadContractResponse =
         details?: string;
       };
     };
+
+export type EstimateGasLimitsPayload = {
+  sender?: Hex;
+  nonce?: Hex;
+  callData?: Hex;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  paymasterData?: Hex | undefined;
+  paymaster?: Address | undefined;
+};
+
+export type EstimateGasLimitsResponse = {
+  preVerificationGas?: Hex;
+  verificationGasLimit?: Hex;
+  callGasLimit?: Hex;
+  paymasterVerificationGasLimit?: Hex | undefined;
+  paymasterPostOpGasLimit?: Hex | undefined;
+  maxFeePerGas?: Hex;
+  maxPriorityFeePerGas?: Hex;
+};

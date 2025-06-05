@@ -2,6 +2,9 @@ import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
 import type {
+  EstimateGasLimitsPayload,
+  EstimateGasLimitsResponse,
+  EstimateOrderPayload,
   Order,
   OrderFilterRequest,
   ReadContractPayload,
@@ -57,6 +60,7 @@ class BffClientRepository {
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
+    estimateGasLimits: '/api/oc/v1/estimate-userop',
     verifySession: '/api/oc/v1/verify-session',
     swapEstimate: '/api/oc/v1/estimate',
     generateTransactionToken: '/api/v2/transaction_token',
