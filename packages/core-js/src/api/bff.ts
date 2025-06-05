@@ -2,6 +2,8 @@ import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
 import type {
+  EstimateGasLimitsPayload,
+  EstimateGasLimitsResponse,
   EstimateOrderPayload,
   Order,
   OrderEstimateResponse,
@@ -30,6 +32,7 @@ class BffClientRepository {
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
+    estimateGasLimits: '/api/oc/v1/estimate-userop',
     verifySession: '/api/oc/v1/verify-session',
   };
 
@@ -198,6 +201,30 @@ class BffClientRepository {
    */
   public static async getNftOrderDetails(oc: OktoClient): Promise<Order[]> {
     return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
+  }
+
+  /**
+   * Estimates the gas limits for a user operation.
+   */
+  public static async estimateUserOp(
+    oc: OktoClient,
+    payload: EstimateGasLimitsPayload,
+  ): Promise<EstimateGasLimitsResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EstimateGasLimitsResponse>
+    >(this.routes.estimateGasLimits, payload);
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        'Failed to estimate user operation: ' + response.data.error?.message,
+      );
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
   }
 
   public static async estimateOrder(

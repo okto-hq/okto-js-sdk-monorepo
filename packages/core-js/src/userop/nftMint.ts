@@ -14,6 +14,7 @@ import {
 import { INTENT_ABI } from './abi.js';
 import type { NftMintParams } from './types.js';
 import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
+import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for minting an NFT.
@@ -128,26 +129,34 @@ export async function nftMint(
 
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
+  const paymasterData = await oc.paymasterData({
+    nonce: nonce,
+    validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+  });
+
+  const gasEstimation = await BffClientRepository.estimateUserOp(oc, {
+    sender: oc.userSWA,
+    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    callData: calldata,
+    maxFeePerGas: gasPrice.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+    paymasterData: paymasterData,
+    paymaster: oc.env.paymasterAddress,
+  });
+
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
-    callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
-    verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-    paymasterPostOpGasLimit: toHex(
-      Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
-    ),
-    paymasterVerificationGasLimit: toHex(
-      Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT,
-    ),
+    callGasLimit: gasEstimation.callGasLimit,
+    verificationGasLimit: gasEstimation.verificationGasLimit,
+    preVerificationGas: gasEstimation.preVerificationGas,
+    maxFeePerGas: gasEstimation.maxFeePerGas,
+    maxPriorityFeePerGas: gasEstimation.maxPriorityFeePerGas,
+    paymasterPostOpGasLimit: gasEstimation.paymasterPostOpGasLimit,
+    paymasterVerificationGasLimit: gasEstimation.paymasterVerificationGasLimit,
     callData: calldata,
-    paymasterData: await oc.paymasterData({
-      nonce: nonce,
-      validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-    }),
+    paymasterData: paymasterData,
   };
 
   return userOp;
