@@ -1,4 +1,4 @@
-export const SOURCE_NAME = "okto_web";
+export const SOURCE_NAME = 'okto_web';
 
 // DEFAULT_ALLOWED_ORIGINS is an array of allowed origins for the webview.
 // It is used to validate the origin of the request and ensure that only trusted origins can access the webview.
