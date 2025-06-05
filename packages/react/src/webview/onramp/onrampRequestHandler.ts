@@ -42,14 +42,19 @@ export class OnrampRequestHandler {
         try {
           const event = requestData.params.name as string;
           const properties = requestData.params.properties ?? {};
-          console.log(`[OnrampRequestHandler] Analytics event: ${event}`, properties);
-          this.sendResponse(baseResponse.id ?? '', 'analytics', { success: true });
+          console.log(
+            `[OnrampRequestHandler] Analytics event: ${event}`,
+            properties,
+          );
+          this.sendResponse(baseResponse.id ?? '', 'analytics', {
+            success: true,
+          });
         } catch (error) {
           this.webViewManager.sendErrorResponse(
-        baseResponse.id ?? '',
-        'analytics',
-        requestData.params,
-        error instanceof Error ? error.message : 'Unknown error',
+            baseResponse.id ?? '',
+            'analytics',
+            requestData.params,
+            error instanceof Error ? error.message : 'Unknown error',
           );
         }
         break;
