@@ -22,6 +22,8 @@ import type {
   SwapEstimateRequest,
   SwapEstimateResponse,
 } from '@/types/bff/swap.js';
+import type { get } from 'http';
+import { getPortfolio } from '@/explorer/portfolio.js';
 
 class BffClientRepository {
   private static routes = {
@@ -30,6 +32,7 @@ class BffClientRepository {
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
     getPortfolio: '/api/oc/v2/aggregated-portfolio',
+    getPortfolioForSwap: '/api/oc/v1/user-unfiltered-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
@@ -115,6 +118,27 @@ class BffClientRepository {
    * Retrieves the aggregated portfolio for the authenticated user from the BFF service.
    */
   public static async getPortfolio(oc: OktoClient): Promise<UserPortfolioData> {
+    const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
+      this.routes.getPortfolio,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve portfolio');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves the aggregated portfolio for the authenticated user from the BFF service.
+   */
+  public static async getPortfolioForSwap(
+    oc: OktoClient,
+  ): Promise<UserPortfolioData> {
     const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
       this.routes.getPortfolio,
     );

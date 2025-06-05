@@ -45,3 +45,17 @@ export async function getPortfolioNFT(
     throw error;
   }
 }
+
+/**
+ * Retrieves the aggregated portfolio for the authenticated user.
+ */
+export async function getPortfolioForSwap(
+  oc: OktoClient,
+): Promise<UserPortfolioData> {
+  try {
+    return await BffClientRepository.getPortfolioForSwap(oc);
+  } catch (error) {
+    console.error('Failed to retrieve portfolio: ', error);
+    throw error;
+  }
+}
