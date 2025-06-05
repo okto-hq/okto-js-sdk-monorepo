@@ -78,12 +78,6 @@ export interface EstimationDetails {
     requiredNetworks?: string[];
     tokens?: GSNToken[];
   };
-  gsn?: {
-    isPossible: boolean;
-    isRequired: boolean;
-    requiredNetworks: string[];
-    tokens: GSNToken[];
-  };
 }
 
 /**

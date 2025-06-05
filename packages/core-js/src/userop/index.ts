@@ -11,7 +11,6 @@ export { aptosRawTransactionWithEstimate } from './aptosRawTransactionWithEstima
 export { nftMintWithEstimate } from './nftMintWithEstimate.js';
 export { nftCreateCollectionWithEstimate } from './nftCreateCollectionWithEstimate.js';
 export { swapToken } from './swapToken.js';
-export { swapToken } from './swapToken.js';
 export type {
   TokenTransferIntentParams,
   NFTTransferIntentParams,
