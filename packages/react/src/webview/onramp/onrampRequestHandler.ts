@@ -3,6 +3,7 @@ import type { WebViewRequestHandler } from '../types.js';
 import type { OktoClient } from 'src/core/index.js';
 import { OKTO_REMOTE_CONFIG } from './okto_remote_config.js';
 import { getSupportedRampTokens } from '@okto_web3/core-js-sdk/explorer';
+import { SOURCE_NAME } from '../constants.js';
 
 export class OnrampRequestHandler {
   private webViewManager: WebViewManager;
@@ -32,6 +33,25 @@ export class OnrampRequestHandler {
         break;
       case 'requestPermission':
         await this.handlePermissionRequest(requestData, baseResponse);
+        break;
+      case 'analytics':
+        if (!requestData.params?.name) {
+          console.warn('[OnrampRequestHandler] Analytics request missing name');
+          break;
+        }
+        try {
+          const event = requestData.params.name as string;
+          const properties = requestData.params.properties ?? {};
+          console.log(`[OnrampRequestHandler] Analytics event: ${event}`, properties);
+          this.sendResponse(baseResponse.id ?? '', 'analytics', { success: true });
+        } catch (error) {
+          this.webViewManager.sendErrorResponse(
+        baseResponse.id ?? '',
+        'analytics',
+        requestData.params,
+        error instanceof Error ? error.message : 'Unknown error',
+          );
+        }
         break;
       case 'close':
         this.webViewManager.closeWebView();
@@ -75,7 +95,7 @@ export class OnrampRequestHandler {
 
             if (!tokenData) {
               console.warn(
-                '[OnrampRequestHandler] Token data not found for USDC on Polygon',
+                '[OnrampRequestHandler] Token data not found for requested ID',
               );
               return;
             }
@@ -84,10 +104,15 @@ export class OnrampRequestHandler {
               tokenData,
             );
             result = JSON.stringify({
+              id: tokenData.tokenId,
+              name: tokenData.name,
               symbol: tokenData.shortName,
-              networkName: tokenData.networkName,
               iconUrl: tokenData.logo,
+              networkId: tokenData.networkId,
+              networkName: tokenData.networkName,
+              address: tokenData.address,
               precision: tokenData.precision,
+              chainId: tokenData.chainId,
             });
             break;
           }
@@ -97,10 +122,8 @@ export class OnrampRequestHandler {
         }
       }
 
-      this.webViewManager.sendResponse(baseResponse.id ?? '', 'data', {
-        response: { [key]: result },
-        status: 'success',
-        message: 'Data fetched successfully',
+      this.sendResponse(baseResponse.id ?? '', 'data', {
+        [key]: result,
       });
     } catch (error) {
       this.webViewManager.sendErrorResponse(
@@ -111,7 +134,87 @@ export class OnrampRequestHandler {
       );
     }
   }
-  getLocalRemoteConfigValue(key: string): string {
+
+  private async handlePermissionRequest(
+    requestData: { id?: string; params?: Record<string, unknown> },
+    baseResponse: { id?: string; type?: string },
+  ) {
+    if (!requestData.params?.data) {
+      console.warn('[OnrampRequestHandler] Permission request missing data');
+      return;
+    }
+    try {
+      const requestedPermissions = requestData.params.data as string[];
+      const results: Record<
+        string,
+        { status: string; granted: boolean; message?: string }
+      > = {};
+
+      for (const permission of requestedPermissions) {
+        if (permission === 'camera') {
+          try {
+            await navigator.mediaDevices.getUserMedia({ video: true });
+            results[permission] = { status: 'granted', granted: true };
+          } catch (err) {
+            let message = 'Permission denied by user';
+            if (err && typeof err === 'object' && 'message' in err) {
+              message = (err as Error).message;
+            }
+            results[permission] = {
+              status: 'denied',
+              granted: false,
+              message,
+            };
+          }
+        } else if (permission === 'microphone') {
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            results[permission] = { status: 'granted', granted: true };
+          } catch (err) {
+            let message = 'Permission denied by user';
+            if (err && typeof err === 'object' && 'message' in err) {
+              message = (err as Error).message;
+            }
+            results[permission] = {
+              status: 'denied',
+              granted: false,
+              message,
+            };
+          }
+        } else {
+          results[permission] = {
+            status: 'unavailable',
+            granted: false,
+            message: 'Permission not available',
+          };
+        }
+      }
+
+      this.sendResponse(baseResponse.id ?? '', 'requestPermission', results);
+    } catch (error) {
+      this.webViewManager.sendErrorResponse(
+        baseResponse.id ?? '',
+        'requestPermission',
+        requestData.params,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+    }
+  }
+
+  private sendResponse(
+    id: string,
+    type: string,
+    response: Record<string, unknown>,
+  ): void {
+    this.webViewManager.sendOnRampResponse(id, {
+      id,
+      type,
+      response,
+      source: SOURCE_NAME,
+    });
+  }
+
+  private getLocalRemoteConfigValue(key: string): string {
     const param =
       OKTO_REMOTE_CONFIG?.parameters[
         key as keyof typeof OKTO_REMOTE_CONFIG.parameters
@@ -128,43 +231,5 @@ export class OnrampRequestHandler {
       finalValue,
     );
     return finalValue;
-  }
-
-  private async handlePermissionRequest(
-    requestData: { id?: string; params?: Record<string, unknown> },
-    baseResponse: { id?: string; type?: string },
-  ) {
-    if (!requestData.params?.data) {
-      console.warn('[OnrampRequestHandler] Permission request missing data');
-      return;
-    }
-    try {
-      const requestedPermissions = requestData.params.data as string[];
-      const results: Record<string, boolean> = {};
-
-      for (const permission of requestedPermissions) {
-        if (permission === 'camera') {
-          // Example: request camera permission
-          results[permission] = true; // Stubbed success
-        }
-      }
-
-      this.webViewManager.sendResponse(
-        baseResponse.id ?? '',
-        'requestPermission',
-        {
-          response: results,
-          status: 'success',
-          message: 'Permissions granted',
-        },
-      );
-    } catch (error) {
-      this.webViewManager.sendErrorResponse(
-        baseResponse.id ?? '',
-        'requestPermission',
-        requestData.params,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-    }
   }
 }

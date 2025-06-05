@@ -67,7 +67,7 @@ export class OktoOnrampWebView {
       window.addEventListener('message', messageListener);
 
       const isOpened = this.webViewManager.openWebView({
-        url: `${webViewUrl}?app=okto_web&origin=${window.location.origin}`,
+        url: `${webViewUrl}`,
         width: 500,
         height: 800,
         onSuccess: (data) => {
