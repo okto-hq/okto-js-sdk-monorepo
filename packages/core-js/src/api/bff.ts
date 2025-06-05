@@ -2,6 +2,8 @@ import type {
   ApiResponse,
   ApiResponseWithCount,
   UserOp,
+  SupportedRampTokensResponse,
+  TransactionTokenResponse,
 } from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
@@ -66,6 +68,7 @@ class BffClientRepository {
     getUserKeys: '/api/oc/v1/user-keys',
     gasValues: '/api/oc/v1/gas-values',
     getEntities: '/api/oc/v1/entities',
+    getSupportedRampTokens: '/api/v2/supported_ramp_tokens',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
@@ -74,6 +77,7 @@ class BffClientRepository {
     execute: '/api/oc/v1/execute',
     signMessage: '/api/oc/v1/signMessage',
     rawRead: '/api/oc/v1/readContractData',
+    generateTransactionToken: '/api/v2/transaction_token',
   };
 
   /**
@@ -621,6 +625,74 @@ class BffClientRepository {
     }
 
     return response.data.data;
+  }
+
+  /**
+   * Retrieves the list of supported ramp tokens from the BFF service.
+   * @param oc OktoClient instance
+   * @param countryCode Country code to filter tokens (e.g., 'IN')
+   * @param side Transaction side ('onramp' or 'offramp')
+   * @returns SupportedRampTokensResponse containing onramp and offramp tokens
+   */
+  public static async getSupportedRampTokens(
+    oc: OktoClient,
+    countryCode: string,
+    side: 'onramp' | 'offramp',
+  ): Promise<SupportedRampTokensResponse> {
+    const response = await getBffClient(oc).get<
+      ApiResponse<SupportedRampTokensResponse>
+    >(this.routes.getSupportedRampTokens, {
+      params: {
+        country_code: countryCode,
+        side,
+      },
+    });
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to retrieve supported ramp tokens: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Generates a transaction token used for ramp operations.
+   * @param oc OktoClient instance
+   * @returns The transaction token
+   */
+  public static async generateTransactionToken(
+    oc: OktoClient,
+  ): Promise<string> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<TransactionTokenResponse>
+    >(
+      this.routes.generateTransactionToken,
+      {},
+      {
+        headers: {
+          'x-source': 'okto_wallet_web',
+          'x-version': 'okto_plus',
+        },
+      },
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to generate transaction token: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data || !response.data.data.transactionToken) {
+      throw new Error('Transaction token is missing in the response');
+    }
+
+    return response.data.data.transactionToken;
   }
 }
 

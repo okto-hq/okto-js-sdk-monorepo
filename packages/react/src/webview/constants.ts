@@ -1,8 +1,14 @@
+export const SOURCE_NAME = 'okto_web';
+
 // DEFAULT_ALLOWED_ORIGINS is an array of allowed origins for the webview.
 // It is used to validate the origin of the request and ensure that only trusted origins can access the webview.
 export const DEFAULT_ALLOWED_ORIGINS = [
   'https://onboarding.oktostage.com',
   'https://sandbox-onboarding.okto.tech',
+  'https://onboarding.okto.tech',
+  'https://sandbox-pay.okto.tech',
+  'https://pay.oktostage.com',
+  'https://pay.okto.tech',
   'https://onboarding.okto.tech',
 ];
 

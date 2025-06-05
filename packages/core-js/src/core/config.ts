@@ -12,6 +12,7 @@ export const stagingEnvConfig: EnvConfig = {
   authRedirectUrl: Constants.ENV_CONFIG.STAGING.AUTH_REDIRECT_URL,
   signMessageMpcThreshold:
     Constants.ENV_CONFIG.STAGING.SIGN_MESSAGE_MPC_THRESHOLD,
+  onrampUrl: Constants.ENV_CONFIG.STAGING.ON_RAMP_URL,
 };
 
 export const sandboxEnvConfig: EnvConfig = {
@@ -25,6 +26,7 @@ export const sandboxEnvConfig: EnvConfig = {
   authRedirectUrl: Constants.ENV_CONFIG.SANDBOX.AUTH_REDIRECT_URL,
   signMessageMpcThreshold:
     Constants.ENV_CONFIG.SANDBOX.SIGN_MESSAGE_MPC_THRESHOLD,
+  onrampUrl: Constants.ENV_CONFIG.SANDBOX.ON_RAMP_URL,
 };
 
 export const productionEnvConfig: EnvConfig = {
