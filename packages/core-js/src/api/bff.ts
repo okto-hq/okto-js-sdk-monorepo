@@ -4,7 +4,6 @@ import type OktoClient from '@/core/index.js';
 import type {
   EstimateGasLimitsPayload,
   EstimateGasLimitsResponse,
-  EstimateOrderPayload,
   Order,
   OrderFilterRequest,
   ReadContractPayload,
