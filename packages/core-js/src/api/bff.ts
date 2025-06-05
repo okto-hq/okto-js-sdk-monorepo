@@ -51,6 +51,7 @@ class BffClientRepository {
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
     getPortfolio: '/api/oc/v2/aggregated-portfolio',
+    getPortfolioForSwap: '/api/oc/v1/user-unfiltered-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',

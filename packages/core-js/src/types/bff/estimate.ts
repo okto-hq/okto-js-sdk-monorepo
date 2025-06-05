@@ -44,33 +44,39 @@ export interface CallData {
  */
 
 export interface EstimationDetails {
-  estimation: {
-    amount: string;
-    crossChainFee: string;
-    crossChainFeeCollector: string;
-    gasFeesInInputToken: string;
-    integratorFeesInInputToken: string;
-    outputAmount: string;
-    platformBaseFeesInInputToken: string;
-    recommendedSlippage: string;
-    routeId: string;
-    routeValidUntil: string;
-    sameChainFee: string;
-    sameChainFeeCollector: string;
-    slippageUsed: string;
-    totalFeesInInputToken: string;
+  estimation?: {
+    amount?: string;
+    crossChainFee?: string;
+    crossChainFeeCollector?: string;
+    gasFeesInInputToken?: string;
+    integratorFeesInInputToken?: string;
+    outputAmount?: string;
+    platformBaseFeesInInputToken?: string;
+    recommendedSlippage?: string;
+    routeId?: string;
+    routeValidUntil?: string;
+    sameChainFee?: string;
+    sameChainFeeCollector?: string;
+    slippageUsed?: string;
+    totalFeesInInputToken?: string;
   };
-  fees: {
-    transactionFees: {
+  fees?: {
+    transactionFees?: {
       [caip2Id: string]: string;
     };
-    approxTransactionFeesInUSDT: string;
+    approxTransactionFeesInUSDT?: string;
   };
   swapFees?: {
-    gasFeesInInputToken: string;
-    integratorFeesInInputToken: string;
-    platformBaseFeesInInputToken: string;
-    totalFeesInInputToken: string;
+    gasFeesInInputToken?: string;
+    integratorFeesInInputToken?: string;
+    platformBaseFeesInInputToken?: string;
+    totalFeesInInputToken?: string;
+  };
+  gsn?: {
+    isPossible?: boolean;
+    isRequired?: boolean;
+    requiredNetworks?: string[];
+    tokens?: GSNToken[];
   };
   gsn?: {
     isPossible: boolean;

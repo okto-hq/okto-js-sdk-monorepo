@@ -9,6 +9,7 @@ import {
   getTokens,
   getTokensForSwap,
   rawRead,
+  getPortfolioForSwap,
 } from '@okto_web3/core-js-sdk/explorer';
 
 export {
@@ -22,4 +23,5 @@ export {
   getTokens,
   getTokensForSwap,
   rawRead,
+  getPortfolioForSwap,
 };

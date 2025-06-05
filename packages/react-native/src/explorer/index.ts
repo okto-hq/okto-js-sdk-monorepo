@@ -10,6 +10,7 @@ import {
   getTokensForSwap,
   getSupportedRampTokens,
   generateTransactionToken,
+  getPortfolioForSwap,
   rawRead,
 } from '@okto_web3/core-js-sdk/explorer';
 
@@ -26,4 +27,5 @@ export {
   getSupportedRampTokens,
   generateTransactionToken,
   rawRead,
+  getPortfolioForSwap,
 };
