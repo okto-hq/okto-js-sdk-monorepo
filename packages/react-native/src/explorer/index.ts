@@ -8,7 +8,7 @@ import {
   getPortfolioNFT,
   getTokens,
   getTokensForSwap,
-  getPortfolioForSwap
+  getPortfolioForSwap,
 } from '@okto_web3/core-js-sdk/explorer';
 
 export {
@@ -21,5 +21,5 @@ export {
   getPortfolioNFT,
   getTokens,
   getTokensForSwap,
-  getPortfolioForSwap
+  getPortfolioForSwap,
 };

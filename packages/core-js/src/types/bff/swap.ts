@@ -1,3 +1,4 @@
+import type { Address } from 'viem';
 import type { UserOp } from '../core.js';
 
 export interface TokenSwapIntentParams {
@@ -106,4 +107,5 @@ export interface SwapEstimateRequest {
     crossChainFeeCollector?: string;
     advancedSettings?: Record<string, unknown>;
   };
+  feePayerAddress?: Address;
 }
