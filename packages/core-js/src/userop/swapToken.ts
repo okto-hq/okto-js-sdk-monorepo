@@ -82,6 +82,7 @@ export async function swapToken(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
+    feePayerAddress: feePayerAddress,
     details: {
       fromChainTokenAddress: data.fromChainTokenAddress,
       fromChainCaip2Id: data.fromChainCaip2Id,
