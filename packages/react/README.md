@@ -4,25 +4,25 @@
 
 [![npm version](https://img.shields.io/npm/v/@okto_web3/react-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-sdk)
 
-## 🚀 Features
+## Features
 
-- **🔐 Enhanced Authentication**
+- **Enhanced Authentication**
   - WebView Integration for seamless in-app flows
   - Social Login support (Google, Facebook, Twitter)
   - Automatic session persistence
-- **🔄 Core SDK Integration**
+- **Core SDK Integration**
   - Full access to `@okto_web3/core-js-sdk` features
   - Browser-optimized authentication
   - Popup handling for social auth
   - Local storage session management
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @okto_web3/react-sdk
 ```
 
-## ⚡ Quick Start
+## Quick Start
 
 ```jsx
 import { OktoProvider, useOkto, useOktoWebView } from '@okto_web3/react-sdk';
@@ -71,7 +71,7 @@ function AuthExample() {
 }
 ```
 
-## 📚 API Reference
+## API Reference
 
 ### WebView Authentication
 
@@ -113,7 +113,7 @@ const isLoggedIn = client.isLoggedIn();
 client.sessionClear();
 ```
 
-## 🛠️ Error Handling
+## Error Handling
 
 ```jsx
 import { RpcError } from '@okto_web3/core-js-sdk/errors';
@@ -129,13 +129,13 @@ try {
 }
 ```
 
-## 🔒 Security
+## Security
 
 - Secure session storage
 - Origin validation for WebView messages
 - Typed error handling
 
-## 📖 Documentation
+## Documentation
 
 For detailed documentation, visit:
 

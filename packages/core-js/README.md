@@ -5,28 +5,28 @@
 [![npm version](https://img.shields.io/npm/v/@okto_web3/core-js-sdk.svg)](https://www.npmjs.com/package/@okto_web3/core-js-sdk)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](https://www.typescriptlang.org/)
 
-## 🚀 Features
+## Features
 
-- **🔐 Authentication & Security**
+- **Authentication & Security**
 
   - Multi-channel authentication (OAuth, Email, WhatsApp)
   - Social login integration
   - JWT-based secure sessions
   - Advanced error handling
 
-- **💎 Blockchain Operations**
+- **Blockchain Operations**
   - NFT transfers and minting
   - Token operations
   - Collection management
   - EIP-4337 compliant UserOps
-- **🔍 Explorer Functions**
+- **Explorer Functions**
   - Account management
   - Multi-chain support
   - Transaction history
   - Portfolio tracking
   - Token & NFT management
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Using npm
@@ -39,7 +39,7 @@ yarn add @okto_web3/core-js-sdk
 pnpm install @okto_web3/core-js-sdk
 ```
 
-## ⚡ Quick Start
+## Quick Start
 
 ```typescript
 import { OktoClient } from '@okto_web3/core-js-sdk';
@@ -101,7 +101,7 @@ const history = await client.getOrdersHistory();
 const chains = await client.getChains();
 ```
 
-## 🛠️ Error Handling
+## Error Handling
 
 ```typescript
 import { RpcError, AuthError } from '@okto_web3/core-js-sdk/errors';
@@ -117,7 +117,7 @@ try {
 }
 ```
 
-## ⚙️ Environment Configuration
+## Environment Configuration
 
 ```typescript
 const config = {
@@ -135,7 +135,7 @@ const prodConfig = {
 };
 ```
 
-## 📖 Documentation
+## Documentation
 
 For detailed documentation and guides, visit:
 

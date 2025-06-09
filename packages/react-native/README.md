@@ -4,19 +4,19 @@
 
 [![npm version](https://img.shields.io/npm/v/@okto_web3/react-native-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-native-sdk)
 
-## 🚀 Features
+## Features
 
-- **🔐 Native Authentication**
+- **Native Authentication**
   - Expo WebBrowser integration for secure auth flows
   - Deep linking support with custom URL schemes
   - Automatic platform-specific handling (iOS/Android)
-- **🔄 Core SDK Integration**
+- **Core SDK Integration**
   - Full access to `@okto_web3/core-js-sdk` features
   - Native session storage with AsyncStorage
   - React Navigation support
   - WebView support for in-app flows
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Install core package
@@ -26,7 +26,7 @@ npm install @okto_web3/react-native-sdk
 expo install expo-web-browser
 ```
 
-## ⚡ Quick Start
+## Quick Start
 
 ```jsx
 import { OktoProvider, useOkto } from '@okto_web3/react-native-sdk';
@@ -85,7 +85,7 @@ function HomeScreen() {
 }
 ```
 
-## 🛠️ Setup Requirements
+## Setup Requirements
 
 ### 1. Configure Deep Links
 
@@ -124,7 +124,7 @@ export default function WebViewScreen({ route, navigation }) {
 }
 ```
 
-## 📚 API Reference
+## API Reference
 
 ### Social Authentication
 
@@ -158,20 +158,20 @@ const isLoggedIn = client.isLoggedIn();
 client.sessionClear();
 ```
 
-## 🔒 Security Features
+## Security Features
 
 - Deep link validation
 - Platform-specific security handling
 - Typed error handling
 
-## 💻 Platform Support
+## Platform Support
 
-- ✅ iOS
-- ✅ Android
-- ✅ Expo managed workflow
-- ✅ Expo bare workflow
+- iOS
+- Android
+- Expo managed workflow
+- Expo bare workflow
 
-## 📖 Documentation
+## Documentation
 
 For detailed documentation, visit:
 

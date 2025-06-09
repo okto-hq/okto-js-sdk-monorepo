@@ -1,4 +1,4 @@
-# 🚀 Okto Web3 SDK
+# Okto SDK JS Monorepo
 
 A comprehensive Web3 SDK for seamless blockchain integration with **React** and **React Native** applications.
 
@@ -12,7 +12,7 @@ Package	Description
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 # Install the package you need
@@ -23,7 +23,7 @@ pnpm install @okto_web3/react-native-sdk
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ├── packages/
@@ -34,7 +34,7 @@ pnpm install @okto_web3/react-native-sdk
 
 ---
 
-## ✨ Features
+## Features
 
 - **Authentication:** OAuth, Email, WhatsApp, Social login
 - **User Operations:** NFT transfers, minting, token operations
@@ -43,7 +43,7 @@ pnpm install @okto_web3/react-native-sdk
 
 ---
 
-## 🛠️ Development
+## Development
 
 ```bash
 # Install dependencies
@@ -56,7 +56,7 @@ pnpm run build
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - [Core SDK Documentation](https://docs.okto.tech/docs/typescript-sdk)
 - [React SDK Documentation](https://docs.okto.tech/docs/react-sdk)
