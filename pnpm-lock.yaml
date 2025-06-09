@@ -263,9 +263,6 @@ importers:
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
-      react-native-permissions:
-        specifier: ^5.4.0
-        version: 5.4.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@okto_web3/eslint-config':
         specifier: workspace:*
@@ -300,6 +297,9 @@ importers:
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
+      expo-apple-authentication:
+        specifier: ^7.2.4
+        version: 7.2.4(expo@52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))
       expo-clipboard:
         specifier: ^7.0.1
         version: 7.0.1(expo@52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
@@ -321,6 +321,9 @@ importers:
       react-native-mmkv:
         specifier: ^3.2.0
         version: 3.2.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
+      react-native-permissions:
+        specifier: ^5.4.0
+        version: 5.4.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
       react-native-safe-area-context:
         specifier: ^5.3.0
         version: 5.4.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
@@ -3791,6 +3794,12 @@ packages:
   expand-tilde@2.0.2:
     resolution: {integrity: sha512-A5EmesHW6rfnZ9ysHQjPdJRni0SRar0tjtG5MNtm9n5TUvsYU8oozprtRD4AqHxcZWWlVuAmQo2nWKfN9oyjTw==}
     engines: {node: '>=0.10.0'}
+
+  expo-apple-authentication@7.2.4:
+    resolution: {integrity: sha512-T2agaLLPT4Ax97FeXImB7BCCEzEJ0gB+ZwlFa/FXBtbp6WFKcGRlTVKiX2YPYLZzN5QjXcmQ9HHJ17jRthNHMg==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-asset@11.0.5:
     resolution: {integrity: sha512-TL60LmMBGVzs3NQcO8ylWqBumMh4sx0lmeJsn7+9C88fylGDhyyVnKZ1PyTXo9CVDBkndutZx2JUEQWM9BaiXw==}
@@ -11818,6 +11827,11 @@ snapshots:
   expand-tilde@2.0.2:
     dependencies:
       homedir-polyfill: 1.0.3
+
+  expo-apple-authentication@7.2.4(expo@52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1)):
+    dependencies:
+      expo: 52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
+      react-native: 0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1)
 
   expo-asset@11.0.5(expo@52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1):
     dependencies:
