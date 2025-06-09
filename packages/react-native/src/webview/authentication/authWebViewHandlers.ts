@@ -10,6 +10,8 @@ import {
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
 import * as Clipboard from 'expo-clipboard';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import type { AuthData } from '@okto_web3/core-js-sdk/types';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -107,32 +109,130 @@ export class AuthWebViewRequestHandler {
         await this.handleCloseWebView(request);
         break;
       default:
+        await this.handleSocialLogin(request);
+        break;
+    }
+  };
+
+  /**
+   * Handle social login requests
+   *
+   * Routes social login requests to appropriate providers
+   * @param request Social login request data
+   */
+  private handleSocialLogin = async (request: WebViewRequest) => {
+    const { provider } = request.data;
+
+    switch (provider) {
+      case 'google':
         await this.handleGoogleLogin(request);
         break;
+      case 'apple':
+        await this.handleAppleLogin(request);
+        break;
+      default:
+        throw new Error(`Unsupported social provider: ${provider}`);
     }
   };
 
   //  Google login handler that uses the redirectUrl
   private handleGoogleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
+    if (provider !== 'google') {
+      throw new Error('Invalid provider for Google login');
+    }
+    await this.oktoClient.loginUsingSocial(
+      provider,
+      {
+        client_url: this.redirectUrl,
+        platform: Platform.OS,
+      },
+      createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+      (session: SessionConfig) => {
+        console.log('Google login successful, session established:', session);
+        setStorage('okto_session', JSON.stringify(session));
+      },
+    );
+    console.log('Google login successful, closing WebView');
+    setTimeout(() => {
+      this.navigationCallback();
+    }, 1000);
+  };
 
-    if (provider === 'google') {
-      await this.oktoClient.loginUsingSocial(
-        provider,
-        {
-          client_url: this.redirectUrl,
-          platform: Platform.OS,
-        },
-        createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+  /**
+   * Handle Apple authentication
+   *
+   * Uses Apple Authentication to get ID token and then uses Okto's loginUsingOAuth
+   * @param request Apple login request data
+   */
+  private handleAppleLogin = async (request: WebViewRequest) => {
+    const { provider } = request.data;
+
+    if (provider !== 'apple') {
+      throw new Error('Invalid provider for Apple login');
+    }
+
+    try {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        throw new Error('Apple Authentication is not available on this device');
+      }
+
+      const appleAuthResult = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      console.log('Apple Authentication successful:', appleAuthResult);
+
+      const idToken = appleAuthResult.identityToken;
+      if (!idToken) {
+        throw new Error('No identity token received from Apple');
+      }
+
+      const authData: AuthData = {
+        provider: 'apple',
+        idToken: idToken,
+      };
+
+      const result = await this.oktoClient.loginUsingOAuth(
+        authData,
         (session: SessionConfig) => {
-          console.log('Google login successful, session established:', session);
           setStorage('okto_session', JSON.stringify(session));
         },
       );
-      console.log('Google login successful, closing WebView');
+      console.log('Apple OAuth login result:', result);
+
+      const response: WebViewResponse = {
+        id: request.id,
+        method: request.method,
+        data: {
+          provider,
+          message: 'Apple authentication successful',
+          result: 'auth-success',
+        },
+      };
+      this.bridge.sendResponse(response);
+
       setTimeout(() => {
         this.navigationCallback();
       }, 1000);
+    } catch (error) {
+      console.error('Error during Apple authentication:', error);
+      this.bridge.sendResponse({
+        id: request.id,
+        method: request.method,
+        data: {
+          provider,
+          result: 'auth-failed',
+        },
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to authenticate with Apple',
+      });
     }
   };
 

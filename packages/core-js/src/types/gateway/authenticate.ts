@@ -10,6 +10,10 @@ export type AuthData =
   | {
       idToken: string;
       provider: 'client_jwt';
+    }
+  | {
+      idToken: string;
+      provider: 'apple';
     };
 
 export type AuthSessionData = {
