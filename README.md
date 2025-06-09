@@ -1,14 +1,20 @@
 # Okto SDK JS Monorepo
 
+This is an official monorepo for the Okto SDK JS.
+
 A comprehensive Web3 SDK for seamless blockchain integration with **React** and **React Native** applications.
 
----
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/okto-web3/sdk/pulls)
 
-📦 Packages
-Package	Description
-@okto_web3/core-js-sdk	          Core JavaScript SDK with Web3 utilities
-@okto_web3/react-sdk	          React wrapper with hooks and components
-@okto_web3/react-native-sdk	      React Native wrapper with native integrations
+## Packages
+
+| Package | Version | Description |
+|---------|---------|-------------|
+| [@okto_web3/core-js-sdk](./packages/core-js) | [![npm](https://img.shields.io/npm/v/@okto_web3/core-js-sdk.svg)](https://www.npmjs.com/package/@okto_web3/core-js-sdk) | Core JavaScript SDK with Web3 utilities |
+| [@okto_web3/react-sdk](./packages/react) | [![npm](https://img.shields.io/npm/v/@okto_web3/react-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-sdk) | React wrapper with hooks and components |
+| [@okto_web3/react-native-sdk](./packages/react-native) | [![npm](https://img.shields.io/npm/v/@okto_web3/react-native-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-native-sdk) | React Native wrapper with native integrations |
+
 
 ---
 
@@ -16,9 +22,9 @@ Package	Description
 
 ```bash
 # Install the package you need
-pnpm install @okto_web3/core-js-sdk
-pnpm install @okto_web3/react-sdk
-pnpm install @okto_web3/react-native-sdk
+npm install @okto_web3/core-js-sdk
+npm install @okto_web3/react-sdk
+npm install @okto_web3/react-native-sdk
 ```
 
 ---
@@ -36,16 +42,38 @@ pnpm install @okto_web3/react-native-sdk
 
 ## Features
 
-- **Authentication:** OAuth, Email, WhatsApp, Social login
-- **User Operations:** NFT transfers, minting, token operations
-- **Portfolio Management:** Account info, transaction history, NFTs
-- **Cross-Platform:** Web, React, React Native support
+### Authentication
+- Multi-channel authentication (OAuth, Email, WhatsApp)
+- Social login integration (Google, Facebook, Twitter)
+- JWT-based secure sessions
+
+### Blockchain Operations
+- NFT transfers and minting
+- Token operations
+- Smart contract interactions
+- EIP-4337 account abstraction
+
+### Portfolio Management
+- Multi-chain account management
+- Transaction history
+- NFT collections
+- Token balances
+
+### Cross-Platform Support
+- Web applications (React)
+- Mobile apps (React Native)
+- Consistent API across platforms
 
 ---
 
 ## Development
 
 ```bash
+
+# Clone the repository
+git clone https://github.com/okto-hq/okto-js-sdk-monorepo.git
+cd packages
+
 # Install dependencies
 pnpm install
 
