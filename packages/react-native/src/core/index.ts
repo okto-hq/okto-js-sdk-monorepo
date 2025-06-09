@@ -3,7 +3,7 @@ import {
   type OktoClientConfig,
 } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
-import type { RpcError } from '@okto_web3/core-js-sdk/errors';
+import { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type {
   Address,
   AuthData,
@@ -13,6 +13,7 @@ import type {
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
@@ -126,6 +127,60 @@ class OktoClient extends OktoCoreClient {
       } catch (error) {
         console.error('[OktoClient] Error cooling down browser:', error);
       }
+    }
+  }
+
+  /**
+   * Apple Authentication
+   *
+   * Performs Apple Sign-In and uses the identity token with Okto's OAuth login
+   * @param onSuccess Callback function called when authentication is successful
+   * @returns Promise resolving to user address or RPC error
+   */
+  public async loginUsingApple(
+    onSuccess?: (session: SessionConfig) => void,
+  ): Promise<Address | RpcError | undefined> {
+    try {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        throw new Error('Apple Authentication is not available on this device');
+      }
+      const appleAuthResult = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      console.log('[OktoClient] Apple Sign-In successful:', {
+        user: appleAuthResult.user,
+        email: appleAuthResult.email,
+        fullName: appleAuthResult.fullName,
+        hasIdentityToken: !!appleAuthResult.identityToken,
+      });
+
+      const idToken = appleAuthResult.identityToken;
+      if (!idToken) {
+        throw new Error('No identity token received from Apple authentication');
+      }
+
+      const authData: AuthData = {
+        provider: 'apple',
+        idToken: idToken,
+      };
+
+      const result = await this.loginUsingOAuth(authData, (session) => {
+        onSuccess?.(session);
+      });
+
+      console.log('[OktoClient] Apple authentication completed successfully');
+      return result;
+    } catch (error) {
+      console.error('Error logging in using apple: ', error);
+      if (error instanceof RpcError) {
+        return error;
+      }
+      throw error;
     }
   }
 
