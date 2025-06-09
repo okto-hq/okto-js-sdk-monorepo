@@ -8,12 +8,11 @@
 
 - **Enhanced Authentication**
   - WebView Integration for seamless in-app flows
-  - Social Login support (Google, Facebook, Twitter)
+  - Social Login support (Google)
   - Automatic session persistence
 - **Core SDK Integration**
   - Full access to `@okto_web3/core-js-sdk` features
   - Browser-optimized authentication
-  - Popup handling for social auth
   - Local storage session management
 
 ## Installation
