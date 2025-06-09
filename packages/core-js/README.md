@@ -74,13 +74,13 @@ await client.loginUsingWhatsApp(phoneNumber, otp);
 
 ```typescript
 // Token operations
-const userOp = await client.createTokenTransfer(transferData);
+const userOp = await client.tokenTransfer(transferData);
 const signedOp = await client.signUserOp(userOp);
 await client.executeUserOp(signedOp);
 
 // NFT operations
-await client.createNFTTransfer(nftData);
-await client.mintNFT(mintData);
+await client.nftTransfer(nftData);
+await client.nftMint(mintData);
 
 // Message signing
 await client.signMessage(message);
