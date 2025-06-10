@@ -61,7 +61,7 @@ export class AuthWebViewRequestHandler {
    */
   private handleRequest = async (request: WebViewRequest) => {
     try {
-      console.log('Received request from WebView:', request);
+      logger.log('Received request from WebView:', request);
       // Route request based on method
       switch (request.method) {
         case 'okto_sdk_login':
@@ -227,13 +227,13 @@ export class AuthWebViewRequestHandler {
           config: configToSend,
         },
       };
-      console.log(
+      logger.log(
         'Sending UI config response:',
         JSON.stringify(response, null, 2),
       );
       this.bridge.sendResponse(response);
     } catch (error) {
-      console.error('Error sending UI config:', error);
+      logger.error('Error sending UI config:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
