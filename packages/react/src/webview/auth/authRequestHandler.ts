@@ -24,7 +24,6 @@ export class AuthRequestHandler {
     },
     style?: AppearanceOptions,
   ) => {
-    console.log('Received request:', actualData);
 
     if (typeof actualData !== 'object' || actualData === null) {
       throw new Error('Invalid request data');
@@ -51,7 +50,6 @@ export class AuthRequestHandler {
     ) {
       try {
         const response = await this.oktoClient?.loginUsingSocial('google');
-        console.log('Google login response:', response);
         if (response) {
           this.webViewManager.sendResponse(
             baseResponse.id,
@@ -63,7 +61,6 @@ export class AuthRequestHandler {
             },
           );
           this.webViewManager.triggerSuccess(`${response}`);
-          console.log('Google login successful:', response);
           this.webViewManager.closeWebView({ triggerCallback: false });
           return response;
         } else {
@@ -126,7 +123,6 @@ export class AuthRequestHandler {
           baseResponse,
           actualData.data,
         );
-        console.log('OTP verification response:', response);
         this.webViewManager.triggerSuccess(`${response}`);
         return response;
       }
@@ -261,7 +257,6 @@ export class AuthRequestHandler {
           this.webViewManager.closeWebView({ triggerCallback: false });
         }, 1000);
 
-        console.log('Login successful:', response);
         return response;
       } else {
         throw new Error(response || 'Login failed');
