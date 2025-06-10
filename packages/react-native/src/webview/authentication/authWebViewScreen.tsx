@@ -9,7 +9,7 @@ import type { WebViewParamList } from './types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
 import type { Env } from '@okto_web3/core-js-sdk/core';
-import { logger } from 'src/utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
