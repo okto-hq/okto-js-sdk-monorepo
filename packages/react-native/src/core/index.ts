@@ -153,7 +153,7 @@ class OktoClient extends OktoCoreClient {
         ],
       });
 
-      console.log('[OktoClient] Apple Sign-In successful:', {
+      logger.log('[OktoClient] Apple Sign-In successful:', {
         user: appleAuthResult.user,
         email: appleAuthResult.email,
         fullName: appleAuthResult.fullName,
@@ -174,10 +174,10 @@ class OktoClient extends OktoCoreClient {
         onSuccess?.(session);
       });
 
-      console.log('[OktoClient] Apple authentication completed successfully');
+      logger.log('[OktoClient] Apple authentication completed successfully');
       return result;
     } catch (error) {
-      console.error('Error logging in using apple: ', error);
+      logger.error('Error logging in using apple: ', error);
       if (error instanceof RpcError) {
         return error;
       }

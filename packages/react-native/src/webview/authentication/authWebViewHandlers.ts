@@ -155,11 +155,11 @@ export class AuthWebViewRequestHandler {
       },
       createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
-        console.log('Google login successful, session established:', session);
+        logger.log('Google login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
       },
     );
-    console.log('Google login successful, closing WebView');
+    logger.log('Google login successful, closing WebView');
     setTimeout(() => {
       this.navigationCallback();
     }, 1000);
@@ -191,7 +191,7 @@ export class AuthWebViewRequestHandler {
         ],
       });
 
-      console.log('Apple Authentication successful:', appleAuthResult);
+      logger.log('Apple Authentication successful:', appleAuthResult);
 
       const idToken = appleAuthResult.identityToken;
       if (!idToken) {
@@ -209,7 +209,7 @@ export class AuthWebViewRequestHandler {
           setStorage('okto_session', JSON.stringify(session));
         },
       );
-      console.log('Apple OAuth login result:', result);
+      logger.log('Apple OAuth login result:', result);
 
       const response: WebViewResponse = {
         id: request.id,
@@ -226,7 +226,7 @@ export class AuthWebViewRequestHandler {
         this.navigationCallback();
       }, 1000);
     } catch (error) {
-      console.error('Error during Apple authentication:', error);
+      logger.error('Error during Apple authentication:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -325,13 +325,13 @@ export class AuthWebViewRequestHandler {
           config: configToSend,
         },
       };
-      console.log(
+      logger.log(
         'Sending UI config response:',
         JSON.stringify(response, null, 2),
       );
       this.bridge.sendResponse(response);
     } catch (error) {
-      console.error('Error sending UI config:', error);
+      logger.error('Error sending UI config:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
