@@ -1,5 +1,11 @@
 # @okto_web3/react-sdk
 
+## 1.0.3
+
+### Patch Changes
+
+- c2de658: add additional allowed origins for the webview
+
 ## 0.6.0
 
 ### Minor Changes
