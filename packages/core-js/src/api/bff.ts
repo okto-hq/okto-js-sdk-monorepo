@@ -15,12 +15,10 @@ import type {
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
 import type {
-  Token,
   TokenEntity,
   TokenListingFilter,
   TokenListingParams,
 } from '@/types/bff/tokens.js';
-import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
 import type { Token } from '@/types/bff/tokens.js';
 import type {
   AuthenticatePayloadParam,
@@ -499,128 +497,128 @@ class BffClientRepository {
   }
 
   /**
-     * Authenticates the user with the Gateway service using BFF API.
-     *
-     * @returns {Promise<AuthenticateResult>} A promise that resolves to an AuthenticateResult object.
-     * @throws {Error} If the API request fails or returns an invalid response.
-     * @throws {Error} If the user is not authenticated.
-     */
-    public static async authenticate(
-      oc: OktoClient,
-      data: AuthenticatePayloadParam,
-    ): Promise<AuthenticateResult> {
-      const response = await getBffClient(oc).post<
-        ApiResponse<AuthenticateResult>
-      >(this.routes.authenticate, data, {
-        headers: {
-          'Skip-Authorization': true,
-        },
-      });
+   * Authenticates the user with the Gateway service using BFF API.
+   *
+   * @returns {Promise<AuthenticateResult>} A promise that resolves to an AuthenticateResult object.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   * @throws {Error} If the user is not authenticated.
+   */
+  public static async authenticate(
+    oc: OktoClient,
+    data: AuthenticatePayloadParam,
+  ): Promise<AuthenticateResult> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<AuthenticateResult>
+    >(this.routes.authenticate, data, {
+      headers: {
+        'Skip-Authorization': true,
+      },
+    });
 
-      if (response.data.status === 'error') {
-        throw new Error('Authentication failed: ' + response.data.error);
-      }
-
-      if (!response.data.data) {
-        throw new Error('Authentication response data is missing');
-      }
-
-      return response.data.data;
+    if (response.data.status === 'error') {
+      throw new Error('Authentication failed: ' + response.data.error);
     }
 
-    /**
-     * Executes a user operation with the Gateway service using BFF API.
-     *
-     * @returns {Promise<string>} A promise that resolves to a job ID string.
-     * @throws {Error} If the API request fails or returns an invalid response.
-     */
-    public static async execute(oc: OktoClient, data: UserOp): Promise<string> {
-      const response = await getBffClient(oc).post<ApiResponse<ExecuteResult>>(
-        this.routes.execute,
-        data,
-      );
-
-      if (response.data.status === 'error') {
-        throw new Error('Execute operation failed: ' + response.data.error);
-      }
-
-      if (!response.data.data) {
-        throw new Error('Execute response data is missing');
-      }
-
-      return response.data.data.jobId;
+    if (!response.data.data) {
+      throw new Error('Authentication response data is missing');
     }
 
-    /**
-     * Retrieves user keys from the Gateway service using BFF API.
-     *
-     * @returns {Promise<GetUserKeysResult>} A promise that resolves to user keys data.
-     * @throws {Error} If the API request fails or returns an invalid response.
-     */
-    public static async GetUserKeys(oc: OktoClient): Promise<GetUserKeysResult> {
-      const response = await getBffClient(oc).get<ApiResponse<GetUserKeysResult>>(
-        this.routes.getUserKeys,
-      );
+    return response.data.data;
+  }
 
-      if (response.data.status === 'error') {
-        throw new Error('Failed to retrieve user keys: ' + response.data.error);
-      }
+  /**
+   * Executes a user operation with the Gateway service using BFF API.
+   *
+   * @returns {Promise<string>} A promise that resolves to a job ID string.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async execute(oc: OktoClient, data: UserOp): Promise<string> {
+    const response = await getBffClient(oc).post<ApiResponse<ExecuteResult>>(
+      this.routes.execute,
+      data,
+    );
 
-      if (!response.data.data) {
-        throw new Error('User keys response data is missing');
-      }
-
-      return response.data.data;
+    if (response.data.status === 'error') {
+      throw new Error('Execute operation failed: ' + response.data.error);
     }
 
-    /**
-     * Signs a message using the Gateway service BFF API.
-     *
-     * @returns {Promise<SignMessageResult>} A promise that resolves to signed message data.
-     * @throws {Error} If the API request fails or returns an invalid response.
-     */
-    public static async SignMessage(
-      oc: OktoClient,
-      data: SignMessageParams,
-    ): Promise<SignMessageResult> {
-      const response = await getBffClient(oc).post<
-        ApiResponse<SignMessageResult>
-      >(this.routes.signMessage, data);
-
-      if (response.data.status === 'error') {
-        throw new Error('Failed to sign message: ' + response.data.error);
-      }
-
-      if (!response.data.data) {
-        throw new Error('Sign message response data is missing');
-      }
-
-      return response.data.data;
+    if (!response.data.data) {
+      throw new Error('Execute response data is missing');
     }
 
-    /**
-     * Retrieves user operation gas price from the Gateway service using BFF API.
-     *
-     * @returns {Promise<getUserOperationGasPriceResult>} A promise that resolves to gas price data.
-     * @throws {Error} If the API request fails or returns an invalid response.
-     */
-    public static async getUserOperationGasPrice(
-      oc: OktoClient,
-    ): Promise<getUserOperationGasPriceResult> {
-      const response = await getBffClient(oc).get<
-        ApiResponse<getUserOperationGasPriceResult>
-      >(this.routes.gasValues);
+    return response.data.data.jobId;
+  }
 
-      if (response.data.status === 'error') {
-        throw new Error('Failed to retrieve gas values: ' + response.data.error);
-      }
+  /**
+   * Retrieves user keys from the Gateway service using BFF API.
+   *
+   * @returns {Promise<GetUserKeysResult>} A promise that resolves to user keys data.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async GetUserKeys(oc: OktoClient): Promise<GetUserKeysResult> {
+    const response = await getBffClient(oc).get<ApiResponse<GetUserKeysResult>>(
+      this.routes.getUserKeys,
+    );
 
-      if (!response.data.data) {
-        throw new Error('Gas values response data is missing');
-      }
-
-      return response.data.data;
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve user keys: ' + response.data.error);
     }
+
+    if (!response.data.data) {
+      throw new Error('User keys response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Signs a message using the Gateway service BFF API.
+   *
+   * @returns {Promise<SignMessageResult>} A promise that resolves to signed message data.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async SignMessage(
+    oc: OktoClient,
+    data: SignMessageParams,
+  ): Promise<SignMessageResult> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<SignMessageResult>
+    >(this.routes.signMessage, data);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to sign message: ' + response.data.error);
+    }
+
+    if (!response.data.data) {
+      throw new Error('Sign message response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves user operation gas price from the Gateway service using BFF API.
+   *
+   * @returns {Promise<getUserOperationGasPriceResult>} A promise that resolves to gas price data.
+   * @throws {Error} If the API request fails or returns an invalid response.
+   */
+  public static async getUserOperationGasPrice(
+    oc: OktoClient,
+  ): Promise<getUserOperationGasPriceResult> {
+    const response = await getBffClient(oc).get<
+      ApiResponse<getUserOperationGasPriceResult>
+    >(this.routes.gasValues);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve gas values: ' + response.data.error);
+    }
+
+    if (!response.data.data) {
+      throw new Error('Gas values response data is missing');
+    }
+
+    return response.data.data;
+  }
 }
 
 export default BffClientRepository;
