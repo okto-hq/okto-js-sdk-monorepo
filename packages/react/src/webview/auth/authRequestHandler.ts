@@ -1,5 +1,5 @@
 import type { WebViewManager } from '../webViewManager.js';
-import type { WebViewRequestHandler } from '../types.js';
+import type { AppearanceOptions, WebViewRequestHandler } from '../types.js';
 import type { OktoClient } from 'src/core/index.js';
 
 /**
@@ -18,11 +18,12 @@ export class AuthRequestHandler {
     this.webViewManager = webViewManager;
   }
 
-  public handleRequest: WebViewRequestHandler = async (actualData: {
-    data?: { [key: string]: unknown } | undefined;
-  }) => {
-    console.log('Received request:', actualData);
-
+  public handleRequest: WebViewRequestHandler = async (
+    actualData: {
+      data?: { [key: string]: unknown } | undefined;
+    },
+    style?: AppearanceOptions,
+  ) => {
     if (typeof actualData !== 'object' || actualData === null) {
       throw new Error('Invalid request data');
     }
@@ -32,13 +33,22 @@ export class AuthRequestHandler {
       method: (actualData as { method?: string }).method || 'okto_sdk_login',
     };
 
+    if (actualData.data?.type === 'ui_config') {
+      this.webViewManager.sendResponse(baseResponse.id, baseResponse.method, {
+        type: 'ui_config',
+        config: {
+          ...style,
+        },
+      });
+      return;
+    }
+
     if (
       (actualData as { data?: { provider?: string } }).data?.provider ===
       'google'
     ) {
       try {
         const response = await this.oktoClient?.loginUsingSocial('google');
-        console.log('Google login response:', response);
         if (response) {
           this.webViewManager.sendResponse(
             baseResponse.id,
@@ -50,7 +60,6 @@ export class AuthRequestHandler {
             },
           );
           this.webViewManager.triggerSuccess(`${response}`);
-          console.log('Google login successful:', response);
           this.webViewManager.closeWebView({ triggerCallback: false });
           return response;
         } else {
@@ -113,7 +122,6 @@ export class AuthRequestHandler {
           baseResponse,
           actualData.data,
         );
-        console.log('OTP verification response:', response);
         this.webViewManager.triggerSuccess(`${response}`);
         return response;
       }
@@ -248,7 +256,6 @@ export class AuthRequestHandler {
           this.webViewManager.closeWebView({ triggerCallback: false });
         }, 1000);
 
-        console.log('Login successful:', response);
         return response;
       } else {
         throw new Error(response || 'Login failed');
