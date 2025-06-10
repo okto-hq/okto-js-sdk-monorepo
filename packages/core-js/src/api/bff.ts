@@ -1,4 +1,8 @@
-import type { ApiResponse, ApiResponseWithCount } from '@/types/index.js';
+import type {
+  ApiResponse,
+  ApiResponseWithCount,
+  UserOp,
+} from '@/types/index.js';
 
 import type OktoClient from '@/core/index.js';
 import type {
@@ -21,6 +25,12 @@ import type {
   TokenListingParams,
 } from '@/types/bff/tokens.js';
 import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
+import type { Token } from '@/types/bff/tokens.js';
+import type {
+  AuthenticatePayloadParam,
+  AuthenticateResult,
+  UserSessionResponse,
+} from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
 import type {
   SupportedRampTokensResponse,
@@ -42,6 +52,13 @@ import type {
   SwapEstimateRequest,
   SwapEstimateResponse,
 } from '@/types/bff/estimate.js';
+import type {
+  GetUserKeysResult,
+  SignMessageParams,
+  SignMessageResult,
+} from '@/types/gateway/signMessage.js';
+import type { ExecuteResult } from '@/types/gateway/execute.js';
+import type { getUserOperationGasPriceResult } from '@/types/gateway/g.js';
 
 class BffClientRepository {
   private static routes = {
@@ -57,6 +74,8 @@ class BffClientRepository {
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
     getEntities: '/api/oc/v1/entities',
     getSupportedRampTokens: '/api/v2/supported_ramp_tokens',
+    getUserKeys: '/api/oc/v1/user-keys',
+    gasValues: '/api/oc/v1/gas-values',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
@@ -65,6 +84,9 @@ class BffClientRepository {
     swapEstimate: '/api/oc/v1/estimate',
     generateTransactionToken: '/api/v2/transaction_token',
     rawRead: '/api/oc/v1/readContractData',
+    authenticate: '/api/oc/v1/authenticate',
+    execute: '/api/oc/v1/execute',
+    signMessage: '/api/oc/v1/signMessage',
   };
 
   /**

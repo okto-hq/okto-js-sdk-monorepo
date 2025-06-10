@@ -12,6 +12,7 @@ export interface EnvConfig {
   authPageUrl: string;
   onrampUrl: string;
   authRedirectUrl: string;
+  signMessageMpcThreshold: number;
 }
 
 export interface ClientConfig {
