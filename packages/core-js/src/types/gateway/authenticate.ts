@@ -16,8 +16,8 @@ export type AuthSessionData = {
   nonce: string;
   clientSWA: string;
   sessionPk: string;
-  maxPriorityFeePerGas: string;
-  maxFeePerGas: string;
+  // maxPriorityFeePerGas: string;
+  // maxFeePerGas: string;
   paymaster: string;
   paymasterData: string;
 };

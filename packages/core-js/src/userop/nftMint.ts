@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
@@ -14,6 +13,7 @@ import {
 import { INTENT_ABI } from './abi.js';
 import type { NftMintParams } from './types.js';
 import { NftMintParamsSchema, validateSchema } from './userOpInputValidator.js';
+import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for minting an NFT.
@@ -126,7 +126,7 @@ export async function nftMint(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const userOp: UserOp = {
     sender: oc.userSWA,

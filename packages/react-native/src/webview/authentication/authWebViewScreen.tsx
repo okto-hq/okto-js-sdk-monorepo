@@ -8,6 +8,8 @@ import { WebViewBridge } from '../webViewBridge.js';
 import type { WebViewParamList } from '../types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
+import { logger } from '../../utils/logger.js';
+import type { Env } from '@okto_web3/core-js-sdk/core';
 
 /**
  * Props type for WebViewScreen component using React Navigation's typing system
@@ -25,7 +27,7 @@ type Props = NativeStackScreenProps<WebViewParamList, 'WebViewScreen'> & {
  */
 export const WebViewScreen = ({ route, navigation }: Props) => {
   // Extract parameters passed through navigation
-  const { url, title, clientConfig, redirectUrl, onWebViewClose } =
+  const { url, title, clientConfig, redirectUrl, uiConfig, onWebViewClose } =
     route.params;
 
   // Create refs
@@ -38,7 +40,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   if (!oktoClientRef.current) {
     oktoClientRef.current = new OktoClient({
-      environment: clientConfig.environment as 'staging' | 'sandbox',
+      environment: clientConfig.environment as Env,
       clientPrivateKey: clientConfig.clientPrivateKey,
       clientSWA: clientConfig.clientSWA,
     });
@@ -72,6 +74,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
       navigateBack,
       oktoClient,
       redirectUrl,
+      uiConfig,
     ),
   ).current;
 
@@ -84,11 +87,14 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   // Debug logging for component initialization
   useEffect(() => {
-    console.log('WebView ref:', {
+    logger.log('WebView ref:', {
       refObject: webViewRef,
       currentValue: webViewRef.current,
     });
-    console.log('Request handler:', requestHandler);
+    logger.log('Request handler:', requestHandler);
+    if (uiConfig) {
+      logger.log('UI config provided:', uiConfig);
+    }
   }, []);
 
   // Handle hardware back button presses
@@ -115,7 +121,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
           // Re-initialize bridge connections after page load completes
           bridge.reinitializeBridge();
         }}
-        injectedJavaScript={bridge.getInjectedJavaScript()}
+        injectedJavaScriptBeforeContentLoaded={bridge.getInjectedJavaScript()}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={['*']} // Consider restricting this in production
