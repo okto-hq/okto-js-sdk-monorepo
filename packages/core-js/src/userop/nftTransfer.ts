@@ -17,7 +17,6 @@ import {
   NFTTransferIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
-import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for NFT transfer.
