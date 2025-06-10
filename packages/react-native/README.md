@@ -4,18 +4,6 @@
 
 [![npm version](https://img.shields.io/npm/v/@okto_web3/react-native-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-native-sdk)
 
-## Features
-
-- **Native Authentication**
-  - Expo WebBrowser integration for secure auth flows
-  - Deep linking support with custom URL schemes
-  - Automatic platform-specific handling (iOS/Android)
-- **Core SDK Integration**
-  - Full access to `@okto_web3/core-js-sdk` features
-  - Native session storage with AsyncStorage
-  - React Navigation support
-  - WebView support for in-app flows
-
 ## Installation
 
 ```bash

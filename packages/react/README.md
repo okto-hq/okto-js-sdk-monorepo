@@ -4,21 +4,14 @@
 
 [![npm version](https://img.shields.io/npm/v/@okto_web3/react-sdk.svg)](https://www.npmjs.com/package/@okto_web3/react-sdk)
 
-## Features
-
-- **Enhanced Authentication**
-  - WebView Integration for seamless in-app flows
-  - Social Login support (Google)
-  - Automatic session persistence
-- **Core SDK Integration**
-  - Full access to `@okto_web3/core-js-sdk` features
-  - Browser-optimized authentication
-  - Local storage session management
-
 ## Installation
 
 ```bash
-npm install @okto_web3/react-sdk
+npm install @okto_web3/react-sdk@latest
+# or
+yarn add @okto_web3/react-sdk@latest
+# or
+pnpm add @okto_web3/react-sdk@latest
 ```
 
 ## Quick Start
