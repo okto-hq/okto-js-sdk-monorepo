@@ -3,6 +3,11 @@
 export const DEFAULT_ALLOWED_ORIGINS = [
   'https://onboarding.oktostage.com',
   'https://sandbox-onboarding.okto.tech',
+  'https://onboarding.okto.tech',
+  'https://sandbox-pay.okto.tech',
+  'https://pay.oktostage.com',
+  'https://pay.okto.tech',
+  'https://onboarding.okto.tech',
 ];
 
 export const DEFAULT_WEBVIEW_URL = DEFAULT_ALLOWED_ORIGINS[0]; // THIS IS THE DEFAULT URL FOR THE WEBVIEW
