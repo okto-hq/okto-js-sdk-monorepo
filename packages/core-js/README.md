@@ -67,7 +67,7 @@ await client.loginUsingSocial('google', {
 
 // WhatsApp authentication
 await client.sendOTP(phoneNumber, 'whatsapp');
-await client.loginUsingWhatsApp(phoneNumber, otp);
+await client.loginUsingWhatsApp(phoneNumber, otp, token);
 ```
 
 ### Blockchain Operations
