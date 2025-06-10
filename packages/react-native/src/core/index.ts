@@ -16,6 +16,7 @@ import {
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
+import type { UIConfig } from 'src/webview/types.js';
 
 interface NavigationProps {
   navigate: (
@@ -24,6 +25,7 @@ interface NavigationProps {
       url: string;
       clientConfig: OktoClientConfig;
       redirectUrl: string;
+      uiConfig?: UIConfig;
       onWebViewClose: () => void;
     },
   ) => void;
@@ -120,7 +122,11 @@ class OktoClient extends OktoCoreClient {
     return super.sessionClear();
   }
 
-  public openWebView(navigation: NavigationProps, redirectUrl: string): void {
+  public openWebView(
+    navigation: NavigationProps,
+    redirectUrl: string,
+    uiConfig?: UIConfig,
+  ): void {
     if (!redirectUrl) {
       throw new Error(
         '[OktoClient] redirectUrl is required for WebView authentication',
@@ -132,6 +138,7 @@ class OktoClient extends OktoCoreClient {
       url: authUrl,
       clientConfig: this.config,
       redirectUrl,
+      uiConfig,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
         console.log('Client SWA After Login', newClient.clientSWA);

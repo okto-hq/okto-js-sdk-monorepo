@@ -82,7 +82,7 @@ export function createExpoBrowserHandler(
             if (result.type === 'dismiss') {
               if (authPromiseResolverRef.current) {
                 authPromiseResolverRef.current.reject(
-                  new Error('User canceled authentication'),
+                  new Error('User cancelled authentication'),
                 );
                 authPromiseResolverRef.current = null;
               }

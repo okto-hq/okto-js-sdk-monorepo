@@ -71,7 +71,7 @@ export const NFTTransferIntentParamsSchema = z
       .int('Amount must be an integer')
       .min(1, 'Minimum transfer amount is 1')
       .default(1),
-    nftType: z.enum(['ERC721', 'ERC1155']),
+    nftType: z.string(),
   })
   .strict()
   .refine((obj) => obj.nftType !== 'ERC721' || obj.amount === 1, {
