@@ -1,6 +1,6 @@
 import type { Address, Hash, Hex } from '@/types/core.js';
 
-export type Env = 'staging' | 'sandbox';
+export type Env = 'staging' | 'sandbox' | 'production';
 
 export interface EnvConfig {
   gatewayBaseUrl: string;
@@ -10,6 +10,8 @@ export interface EnvConfig {
   entryPointAddress: Address;
   chainId: number;
   authPageUrl: string;
+  authRedirectUrl: string;
+  signMessageMpcThreshold: number;
 }
 
 export interface ClientConfig {
