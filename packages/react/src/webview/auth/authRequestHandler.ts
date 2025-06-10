@@ -24,7 +24,6 @@ export class AuthRequestHandler {
     },
     style?: AppearanceOptions,
   ) => {
-
     if (typeof actualData !== 'object' || actualData === null) {
       throw new Error('Invalid request data');
     }
