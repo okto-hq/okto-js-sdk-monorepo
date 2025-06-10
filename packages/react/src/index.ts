@@ -7,3 +7,4 @@ export { useOktoWebView } from './hooks/index.js';
 export * from './abstract/index.js';
 export * from './explorer/index.js';
 export * from './types/index.js';
+export * from './webview/types.js';

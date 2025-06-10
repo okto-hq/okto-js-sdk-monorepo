@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
@@ -17,6 +16,7 @@ import {
   TokenTransferIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
+import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for token transfer.
@@ -109,7 +109,7 @@ export async function tokenTransfer(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const userOp: UserOp = {
     sender: oc.userSWA,
