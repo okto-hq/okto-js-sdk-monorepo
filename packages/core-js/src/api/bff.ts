@@ -24,11 +24,7 @@ import type {
   TokenListingFilter,
   TokenListingParams,
 } from '@/types/bff/tokens.js';
-import type { UserSessionResponse } from '@/types/gateway/authenticate.js';
-import type { Token } from '@/types/bff/tokens.js';
 import type {
-  AuthenticatePayloadParam,
-  AuthenticateResult,
   UserSessionResponse,
 } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
