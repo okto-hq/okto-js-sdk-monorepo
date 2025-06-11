@@ -69,10 +69,9 @@ class SocialAuthUrlGenerator {
   ): string {
     const nonce = uuidv4();
     return this.buildAuthUrl('apple', {
-      scope: 'name email',
       redirect_uri: envConfig.authRedirectUrl,
       response_type: 'code id_token',
-      response_mode: 'query', 
+      response_mode: 'fragment', 
       client_id: Constants.APPLE_CLIENT_ID,
       nonce,
       state: {
