@@ -82,6 +82,7 @@ class BffClientRepository {
     execute: '/api/oc/v1/execute',
     signMessage: '/api/oc/v1/signMessage',
     rawRead: '/api/oc/v1/readContractData',
+    rawRead: '/api/oc/v1/readContractData',
     generateTransactionToken: '/api/v2/transaction_token',
   };
 
