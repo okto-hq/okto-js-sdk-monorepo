@@ -5,13 +5,12 @@ import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
 import {
+  createAppleAuthHandler,
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
 import * as Clipboard from 'expo-clipboard';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import type { AuthData } from '@okto_web3/core-js-sdk/types';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -168,7 +167,7 @@ export class AuthWebViewRequestHandler {
   private handleAppleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
     if (provider !== 'apple') {
-      throw new Error('Invalid provider for Google login');
+      throw new Error('Invalid provider for Apple login');
     }
     await this.oktoClient.loginUsingSocial(
       provider,
@@ -176,13 +175,13 @@ export class AuthWebViewRequestHandler {
         client_url: this.redirectUrl,
         platform: Platform.OS,
       },
-      createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+      createAppleAuthHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
-        console.log('Google login successful, session established:', session);
+        console.log('Apple login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
       },
     );
-    console.log('Google login successful, closing WebView');
+    console.log('Apple login successful, closing WebView');
     setTimeout(() => {
       this.navigationCallback();
     }, 1000);
