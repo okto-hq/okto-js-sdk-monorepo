@@ -32,7 +32,7 @@ import type {
 export async function tokenTransferWithEstimate(
   oc: OktoClient,
   data: TokenTransferIntentParams,
-  feePayerAddress?: Address,
+  feePayerAddress?: string,
 ): Promise<{ userOp: UserOp; details: EstimationDetails }> {
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
@@ -46,9 +46,9 @@ export async function tokenTransferWithEstimate(
 
   const nonce = generateUUID();
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
+  // if (!feePayerAddress) {
+  //   feePayerAddress = "";
+  // }
 
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
@@ -76,7 +76,7 @@ export async function tokenTransferWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress,
+    feePayerAddress: feePayerAddress ?? "",
     details: {
       recipientWalletAddress: data.recipient,
       caip2Id: data.caip2Id,
