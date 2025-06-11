@@ -96,6 +96,7 @@ export async function swapToken(
       slippage: data.slippage,
       advancedSettings: data.advancedSettings || {},
     },
+    feePayerAddress: feePayerAddress,
   };
 
   // Get estimate from BFF API

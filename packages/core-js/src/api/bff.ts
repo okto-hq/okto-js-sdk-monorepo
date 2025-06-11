@@ -61,6 +61,7 @@ class BffClientRepository {
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
     getPortfolio: '/api/oc/v2/aggregated-portfolio',
+    getPortfolioForSwap: '/api/oc/v1/user-unfiltered-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
@@ -155,6 +156,27 @@ class BffClientRepository {
   public static async getPortfolio(oc: OktoClient): Promise<UserPortfolioData> {
     const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
       this.routes.getPortfolio,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve portfolio');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves the aggregated portfolio for the Swap with non-whitelisted Tokens.
+   */
+  public static async getPortfolioForSwap(
+    oc: OktoClient,
+  ): Promise<UserPortfolioData> {
+    const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
+      this.routes.getPortfolioForSwap,
     );
 
     if (response.data.status === 'error') {
@@ -480,6 +502,7 @@ class BffClientRepository {
 
     return response.data.data;
   }
+
   /**
    * Authenticates the user with the Gateway service using BFF API.
    *
