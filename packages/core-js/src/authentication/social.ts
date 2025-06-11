@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 class SocialAuthUrlGenerator {
   private providers: Record<SocialAuthType, string> = {
     google: 'https://accounts.google.com/o/oauth2/v2/auth',
-    apple: 'https://appleid.apple.com/auth/authorize', // Add Apple provider
+    apple: 'https://appleid.apple.com/auth/authorize',
   };
 
   private buildAuthUrl(
@@ -37,10 +37,9 @@ class SocialAuthUrlGenerator {
   ): string {
     switch (provider) {
       case 'google':
-        return this.buildGoogleAuthUrl(state);
-      case 'apple':
-        return this.buildAppleAuthUrl(state);
         return this.buildGoogleAuthUrl(state, envConfig);
+      case 'apple':
+        return this.buildAppleAuthUrl(state, envConfig);
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
@@ -63,14 +62,17 @@ class SocialAuthUrlGenerator {
     });
   }
 
-  private buildAppleAuthUrl(state: Record<string, string>): string {
+  private buildAppleAuthUrl(
+    state: Record<string, string>,
+    envConfig: EnvConfig,
+  ): string {
     const nonce = uuidv4();
     return this.buildAuthUrl('apple', {
       scope: 'name email',
-      redirect_uri: 'https://onboarding.oktostage.com/__/auth/handler',
+      redirect_uri: envConfig.authRedirectUrl,
       response_type: 'code id_token',
       response_mode: 'form_post',
-      client_id: Constants.APPLE_CLIENT_ID, // You'll need to add this to your constants
+      client_id: Constants.APPLE_CLIENT_ID,
       nonce,
       state: {
         ...state,

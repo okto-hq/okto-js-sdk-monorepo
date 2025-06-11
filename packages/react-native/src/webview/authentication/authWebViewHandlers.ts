@@ -10,8 +10,8 @@ import { logger } from '../../utils/logger.js';
 import * as Clipboard from 'expo-clipboard';
 import type { WebViewBridge } from './webViewBridge.js';
 import type { UIConfig, WebViewRequest, WebViewResponse } from './types.js';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import type { AuthData } from '@okto_web3/core-js-sdk/types';
+// import * as AppleAuthentication from 'expo-apple-authentication';
+// import type { AuthData } from '@okto_web3/core-js-sdk/types';
 
 /**
  * AuthWebViewRequestHandler - Handles authentication requests from WebView
@@ -174,7 +174,7 @@ export class AuthWebViewRequestHandler {
   private handleAppleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
     if (provider !== 'apple') {
-      throw new Error('Invalid provider for Google login');
+      throw new Error('Invalid provider for Apple login');
     }
     await this.oktoClient.loginUsingSocial(
       provider,
@@ -184,11 +184,11 @@ export class AuthWebViewRequestHandler {
       },
       createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
-        console.log('Google login successful, session established:', session);
+        logger.log('Apple login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
       },
     );
-    console.log('Google login successful, closing WebView');
+    logger.log('Apple login successful, closing WebView');
     setTimeout(() => {
       this.navigationCallback();
     }, 1000);
