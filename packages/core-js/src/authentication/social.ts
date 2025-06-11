@@ -7,7 +7,7 @@ class SocialAuthUrlGenerator {
   private providers: Record<SocialAuthType, string> = {
     google: 'https://accounts.google.com/o/oauth2/v2/auth',
     apple: 'https://appleid.apple.com/auth/authorize',
-        // Add more providers like 'x': 'https://x.com/oauth/...' if needed
+    // Add more providers like 'x': 'https://x.com/oauth/...' if needed
   };
 
   private buildAuthUrl(
