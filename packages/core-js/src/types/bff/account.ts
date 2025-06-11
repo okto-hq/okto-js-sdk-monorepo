@@ -299,3 +299,60 @@ export type OrderEstimateResponse = {
     };
   };
 };
+
+/**
+ * ========================
+ * Read Contract Types
+ * ========================
+ */
+
+/**
+ * Represents the payload for reading a contract.
+ */
+export type ReadContractPayload =
+  | {
+      caip2Id: string;
+      data: {
+        function: string;
+        typeArguments: string[];
+        functionArguments: string[];
+      };
+    } // For reading a contract function with type arguments - Aptos
+  | {
+      caip2Id?: string;
+      data?: {
+        contractAddress?: string;
+        abi?: {
+          inputs?: Array<{
+            internalType?: string;
+            name?: string;
+            type?: string;
+          }>;
+          name?: string;
+          outputs?: Array<{
+            internalType?: string;
+            name?: string;
+            type?: string;
+          }>;
+          stateMutability?: string;
+          type?: string;
+        };
+        args?: Record<string, unknown>;
+      };
+    };
+
+export type ReadContractResponse =
+  | {
+      status: 'success';
+      data: string[];
+    }
+  | {
+      status: 'error';
+      error: {
+        code: number;
+        errorCode: string;
+        message: string;
+        trace_id?: string;
+        details?: string;
+      };
+    };
