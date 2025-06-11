@@ -16,12 +16,6 @@ importers:
       '@changesets/cli':
         specifier: ^2.27.11
         version: 2.29.2
-      '@okto_web3/core-js-sdk':
-        specifier: ^0.6.1-dev.3
-        version: 0.6.2(typescript@5.5.4)
-      '@okto_web3/react-sdk':
-        specifier: ^0.5.1-dev.4
-        version: 0.5.2(react@19.1.0)(typescript@5.5.4)
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.6.1
@@ -260,9 +254,6 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.8.3
-      uuid:
-        specifier: ^11.0.4
-        version: 11.1.0
 
   packages/react-native:
     dependencies:
@@ -272,6 +263,16 @@ importers:
       '@okto_web3/core-js-sdk':
         specifier: workspace:*
         version: link:../core-js
+    devDependencies:
+      '@okto_web3/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@okto_web3/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier-config
+      '@okto_web3/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       '@react-navigation/native':
         specifier: ^7.1.6
         version: 7.1.6(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
@@ -281,6 +282,9 @@ importers:
       '@react-navigation/stack':
         specifier: ^7.2.10
         version: 7.2.10(@react-navigation/native@7.1.6(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native-gesture-handler@2.25.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native-safe-area-context@5.4.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native-screens@4.10.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
+      '@types/react':
+        specifier: 18.2.0
+        version: 18.2.0
       '@types/react-native':
         specifier: 0.73.0
         version: 0.73.0(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1)
@@ -299,9 +303,15 @@ importers:
       expo-web-browser:
         specifier: ^14.0.2
         version: 14.0.2(expo@52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(encoding@0.1.13)(react-native-webview@13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1))(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
       react-native:
         specifier: ^0.79.0
         version: 0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1)
+      react-native-builder-bob:
+        specifier: ^0.35.3
+        version: 0.35.3(typescript@5.8.3)
       react-native-get-random-values:
         specifier: ^1.11.0
         version: 1.11.0(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))
@@ -314,28 +324,6 @@ importers:
       react-native-webview:
         specifier: ^13.6.4
         version: 13.13.5(react-native@0.79.1(@babel/core@7.26.10)(@types/react@18.2.0)(react@18.3.1))(react@18.3.1)
-      uuid:
-        specifier: ^11.0.4
-        version: 11.1.0
-    devDependencies:
-      '@okto_web3/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@okto_web3/prettier-config':
-        specifier: workspace:*
-        version: link:../prettier-config
-      '@okto_web3/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      '@types/react':
-        specifier: 18.2.0
-        version: 18.2.0
-      react:
-        specifier: ^18.2.0
-        version: 18.3.1
-      react-native-builder-bob:
-        specifier: ^0.35.3
-        version: 0.35.3(typescript@5.8.3)
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
@@ -348,6 +336,9 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.8.3
+      uuid:
+        specifier: ^11.0.4
+        version: 11.1.0
 
   packages/typescript-config: {}
 
@@ -2000,14 +1991,6 @@ packages:
 
   '@octokit/types@13.10.0':
     resolution: {integrity: sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA==}
-
-  '@okto_web3/core-js-sdk@0.6.2':
-    resolution: {integrity: sha512-Kd1GZvKen9ec0cNVaTd9kyZ47636OEXHbqHDTm+EXXyBfbjI5pPfUkT5Jmd/9M2Bbg9aGcqdF7TIA8qoebJcfQ==}
-
-  '@okto_web3/react-sdk@0.5.2':
-    resolution: {integrity: sha512-zU3apqCiJ+p8KpNxXCH83VoqSesobnnnedp3cMD0PL79qnQHQzF26QovrSsgM3qDXlqoyrWJ7PMOIPh+Jt0LGA==}
-    peerDependencies:
-      react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -9720,33 +9703,6 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 24.2.0
 
-  '@okto_web3/core-js-sdk@0.6.2(typescript@5.5.4)':
-    dependencies:
-      '@noble/curves': 1.9.0
-      '@noble/hashes': 1.8.0
-      axios: 1.9.0
-      axios-retry: 4.5.0(axios@1.9.0)
-      json-canonicalize: 1.0.6
-      uuid: 11.1.0
-      viem: 2.28.0(typescript@5.5.4)(zod@3.24.3)
-      zod: 3.24.3
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - typescript
-      - utf-8-validate
-
-  '@okto_web3/react-sdk@0.5.2(react@19.1.0)(typescript@5.5.4)':
-    dependencies:
-      '@noble/ciphers': 1.3.0
-      '@okto_web3/core-js-sdk': 0.6.2(typescript@5.5.4)
-      react: 19.1.0
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - typescript
-      - utf-8-validate
-
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -10379,11 +10335,6 @@ snapshots:
       through: 2.3.8
 
   abbrev@2.0.0: {}
-
-  abitype@1.0.8(typescript@5.5.4)(zod@3.24.3):
-    optionalDependencies:
-      typescript: 5.5.4
-      zod: 3.24.3
 
   abitype@1.0.8(typescript@5.8.3)(zod@3.24.3):
     optionalDependencies:
@@ -14283,20 +14234,6 @@ snapshots:
       object-keys: 1.1.1
       safe-push-apply: 1.0.0
 
-  ox@0.6.9(typescript@5.5.4)(zod@3.24.3):
-    dependencies:
-      '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.9.0
-      '@noble/hashes': 1.8.0
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.5.4)(zod@3.24.3)
-      eventemitter3: 5.0.1
-    optionalDependencies:
-      typescript: 5.5.4
-    transitivePeerDependencies:
-      - zod
-
   ox@0.6.9(typescript@5.8.3)(zod@3.24.3):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
@@ -15971,23 +15908,6 @@ snapshots:
   validate-npm-package-name@5.0.1: {}
 
   vary@1.1.2: {}
-
-  viem@2.28.0(typescript@5.5.4)(zod@3.24.3):
-    dependencies:
-      '@noble/curves': 1.8.2
-      '@noble/hashes': 1.7.2
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.5.4)(zod@3.24.3)
-      isows: 1.0.6(ws@8.18.1)
-      ox: 0.6.9(typescript@5.5.4)(zod@3.24.3)
-      ws: 8.18.1
-    optionalDependencies:
-      typescript: 5.5.4
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
 
   viem@2.28.0(typescript@5.8.3)(zod@3.24.3):
     dependencies:

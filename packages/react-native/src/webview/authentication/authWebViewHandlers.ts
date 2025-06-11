@@ -1,6 +1,6 @@
 // WebViewRequestHandler.ts
 import { WebViewBridge } from '../webViewBridge.js';
-import type { WebViewRequest, WebViewResponse } from '../types.js';
+import type { UIConfig, WebViewRequest, WebViewResponse } from '../types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
@@ -10,6 +10,7 @@ import {
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
 import { setStorage } from '../../utils/storageUtils.js';
+import { logger } from '../../utils/logger.js';
 import * as Clipboard from 'expo-clipboard';
 
 /**
@@ -27,12 +28,14 @@ export class AuthWebViewRequestHandler {
     current: null,
   };
   private redirectUrl: string;
+  private uiConfig?: UIConfig;
 
   constructor(
     bridge: WebViewBridge,
     navigationCallback: () => void,
     oktoClient: OktoClient,
     redirectUrl: string,
+    uiConfig?: UIConfig,
   ) {
     if (!redirectUrl) {
       throw new Error('redirectUrl is required for AuthWebViewRequestHandler');
@@ -42,6 +45,7 @@ export class AuthWebViewRequestHandler {
     this.navigationCallback = navigationCallback;
     this.oktoClient = oktoClient;
     this.redirectUrl = redirectUrl;
+    this.uiConfig = uiConfig;
     this.initialize();
   }
 
@@ -58,6 +62,7 @@ export class AuthWebViewRequestHandler {
    */
   private handleRequest = async (request: WebViewRequest) => {
     try {
+      logger.log('Received request from WebView:', request);
       // Route request based on method
       switch (request.method) {
         case 'okto_sdk_login':
@@ -68,7 +73,7 @@ export class AuthWebViewRequestHandler {
       }
     } catch (error) {
       // Handle and report any errors back to WebView
-      console.error('Error handling request:', error);
+      logger.error('Error handling request:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -87,11 +92,14 @@ export class AuthWebViewRequestHandler {
    * @param request Login request data from WebView
    */
   private handleLoginRequest = async (request: WebViewRequest) => {
-    console.log('Handling login request:', request.data);
+    logger.log('Handling login request:', request.data);
     const { type } = request.data;
 
     // Route to specific handler based on login request type
     switch (type) {
+      case 'ui_config':
+        await this.handleUIConfigRequest(request);
+        break;
       case 'request_otp':
         await this.handleRequestOTP(request);
         break;
@@ -148,11 +156,11 @@ export class AuthWebViewRequestHandler {
       },
       createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
-        console.log('Google login successful, session established:', session);
+        logger.log('Google login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
       },
     );
-    console.log('Google login successful, closing WebView');
+    logger.log('Google login successful, closing WebView');
     setTimeout(() => {
       this.navigationCallback();
     }, 1000);
@@ -177,14 +185,116 @@ export class AuthWebViewRequestHandler {
       },
       createAppleAuthHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
-        console.log('Apple login successful, session established:', session);
+        logger.log('Apple login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
       },
     );
-    console.log('Apple login successful, closing WebView');
+    logger.log('Apple login successful, closing WebView');
     setTimeout(() => {
       this.navigationCallback();
     }, 1000);
+  };
+
+  /**
+   * Handle UI configuration requests from WebView
+   *
+   * Sends the stored UI configuration to the WebView for rendering
+   * @param request UI configuration request data
+   */
+  private handleUIConfigRequest = async (request: WebViewRequest) => {
+    try {
+      // Create default config if none provided
+      const defaultConfig: UIConfig = {
+        version: '1.0.0',
+        appearance: {
+          themeName: 'light',
+          theme: {
+            '--okto-body-background': '#ffffff',
+            '--okto-body-color-tertiary': '#adb5bd',
+            '--okto-accent-color': '#5166ee',
+            '--okto-button-font-weight': '500',
+            '--okto-border-color': 'rgba(22, 22, 22, 0.12)',
+            '--okto-stroke-divider': 'rgba(22, 22, 22, 0.06)',
+            '--okto-font-family':
+              "'Inter', sans-serif, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+            '--okto-rounded-sm': '0.25rem',
+            '--okto-rounded-md': '0.5rem',
+            '--okto-rounded-lg': '0.75rem',
+            '--okto-rounded-xl': '1rem',
+            '--okto-rounded-full': '9999px',
+            '--okto-success-color': '#28a745',
+            '--okto-warning-color': '#ffc107',
+            '--okto-error-color': '#f75757',
+            '--okto-text-primary': '#161616',
+            '--okto-text-secondary': '#707070',
+            '--okto-background-surface': '#f8f8f8',
+          },
+        },
+        vendor: {
+          name: 'Okto wallet',
+          logo: '/okto.svg',
+        },
+        loginOptions: {
+          socialLogins: [
+            { type: 'google', position: 1 },
+            { type: 'steam', position: 2 },
+            { type: 'twitter', position: 3 },
+          ],
+          otpLoginOptions: [
+            { type: 'email', position: 1 },
+            { type: 'whatsapp', position: 2 },
+          ],
+          externalWallets: [
+            {
+              type: 'metamask',
+              position: 1,
+              metadata: {
+                iconUrl:
+                  'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
+                isInstalled: true,
+              },
+            },
+            {
+              type: 'walletconnect',
+              position: 2,
+              metadata: {
+                iconUrl:
+                  'https://coindcx.s3.amazonaws.com/static/images/metamask.png',
+                isInstalled: false,
+              },
+            },
+          ],
+        },
+      };
+      // Use provided config or default
+      const configToSend = this.uiConfig || defaultConfig;
+
+      // Prepare response with UI configuration
+      const response: WebViewResponse = {
+        id: request.id,
+        method: request.method,
+        data: {
+          type: 'ui_config',
+          config: configToSend,
+        },
+      };
+      logger.log(
+        'Sending UI config response:',
+        JSON.stringify(response, null, 2),
+      );
+      this.bridge.sendResponse(response);
+    } catch (error) {
+      logger.error('Error sending UI config:', error);
+      this.bridge.sendResponse({
+        id: request.id,
+        method: request.method,
+        data: {
+          type: 'ui_config',
+        },
+        error:
+          error instanceof Error ? error.message : 'Failed to send UI config',
+      });
+    }
   };
 
   /**
@@ -236,11 +346,11 @@ export class AuthWebViewRequestHandler {
         },
       };
 
-      console.log(`Sending ${provider} OTP request response:`, response);
+      logger.log(`Sending ${provider} OTP request response:`, response);
       this.bridge.sendResponse(response);
     } catch (error) {
       // Handle and report errors back to WebView
-      console.error(`Error requesting OTP for ${provider}:`, error);
+      logger.error(`Error requesting OTP for ${provider}:`, error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -284,7 +394,7 @@ export class AuthWebViewRequestHandler {
           otp,
           token,
           (session: SessionConfig) => {
-            console.log(
+            logger.log(
               'WhatsApp login successful, session established:',
               session,
             );
@@ -304,10 +414,7 @@ export class AuthWebViewRequestHandler {
           otp,
           token,
           (session: SessionConfig) => {
-            console.log(
-              'Email login successful, session established:',
-              session,
-            );
+            logger.log('Email login successful, session established:', session);
             setStorage('okto_session', JSON.stringify(session));
           },
         );
@@ -333,7 +440,7 @@ export class AuthWebViewRequestHandler {
         },
       };
 
-      console.log(`Sending ${provider} OTP verification response:`, response);
+      logger.log(`Sending ${provider} OTP verification response:`, response);
       this.bridge.sendResponse(response);
 
       // Close WebView after successful authentication
@@ -344,7 +451,7 @@ export class AuthWebViewRequestHandler {
       }
     } catch (error) {
       // Handle and report verification errors
-      console.error(`Error verifying OTP for ${provider}:`, error);
+      logger.error(`Error verifying OTP for ${provider}:`, error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -409,11 +516,11 @@ export class AuthWebViewRequestHandler {
         },
       };
 
-      console.log(`Sending ${provider} OTP resend response:`, response);
+      logger.log(`Sending ${provider} OTP resend response:`, response);
       this.bridge.sendResponse(response);
     } catch (error) {
       // Handle and report resend errors
-      console.error(`Error resending OTP for ${provider}:`, error);
+      logger.error(`Error resending OTP for ${provider}:`, error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -428,7 +535,7 @@ export class AuthWebViewRequestHandler {
 
     try {
       const otpFromClipboard = await this.getOTPFromClipboard();
-      console.log(
+      logger.log(
         `Pasting OTP from clipboard for ${provider}:`,
         otpFromClipboard,
       );
@@ -448,10 +555,10 @@ export class AuthWebViewRequestHandler {
         },
       };
 
-      console.log(`Sending OTP from clipboard for ${provider}:`, response);
+      logger.log(`Sending OTP from clipboard for ${provider}:`, response);
       this.bridge.sendResponse(response);
     } catch (error) {
-      console.error(`Error pasting OTP for ${provider}:`, error);
+      logger.error(`Error pasting OTP for ${provider}:`, error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -468,11 +575,11 @@ export class AuthWebViewRequestHandler {
   private async getOTPFromClipboard(): Promise<string | null> {
     try {
       const content = await Clipboard.getStringAsync();
-      console.log('Clipboard content:', content);
+      logger.log('Clipboard content:', content);
       const otpMatch = content.match(/\b\d{4,6}\b/);
       return otpMatch ? otpMatch[0] : null;
     } catch (error) {
-      console.error('Failed to read clipboard:', error);
+      logger.error('Failed to read clipboard:', error);
       return null;
     }
   }
@@ -495,7 +602,7 @@ export class AuthWebViewRequestHandler {
         },
       };
 
-      console.log('Processing WebView close request:', response);
+      logger.log('Processing WebView close request:', response);
       this.bridge.sendResponse(response);
 
       // Close WebView after sending confirmation
@@ -504,7 +611,7 @@ export class AuthWebViewRequestHandler {
       }, 300);
     } catch (error) {
       // Handle and report close errors
-      console.error('Error closing WebView:', error);
+      logger.error('Error closing WebView:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,
@@ -518,6 +625,6 @@ export class AuthWebViewRequestHandler {
   };
 
   private handleInfo = (info: WebViewRequest) => {
-    console.log('Received info from WebView:', info);
+    logger.log('Received info from WebView:', info);
   };
 }

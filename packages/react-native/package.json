@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "1.0.1-dev.2",
+  "version": "1.1.0",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
@@ -53,7 +53,6 @@
     "expo-web-browser": "^14.0.2",
     "react-native-get-random-values": "^1.11.0",
     "react-native-mmkv": "^3.2.0",
-    "expo-apple-authentication": "^7.2.4",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-webview": "^13.6.4",
     "uuid": "^11.0.4",
@@ -70,7 +69,6 @@
     "react-native-mmkv": ">=2.0.0",
     "react-native-safe-area-context": ">=4.0.0",
     "react-native-webview": ">=11.0.0",
-    "expo-apple-authentication": ">=7.0.0",
     "@react-navigation/native": ">=6.0.0",
     "@react-navigation/native-stack": ">=6.0.0",
     "@react-navigation/stack": ">=6.0.0",

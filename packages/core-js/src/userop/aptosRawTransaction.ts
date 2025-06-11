@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
@@ -21,6 +20,7 @@ import {
   AptosRawTransactionIntentParamsSchema,
   validateSchema,
 } from './userOpInputValidator.js';
+import BffClientRepository from '@/api/bff.js';
 
 /**
  * Creates a user operation for Aptos Raw Transaction.
@@ -121,7 +121,7 @@ export async function aptosRawTransaction(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const userOp: UserOp = {
     sender: oc.userSWA,
