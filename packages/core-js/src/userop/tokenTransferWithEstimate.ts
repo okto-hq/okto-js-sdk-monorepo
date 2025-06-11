@@ -46,10 +46,6 @@ export async function tokenTransferWithEstimate(
 
   const nonce = generateUUID();
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
-
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
   const chains = await getChains(oc);
@@ -76,7 +72,7 @@ export async function tokenTransferWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress,
+    feePayerAddress: feePayerAddress ?? '',
     details: {
       recipientWalletAddress: data.recipient,
       caip2Id: data.caip2Id,

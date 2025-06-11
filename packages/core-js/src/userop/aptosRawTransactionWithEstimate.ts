@@ -39,10 +39,6 @@ export async function aptosRawTransactionWithEstimate(
   }
   validateSchema(AptosRawTransactionIntentParamsSchema, data);
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
-
   const nonce = generateUUID();
 
   const chains = await getChains(oc);
@@ -87,7 +83,7 @@ export async function aptosRawTransactionWithEstimate(
       caip2Id: data.caip2Id,
       transactions: transactions,
     },
-    feePayerAddress,
+    feePayerAddress: feePayerAddress ?? '',
   };
 
   // Get estimate from BFF API

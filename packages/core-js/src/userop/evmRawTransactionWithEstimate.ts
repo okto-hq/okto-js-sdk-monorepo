@@ -43,10 +43,6 @@ export async function evmRawTransactionWithEstimate(
 
   validateSchema(EvmRawTransactionIntentParamsSchema, data);
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
-
   const transaction: EVMRawTransaction = {
     from: data.transaction.from,
     to: data.transaction.to,
@@ -99,7 +95,7 @@ export async function evmRawTransactionWithEstimate(
         },
       ],
     },
-    feePayerAddress,
+    feePayerAddress: feePayerAddress ?? '',
   };
 
   // Get estimate from BFF API
