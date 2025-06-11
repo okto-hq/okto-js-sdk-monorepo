@@ -147,6 +147,11 @@ export function createAppleAuthHandler(
         }
       }, 300000);
 
+      logger.log(
+        '[OktoClient] Opening Apple auth URL in WebBrowser:',
+        redirectUrl,
+      );
+
       WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
         showInRecents: true,
         createTask: false,
@@ -163,6 +168,11 @@ export function createAppleAuthHandler(
                   // We need to extract the id_token from the response
                   const urlObj = new URL(result.url);
                   const idToken = urlObj.searchParams.get('id_token');
+
+                  logger.log(
+                    '[OktoClient] Apple auth success, extracted id_token:',
+                    idToken,
+                  );
                   if (idToken) {
                     authPromiseResolverRef.current.resolve(idToken);
                     authPromiseResolverRef.current = null;

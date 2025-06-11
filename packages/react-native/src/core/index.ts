@@ -119,6 +119,8 @@ class OktoClient extends OktoCoreClient {
           ? createAppleAuthHandler(redirectUrl, this.authPromiseResolverRef)
           : createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef);
 
+      logger.log("karan is here ");
+
       return await super.loginUsingSocial(provider, state, authHandler);
     } catch (error) {
       logger.error('[OktoClient] Social login error:', error);

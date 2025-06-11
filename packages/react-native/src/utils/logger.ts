@@ -30,7 +30,7 @@ const createLogger = (isDevelopment: boolean = __DEV__): Logger => {
 };
 
 // Default logger instance
-export const logger = createLogger(false);
+export const logger = createLogger(true);
 
 //Separate instances for development and production environments
 export const devLogger = createLogger(true);
