@@ -105,3 +105,95 @@ export function createExpoBrowserHandler(
     });
   };
 }
+
+/**
+ * Creates a handler function for Apple authentication using WebBrowser (for Android)
+ */
+export function createAppleAuthHandler(
+  redirectUrl: string,
+  authPromiseResolverRef: { current: AuthPromiseResolver },
+): (url: string) => Promise<string> {
+  return async (authUrl: string) => {
+    if (authPromiseResolverRef.current) {
+      console.warn(
+        'Existing Apple auth session detected, clearing previous session',
+      );
+      authPromiseResolverRef.current.reject(
+        new Error('Apple auth session replaced by new request'),
+      );
+      authPromiseResolverRef.current = null;
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      authPromiseResolverRef.current = { resolve, reject };
+
+      const authTimeout = setTimeout(() => {
+        if (authPromiseResolverRef.current) {
+          authPromiseResolverRef.current.reject(
+            new Error('Apple authentication timed out'),
+          );
+          authPromiseResolverRef.current = null;
+
+          WebBrowser.coolDownAsync()
+            .then(() =>
+              console.log(
+                '[OktoClient] Browser cooled down after Apple auth timeout',
+              ),
+            )
+            .catch((error) =>
+              console.error('[OktoClient] Error cooling down browser:', error),
+            );
+        }
+      }, 300000);
+
+      WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
+        showInRecents: true,
+        createTask: false,
+        preferEphemeralSession: true,
+      })
+        .then((result) => {
+          clearTimeout(authTimeout);
+
+          if (authPromiseResolverRef.current) {
+            if (result.type === 'success') {
+              try {
+                if (result.url) {
+                  // Apple returns authorization code and id_token in form_post
+                  // We need to extract the id_token from the response
+                  const urlObj = new URL(result.url);
+                  const idToken = urlObj.searchParams.get('id_token');
+                  if (idToken) {
+                    authPromiseResolverRef.current.resolve(idToken);
+                    authPromiseResolverRef.current = null;
+                    return;
+                  }
+                }
+              } catch (error) {
+                console.error(
+                  '[OktoClient] Error extracting Apple token from success URL:',
+                  error,
+                );
+              }
+            }
+            if (result.type === 'dismiss') {
+              if (authPromiseResolverRef.current) {
+                authPromiseResolverRef.current.reject(
+                  new Error('User canceled Apple authentication'),
+                );
+                authPromiseResolverRef.current = null;
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('[OktoClient] Apple browser session error:', error);
+          clearTimeout(authTimeout);
+
+          if (authPromiseResolverRef.current) {
+            authPromiseResolverRef.current.reject(error);
+            authPromiseResolverRef.current = null;
+          }
+        });
+    });
+  };
+}

@@ -56,4 +56,7 @@ export class Constants {
 
   static readonly GOOGLE_CLIENT_ID =
     '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com';
+
+  static readonly APPLE_CLIENT_ID =
+    'com.okto.sdk.reactnative';
 }

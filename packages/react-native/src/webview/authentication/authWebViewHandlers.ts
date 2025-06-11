@@ -167,73 +167,25 @@ export class AuthWebViewRequestHandler {
    */
   private handleAppleLogin = async (request: WebViewRequest) => {
     const { provider } = request.data;
-
     if (provider !== 'apple') {
-      throw new Error('Invalid provider for Apple login');
+      throw new Error('Invalid provider for Google login');
     }
-
-    try {
-      const isAvailable = await AppleAuthentication.isAvailableAsync();
-      if (!isAvailable) {
-        throw new Error('Apple Authentication is not available on this device');
-      }
-
-      const appleAuthResult = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      console.log('Apple Authentication successful:', appleAuthResult);
-
-      const idToken = appleAuthResult.identityToken;
-      if (!idToken) {
-        throw new Error('No identity token received from Apple');
-      }
-
-      const authData: AuthData = {
-        provider: 'apple',
-        idToken: idToken,
-      };
-
-      const result = await this.oktoClient.loginUsingOAuth(
-        authData,
-        (session: SessionConfig) => {
-          setStorage('okto_session', JSON.stringify(session));
-        },
-      );
-      console.log('Apple OAuth login result:', result);
-
-      const response: WebViewResponse = {
-        id: request.id,
-        method: request.method,
-        data: {
-          provider,
-          message: 'Apple authentication successful',
-          result: 'auth-success',
-        },
-      };
-      this.bridge.sendResponse(response);
-
-      setTimeout(() => {
-        this.navigationCallback();
-      }, 1000);
-    } catch (error) {
-      console.error('Error during Apple authentication:', error);
-      this.bridge.sendResponse({
-        id: request.id,
-        method: request.method,
-        data: {
-          provider,
-          result: 'auth-failed',
-        },
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to authenticate with Apple',
-      });
-    }
+    await this.oktoClient.loginUsingSocial(
+      provider,
+      {
+        client_url: this.redirectUrl,
+        platform: Platform.OS,
+      },
+      createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+      (session: SessionConfig) => {
+        console.log('Google login successful, session established:', session);
+        setStorage('okto_session', JSON.stringify(session));
+      },
+    );
+    console.log('Google login successful, closing WebView');
+    setTimeout(() => {
+      this.navigationCallback();
+    }, 1000);
   };
 
   /**
