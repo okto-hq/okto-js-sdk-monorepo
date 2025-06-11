@@ -2,6 +2,7 @@
 import type { MutableRefObject } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewRequest, WebViewResponse } from './types.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * WebViewBridge - Manages communication between React Native and WebView
@@ -30,7 +31,7 @@ export class WebViewBridge {
   public handleWebViewMessage = (event: WebViewMessageEvent) => {
     try {
       const rawData = event.nativeEvent.data;
-      console.log('Raw message from WebView:', rawData);
+      logger.log('Raw message from WebView:', rawData);
 
       // Parse the message JSON
       const message = JSON.parse(rawData);
@@ -43,7 +44,7 @@ export class WebViewBridge {
             ? JSON.parse(message.eventData)
             : message.eventData;
 
-        console.log('Parsed request:', request);
+        logger.log('Parsed request:', request);
         this.onRequest?.(request);
       } else if (message.eventName === 'infoChannel') {
         // Handle info messages
@@ -52,11 +53,11 @@ export class WebViewBridge {
             ? JSON.parse(message.eventData)
             : message.eventData;
 
-        console.log('Parsed info:', info);
+        logger.log('Parsed info:', info);
         this.onInfo?.(info);
       }
     } catch (error) {
-      console.error(
+      logger.error(
         'Failed to parse WebView message:',
         error,
         event.nativeEvent.data,
@@ -74,7 +75,7 @@ export class WebViewBridge {
 
   public sendResponse = (response: WebViewResponse) => {
     if (!this.webViewRef.current) {
-      console.error('WebView reference is null, cannot send response');
+      logger.error('WebView reference is null, cannot send response');
       return;
     }
 

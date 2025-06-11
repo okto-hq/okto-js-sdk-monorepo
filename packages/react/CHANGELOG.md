@@ -1,5 +1,22 @@
 # @okto_web3/react-sdk
 
+## 0.6.0
+
+### Minor Changes
+
+- fb75c3c: feat(core-sdk, react, react-native): add Aptos raw transaction support, NFT mint, and NFT create collection intents
+- fb75c3c: added whatsapp and email apis to the core sdk
+- fb75c3c: Added Onboarding Screen UI and communication channels
+
+### Patch Changes
+
+- f3b91b0: Enhanced webview authentication opt with Config and Sandbox
+- Updated dependencies [fb75c3c]
+- Updated dependencies [fb75c3c]
+- Updated dependencies [17cf7f3]
+- Updated dependencies [fb75c3c]
+  - @okto_web3/core-js-sdk@0.7.0
+
 ## 0.5.3
 
 ### Patch Changes

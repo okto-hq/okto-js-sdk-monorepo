@@ -11,6 +11,7 @@ import type {
   SocialAuthType,
 } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import { logger } from '../utils/logger.js';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -21,7 +22,21 @@ import { RemoteConfigService } from '../webview/onRamp/onRampRemoteConfig.js';
 import type { UIConfig } from 'src/webview/authentication/types.js';
 
 interface NavigationProps {
-  navigate: (screen: string, params: unknown) => void;
+  navigate: (
+    screen: string,
+    params: {
+      url: string;
+      clientConfig?: OktoClientConfig;
+      redirectUrl: string;
+      tokenId?: string;
+      oktoClient?: OktoCoreClient;
+      onClose?: () => void;
+      onSuccess?: (message: string) => void;
+      onError?: (error: string) => void;
+      uiConfig?: UIConfig;
+      onWebViewClose: () => void;
+    },
+  ) => void;
 }
 
 class OktoClient extends OktoCoreClient {
@@ -108,7 +123,7 @@ class OktoClient extends OktoCoreClient {
       WebBrowser.maybeCompleteAuthSession();
       await WebBrowser.warmUpAsync();
     } catch (error) {
-      console.error('[OktoClient] Error preparing browser:', error);
+      logger.error('[OktoClient] Error preparing browser:', error);
     }
 
     try {
@@ -118,13 +133,13 @@ class OktoClient extends OktoCoreClient {
         createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
       );
     } catch (error) {
-      console.error('[OktoClient] Social login error:', error);
+      logger.error('[OktoClient] Social login error:', error);
       throw error;
     } finally {
       try {
         await WebBrowser.coolDownAsync();
       } catch (error) {
-        console.error('[OktoClient] Error cooling down browser:', error);
+        logger.error('[OktoClient] Error cooling down browser:', error);
       }
     }
   }
@@ -153,7 +168,7 @@ class OktoClient extends OktoCoreClient {
       uiConfig,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
-        console.log('Client SWA After Login', newClient.clientSWA);
+        logger.log('Client SWA After Login', newClient.clientSWA);
         this.initializeSession();
       },
     });
@@ -200,9 +215,13 @@ class OktoClient extends OktoCoreClient {
         url,
         tokenId,
         oktoClient: this,
-        onClose: options.onClose || (() => {}),
+        onClose: options.onClose || (() => { }),
         onSuccess: options.onSuccess,
         onError: options.onError,
+        redirectUrl: '',
+        onWebViewClose: function (): void {
+          throw new Error('Function not implemented.');
+        }
       });
     } catch (error) {
       console.error('[OktoClient] OnRamp error:', error);
