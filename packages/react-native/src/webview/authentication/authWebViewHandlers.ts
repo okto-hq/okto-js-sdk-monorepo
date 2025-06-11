@@ -2,6 +2,7 @@ import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
 import {
+  createAppleAuthHandler,
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../../utils/authBrowserUtils.js';
@@ -182,7 +183,7 @@ export class AuthWebViewRequestHandler {
         client_url: this.redirectUrl,
         platform: Platform.OS,
       },
-      createExpoBrowserHandler(this.redirectUrl, this.authPromiseResolverRef),
+      createAppleAuthHandler(this.redirectUrl, this.authPromiseResolverRef),
       (session: SessionConfig) => {
         logger.log('Apple login successful, session established:', session);
         setStorage('okto_session', JSON.stringify(session));
