@@ -103,7 +103,7 @@ class OktoClient extends OktoCoreClient {
     const redirectUrl = options.redirectUrl;
     const state = {
       client_url: redirectUrl,
-      platform: Platform.OS,
+      platform: "ios",
     };
 
     try {
