@@ -49,6 +49,7 @@ export function createExpoBrowserHandler(
         }
       }, 300000); // 5 minute timeout
 
+
       // Open auth URL in the Expo WebBrowser
       WebBrowser.openAuthSessionAsync(authUrl, redirectUrl, {
         showInRecents: true,
@@ -64,6 +65,7 @@ export function createExpoBrowserHandler(
             if (result.type === 'success') {
               // If the URL contains an id_token, extract it (fallback mechanism)
               try {
+                 console.log("KARAN :: result.url", result.url)
                 if (result.url && result.url.includes('id_token=')) {
                   const urlObj = new URL(result.url);
                   const idToken = urlObj.searchParams.get('id_token');
@@ -163,6 +165,7 @@ export function createAppleAuthHandler(
           if (authPromiseResolverRef.current) {
             if (result.type === 'success') {
               try {
+                console.log("KARAN :: Apple result.url", result.url)
                 if (result.url) {
                   // Apple returns authorization code and id_token in form_post
                   // We need to extract the id_token from the response
