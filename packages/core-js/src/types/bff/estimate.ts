@@ -118,7 +118,7 @@ export interface TokenTransferEstimateResponse {
 export interface NFTTransferEstimateRequest {
   type: string;
   jobId: string;
-  feePayerAddress?: Address;
+  feePayerAddress?: string;
   paymasterData: string;
   gasDetails: {
     maxFeePerGas: string;
@@ -194,7 +194,7 @@ export interface AptosRawTransactionEstimateRequest {
     maxPriorityFeePerGas: string;
   };
   details: AptosRawTransactionIntentParams;
-  feePayerAddress?: Address;
+  feePayerAddress?: string;
 }
 
 export interface AptosRawTransactionEstimateResponse {
@@ -346,5 +346,5 @@ export interface SwapEstimateRequest {
     crossChainFeeCollector?: string;
     advancedSettings?: Record<string, unknown>;
   };
-  feePayerAddress?: Address;
+  feePayerAddress?: string;
 }

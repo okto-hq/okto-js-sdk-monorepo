@@ -336,7 +336,7 @@ class OktoClient {
     }
   }
 
-  public async generateAppleUrl(){
+  public async generateAppleUrl() {
     const state = {
       client_url: 'oktosdk://auth',
       platform: 'ios',
@@ -346,10 +346,10 @@ class OktoClient {
       'apple',
       state,
       this.env,
-    );  
+    );
   }
 
-  public async generateGoogleUrl(){
+  public async generateGoogleUrl() {
     const state = {
       client_url: 'oktosdk://auth',
       platform: 'android',
@@ -357,9 +357,9 @@ class OktoClient {
 
     return this._socialAuthUrlGenerator.generateAuthUrl(
       'google',
-       state,
+      state,
       this.env,
-    );  
+    );
   }
 
   /**

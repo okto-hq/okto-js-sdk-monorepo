@@ -103,7 +103,7 @@ class OktoClient extends OktoCoreClient {
     const redirectUrl = options.redirectUrl;
     const state = {
       client_url: redirectUrl,
-      platform: "ios",
+      platform: Platform.OS,
     };
 
     try {
@@ -119,7 +119,7 @@ class OktoClient extends OktoCoreClient {
           ? createAppleAuthHandler(redirectUrl, this.authPromiseResolverRef)
           : createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef);
 
-      logger.log("karan is here ");
+      logger.log('karan is here ');
 
       return await super.loginUsingSocial(provider, state, authHandler);
     } catch (error) {

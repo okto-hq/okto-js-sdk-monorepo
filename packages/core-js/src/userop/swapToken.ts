@@ -40,10 +40,6 @@ export async function swapToken(
 
   validateSchema(TokenSwapIntentParamsSchema, data);
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
-
   const nonce = generateUUID();
 
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
@@ -82,7 +78,6 @@ export async function swapToken(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress,
     details: {
       fromChainTokenAddress: data.fromChainTokenAddress,
       fromChainCaip2Id: data.fromChainCaip2Id,
@@ -97,6 +92,7 @@ export async function swapToken(
       slippage: data.slippage,
       advancedSettings: data.advancedSettings || {},
     },
+    feePayerAddress: feePayerAddress ?? '',
   };
 
   // Get estimate from BFF API

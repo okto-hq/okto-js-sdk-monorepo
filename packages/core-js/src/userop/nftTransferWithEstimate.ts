@@ -42,10 +42,6 @@ export async function nftTransferWithEstimate(
 
   const nonce = generateUUID();
 
-  if (!feePayerAddress) {
-    feePayerAddress = Constants.FEE_PAYER_ADDRESS;
-  }
-
   const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
 
   const chains = await getChains(oc);
@@ -72,7 +68,7 @@ export async function nftTransferWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress,
+    feePayerAddress: feePayerAddress ?? '',
     details: {
       caip2Id: data.caip2Id,
       collectionAddress: data.collectionAddress || '',
