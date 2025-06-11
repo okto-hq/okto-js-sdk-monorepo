@@ -36,6 +36,7 @@ import type {
 } from '@/types/auth/whatsapp.js';
 import SocialAuthUrlGenerator from '@/authentication/social.js';
 import { OnrampService } from './onRamp.js';
+import { platform } from 'os';
 
 export interface OktoClientConfig {
   environment: Env;
@@ -333,6 +334,32 @@ class OktoClient {
       }
       throw error;
     }
+  }
+
+  public async generateAppleUrl(){
+    const state = {
+      client_url: 'oktosdk://auth',
+      platform: 'ios',
+    };
+
+    return this._socialAuthUrlGenerator.generateAuthUrl(
+      'apple',
+      state,
+      this.env,
+    );  
+  }
+
+  public async generateGoogleUrl(){
+    const state = {
+      client_url: 'oktosdk://auth',
+      platform: 'android',
+    };
+
+    return this._socialAuthUrlGenerator.generateAuthUrl(
+      'google',
+       state,
+      this.env,
+    );  
   }
 
   /**

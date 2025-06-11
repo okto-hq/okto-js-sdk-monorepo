@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/react-native-sdk",
-  "version": "1.0.1-dev.2",
+  "version": "1.0.1-dev.3",
   "description": "React-Native for Okto SDK",
   "type": "module",
   "source": "./src/index.ts",
