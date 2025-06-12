@@ -77,7 +77,7 @@ export async function nftCreateCollection(
     symbol: data.data.symbol || '',
   });
 
-  const nftDataEncoded = toHex(new TextEncoder().encode(nftData));
+  const nftDataEncoded = toHex(Buffer.from(nftData, 'utf-8'));
 
   const calldata = encodeAbiParameters(
     parseAbiParameters('bytes4, address, uint256, bytes'),

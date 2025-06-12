@@ -43,12 +43,13 @@ export async function generateSignMessagePayload(
   const sha_2 = sha256(sha_1);
   const challenge = Buffer.from(sha_2).toString('hex');
 
-  const enc = new TextEncoder();
-  const rawMessagePayload = enc.encode(
+  // const enc = new TextEncoder();
+  const rawMessagePayload = Buffer.from(
     canonicalize({
       setup: setup_options,
       challenge: challenge,
     }),
+    'utf-8',
   );
 
   const sig = await signMessage({
