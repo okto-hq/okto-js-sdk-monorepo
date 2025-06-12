@@ -95,7 +95,7 @@ export async function evmRawTransactionWithEstimate(
         },
       ],
     },
-    feePayerAddress: feePayerAddress ?? '',
+    feePayerAddress: feePayerAddress,
   };
 
   // Get estimate from BFF API

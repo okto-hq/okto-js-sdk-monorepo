@@ -89,7 +89,7 @@ export interface EstimationDetails {
 export interface TokenTransferEstimateRequest {
   type: string;
   jobId: string;
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
   paymasterData: string;
   gasDetails: {
     maxFeePerGas: string;
@@ -118,7 +118,7 @@ export interface TokenTransferEstimateResponse {
 export interface NFTTransferEstimateRequest {
   type: string;
   jobId: string;
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
   paymasterData: string;
   gasDetails: {
     maxFeePerGas: string;
@@ -170,7 +170,7 @@ export interface EvmRawTransactionEstimateRequest {
       value?: string;
     }>;
   };
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
 }
 
 export interface EvmRawTransactionEstimateResponse {
@@ -194,7 +194,7 @@ export interface AptosRawTransactionEstimateRequest {
     maxPriorityFeePerGas: string;
   };
   details: AptosRawTransactionIntentParams;
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
 }
 
 export interface AptosRawTransactionEstimateResponse {
@@ -216,7 +216,7 @@ export interface NftMintEstimateRequest {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
   };
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
   paymasterData: string;
   details: {
     caip2Id: string;
@@ -259,7 +259,7 @@ export interface NftCreateCollectionEstimateRequest {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
   };
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
   paymasterData: string;
   details: NftCreateCollectionParams;
 }

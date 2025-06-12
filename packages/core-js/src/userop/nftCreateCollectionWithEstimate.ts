@@ -77,7 +77,7 @@ export async function nftCreateCollectionWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress ?? '',
+    feePayerAddress: feePayerAddress,
     details: data,
   };
 

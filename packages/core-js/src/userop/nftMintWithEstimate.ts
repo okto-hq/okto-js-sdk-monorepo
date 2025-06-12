@@ -70,7 +70,7 @@ export async function nftMintWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress ?? '',
+    feePayerAddress: feePayerAddress,
     details: {
       caip2Id: data.caip2Id,
       nftName: data.nftName,

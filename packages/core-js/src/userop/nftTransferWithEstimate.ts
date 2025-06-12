@@ -68,7 +68,7 @@ export async function nftTransferWithEstimate(
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress ?? '',
+    feePayerAddress: feePayerAddress,
     details: {
       caip2Id: data.caip2Id,
       collectionAddress: data.collectionAddress || '',
