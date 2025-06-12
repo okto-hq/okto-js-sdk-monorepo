@@ -67,12 +67,12 @@ export async function tokenTransferWithEstimate(
   const requestBody: TokenTransferEstimateRequest = {
     type: Constants.INTENT_TYPE.TOKEN_TRANSFER,
     jobId: nonce,
+    feePayerAddress,
     paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
-    feePayerAddress: feePayerAddress ?? '',
     details: {
       recipientWalletAddress: data.recipient,
       caip2Id: data.caip2Id,

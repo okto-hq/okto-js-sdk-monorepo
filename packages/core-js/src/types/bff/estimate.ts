@@ -89,7 +89,7 @@ export interface EstimationDetails {
 export interface TokenTransferEstimateRequest {
   type: string;
   jobId: string;
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
   paymasterData: string;
   gasDetails: {
     maxFeePerGas: string;
