@@ -14,7 +14,6 @@ import { logger } from '../utils/logger.js';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  createAppleAuthHandler,
   createExpoBrowserHandler,
   type AuthPromiseResolver,
 } from '../utils/authBrowserUtils.js';
@@ -101,12 +100,11 @@ class OktoClient extends OktoCoreClient {
     }
 
     try {
-      const authHandler =
-        provider === 'apple'
-          ? createAppleAuthHandler(redirectUrl, this.authPromiseResolverRef)
-          : createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef);
-
-      return await super.loginUsingSocial(provider, state, authHandler);
+      return await super.loginUsingSocial(
+        provider,
+        state,
+        createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
+      );
     } catch (error) {
       logger.error('[OktoClient] Social login error:', error);
       throw error;
