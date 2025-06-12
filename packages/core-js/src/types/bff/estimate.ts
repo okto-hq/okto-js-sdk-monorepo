@@ -346,5 +346,5 @@ export interface SwapEstimateRequest {
     crossChainFeeCollector?: string;
     advancedSettings?: Record<string, unknown>;
   };
-  feePayerAddress?: string;
+  feePayerAddress?: Address;
 }
