@@ -67,7 +67,7 @@ export async function tokenTransferWithEstimate(
   const requestBody: TokenTransferEstimateRequest = {
     type: Constants.INTENT_TYPE.TOKEN_TRANSFER,
     jobId: nonce,
-    feePayerAddress,
+    feePayerAddress: feePayerAddress,
     paymasterData,
     gasDetails: {
       maxFeePerGas: gasPrice.maxFeePerGas,
