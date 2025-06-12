@@ -20,6 +20,7 @@ import {
 } from '../utils/authBrowserUtils.js';
 import { RemoteConfigService } from '../webview/onRamp/onRampRemoteConfig.js';
 import type { UIConfig } from 'src/webview/authentication/types.js';
+import type { Env } from '@okto_web3/core-js-sdk/core';
 
 interface NavigationProps {
   navigate: (screen: string, params: unknown) => void;
@@ -216,4 +217,4 @@ class OktoClient extends OktoCoreClient {
 }
 
 export { OktoClient };
-export type { OktoClientConfig };
+export type { OktoClientConfig ,Env };
