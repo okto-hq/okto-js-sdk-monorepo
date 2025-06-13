@@ -158,7 +158,7 @@ export interface LoginOptions {
  * @property {number} position - Position of the social login in the list.
  */
 export interface SocialLogin {
-  type?: 'google' | 'steam' | 'twitter';
+  type?: 'google' | 'steam' | 'twitter' | 'apple';
   position?: number;
 }
 
