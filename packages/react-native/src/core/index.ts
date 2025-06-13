@@ -217,4 +217,4 @@ class OktoClient extends OktoCoreClient {
 }
 
 export { OktoClient };
-export type { OktoClientConfig ,Env };
+export type { OktoClientConfig, Env };
