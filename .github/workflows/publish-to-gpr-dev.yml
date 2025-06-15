@@ -1,9 +1,7 @@
 name: Publish Packages - GitHub Registry
 
 on:
-    push:
-        branches:
-            - gpr-dev
+    workflow_dispatch:
     
 
 jobs:
