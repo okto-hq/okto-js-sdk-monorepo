@@ -12,7 +12,7 @@ import type {
   EmailResendOtpRequest,
   EmailResendOtpResponse,
   EmailSendOtpRequest,
-  EmailSendOtpResponse,
+  EmailSendOtpResponse, //test
   EmailVerifyOtpRequest,
   EmailVerifyOtpResponse,
 } from '@/types/auth/email.js';
