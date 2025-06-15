@@ -1,9 +1,7 @@
 name: Publish Packages - GitHub Registry
 
 on:
-  push:
-    branches:
-      - gpr-dev
+    workflow_dispatch:
 
 jobs:
   publish-github:
@@ -54,7 +52,7 @@ jobs:
           pnpm changeset version --snapshot dev
 
       - name: Publish to GitHub Packages
-        run: pnpm changeset publish --tag dev --no-git-checks --registry https://npm.pkg.github.com
+        run:  pnpm changeset publish --tag dev --no-git-checks --registry https://npm.pkg.github.com --no-error-on-publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_REGISTRY: https://npm.pkg.github.com
