@@ -68,7 +68,7 @@ class BffClientRepository {
       throw new Error('Response data is missing');
     }
 
-    return response.data.data;
+    return response.data.data; //checking
   }
 
   /**
