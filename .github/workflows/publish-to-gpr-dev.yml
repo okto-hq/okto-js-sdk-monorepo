@@ -1,0 +1,55 @@
+name: Publish Packages - GitHub Registry
+
+on:
+    workflow_dispatch:
+    
+
+jobs:
+  publish-github:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@okto-hq"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Configure package.json for GitHub Registry
+        run: |
+          for file in $(find packages -name "package.json"); do
+            # Read original name
+            original_name=$(jq -r .name "$file")
+      
+            # Replace @okto_web3/ prefix with @okto-hq/
+            new_name=$(echo "$original_name" | sed 's/@okto_web3\//@okto-hq\//')
+      
+            # Patch name and add publishConfig
+            jq --arg name "$new_name" '.name = $name | .publishConfig = {"registry": "https://npm.pkg.github.com"}' "$file" > "$file.tmp"
+            mv "$file.tmp" "$file"
+          done
+
+      - name: Publish to GitHub Packages
+        run: |
+            pnpm changeset publish --tag latest --no-git-checks --registry https://npm.pkg.github.com --no-error-on-publish || echo "Some packages were already published. Skipping."
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_REGISTRY: https://npm.pkg.github.com
