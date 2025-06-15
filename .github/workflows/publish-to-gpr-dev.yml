@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: "20"
           registry-url: "https://npm.pkg.github.com"
-          scope: "@okto-hq"
+          scope: "@okto_web3"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -36,8 +36,12 @@ jobs:
 
       - name: Configure package.json for GitHub Registry
         run: |
-          find packages -name "package.json" -exec sed -i 's/"name": "\([^"]*\)"/"name": "@okto-hq\/\1"/' {} \;
-          find packages -name "package.json" -exec jq '. + {"publishConfig": {"registry": "https://npm.pkg.github.com"}}' {} \; > tmp.json && mv tmp.json {}
+          for file in $(find packages -name "package.json"); do
+            name=$(jq -r .name "$file" | sed 's/.*\///') # extract base name
+            jq --arg name "@okto_web3/$name" '.name = $name | .publishConfig = {"registry": "https://npm.pkg.github.com"}' "$file" > "$file.tmp"
+            mv "$file.tmp" "$file"
+          done
+
 
       - name: Set dev version
         if: github.ref != 'refs/heads/main'
