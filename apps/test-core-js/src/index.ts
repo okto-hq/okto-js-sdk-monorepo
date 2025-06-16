@@ -2,7 +2,7 @@ import { OktoClient } from '@okto_web3/core-js-sdk';
 import { getAccount, getPortfolioNFT } from '@okto_web3/core-js-sdk/explorer';
 import {
   aptosRawTransaction,
-  nftCreateCollectionWithEstimate,
+  // nftCreateCollectionWithEstimate,
 } from '@okto_web3/core-js-sdk/userop';
 // import {
 //   estimateAptosRawTransaction,
@@ -60,17 +60,17 @@ async function main() {
     ],
   };
 
-  const transactionData = {
-    caip2Id: 'aptos:mainnet',
-    name: 'KARAN',
-    uri: 'https://ipfs.io/ipfs/QmT434r64HQXdkpKo5fRCCn2PzxmQQPtXgGSnrUVzpPwaw',
-    data: {
-      attributes: 'This is an attribute',
-      symbol: 'CRAZYNFTS',
-      type: 'NFT',
-      description: 'description',
-    },
-  };
+  // const transactionData = {
+  //   caip2Id: 'aptos:mainnet',
+  //   name: 'KARAN',
+  //   uri: 'https://ipfs.io/ipfs/QmT434r64HQXdkpKo5fRCCn2PzxmQQPtXgGSnrUVzpPwaw',
+  //   data: {
+  //     attributes: 'This is an attribute',
+  //     symbol: 'CRAZYNFTS',
+  //     type: 'NFT',
+  //     description: 'description',
+  //   },
+  // };
 
   try {
     const tokenransferestimate = await aptosRawTransaction(
