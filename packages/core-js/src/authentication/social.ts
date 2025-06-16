@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 class SocialAuthUrlGenerator {
   private providers: Record<SocialAuthType, string> = {
     google: 'https://accounts.google.com/o/oauth2/v2/auth',
+    apple: 'https://appleid.apple.com/auth/authorize',
     // Add more providers like 'x': 'https://x.com/oauth/...' if needed
   };
 
@@ -38,6 +39,8 @@ class SocialAuthUrlGenerator {
     switch (provider) {
       case 'google':
         return this.buildGoogleAuthUrl(state, envConfig);
+      case 'apple':
+        return this.buildAppleAuthUrl(state, envConfig);
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
@@ -56,6 +59,25 @@ class SocialAuthUrlGenerator {
       nonce,
       state: {
         ...state,
+        type: 'google',
+      },
+    });
+  }
+
+  private buildAppleAuthUrl(
+    state: Record<string, string>,
+    envConfig: EnvConfig,
+  ): string {
+    const nonce = uuidv4();
+    return this.buildAuthUrl('apple', {
+      redirect_uri: envConfig.authRedirectUrl,
+      response_type: 'code id_token',
+      response_mode: 'fragment',
+      client_id: Constants.APPLE_CLIENT_ID,
+      nonce,
+      state: {
+        ...state,
+        type: 'apple',
       },
     });
   }

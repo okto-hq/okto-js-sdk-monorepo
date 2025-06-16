@@ -3,7 +3,7 @@ import {
   type OktoClientConfig,
 } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
-import type { RpcError } from '@okto_web3/core-js-sdk/errors';
+import { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type {
   Address,
   AuthData,
@@ -92,7 +92,6 @@ class OktoClient extends OktoCoreClient {
       platform: Platform.OS,
     };
 
-    // Clean up any existing sessions
     try {
       WebBrowser.maybeCompleteAuthSession();
       await WebBrowser.warmUpAsync();

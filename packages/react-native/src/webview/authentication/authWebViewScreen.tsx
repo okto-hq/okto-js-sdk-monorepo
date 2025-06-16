@@ -62,7 +62,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     if (!redirectUrl) {
-      console.error('Missing required redirectUrl parameter');
+      logger.error('Missing required redirectUrl parameter');
       navigateBack();
     }
   }, [redirectUrl]);
