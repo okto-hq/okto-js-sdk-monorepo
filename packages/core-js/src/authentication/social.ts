@@ -56,10 +56,10 @@ class SocialAuthUrlGenerator {
       redirect_uri: envConfig.authRedirectUrl,
       response_type: 'id_token',
       client_id: Constants.GOOGLE_CLIENT_ID,
-      type: 'google',
       nonce,
       state: {
         ...state,
+        type: 'google',
       },
     });
   }
@@ -73,11 +73,11 @@ class SocialAuthUrlGenerator {
       redirect_uri: envConfig.authRedirectUrl,
       response_type: 'code id_token',
       response_mode: 'fragment',
-      type: 'apple',
       client_id: Constants.APPLE_CLIENT_ID,
       nonce,
       state: {
         ...state,
+        type: 'apple',
       },
     });
   }
