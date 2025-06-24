@@ -28,5 +28,4 @@ export {
   generateTransactionToken,
   rawRead,
   getPortfolioForSwap,
-  rawRead,
 };

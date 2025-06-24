@@ -348,3 +348,43 @@ export interface SwapEstimateRequest {
   };
   feePayerAddress?: string;
 }
+
+/**
+ * ========================
+ * SOLANA Raw Transaction Estimate Types
+ * ========================
+ */
+
+export interface SolanaRawTransactionEstimateRequest {
+  type: string;
+  jobId: string;
+  paymasterData: string;
+  gasDetails: {
+    maxFeePerGas: string;
+    maxPriorityFeePerGas: string;
+  };
+  details: {
+    caip2Id: string;
+    transactions: Array<{
+      instructions: SolanaInstruction[];
+      signers: string[];
+      feePayerAddress?: string;
+    }>;
+  };
+  feePayerAddress?: Address;
+}
+export interface SolanaInstruction {
+  programId: string;
+  keys: SolanaInstructionKey[];
+  data: number[];
+}
+export interface SolanaInstructionKey {
+  pubkey: string;
+  isSigner: boolean;
+  isWritable: boolean;
+}
+export interface SolanaRawTransactionEstimateResponse {
+  details: EstimationDetails;
+  userOps: UserOp;
+  callData: CallData;
+}
