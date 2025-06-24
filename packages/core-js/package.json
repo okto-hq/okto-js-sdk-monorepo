@@ -1,6 +1,6 @@
 {
   "name": "@okto_web3/core-js-sdk",
-  "version": "1.1.0-dev.18",
+  "version": "1.1.0-dev.19",
   "description": "Core JS for Okto SDK",
   "type": "module",
   "main": "dist/index.js",
