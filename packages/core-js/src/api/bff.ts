@@ -8,7 +8,6 @@ import type OktoClient from '@/core/index.js';
 import type {
   EstimateGasLimitsPayload,
   EstimateGasLimitsResponse,
-  EstimateOrderPayload,
   Order,
   OrderFilterRequest,
   ReadContractPayload,
@@ -266,30 +265,30 @@ class BffClientRepository {
     return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
   }
 
-   /**
-     * Estimates the gas limits for a user operation.
-     */
+  /**
+   * Estimates the gas limits for a user operation.
+   */
 
-    public static async estimateGasLimits(
-      oc: OktoClient,
-      payload: EstimateGasLimitsPayload,
-    ): Promise<EstimateGasLimitsResponse> {
-      const response = await getBffClient(oc).post<
-        ApiResponse<EstimateGasLimitsResponse>
-      >(this.routes.estimateGasLimits, payload);
+  public static async estimateGasLimits(
+    oc: OktoClient,
+    payload: EstimateGasLimitsPayload,
+  ): Promise<EstimateGasLimitsResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EstimateGasLimitsResponse>
+    >(this.routes.estimateGasLimits, payload);
 
-      if (response.data.status === 'error') {
-        throw new Error(
-          'Failed to estimate user operation: ' + response.data.error?.message,
-        );
-      }
-
-      if (!response.data.data) {
-        throw new Error('Response data is missing');
-      }
-
-      return response.data.data;
+    if (response.data.status === 'error') {
+      throw new Error(
+        'Failed to estimate user operation: ' + response.data.error?.message,
+      );
     }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
 
   /**
    * Retrieves tokens for swap based on different listing criteria
@@ -651,28 +650,28 @@ class BffClientRepository {
 
     return response.data.data;
   }
-    /**
-     * Reads data from a smart contract using the BFF API.
-     *
-     * @param oc - The OktoClient instance.
-     * @param requestBody - The updated request body containing advanced contract read parameters.
-     * @returns ReadContractResponse the contract read response.
-     * @throws Error if the read fails or throws error.
-     */
-    public static async rawRead(
-      oc: OktoClient,
-      requestBody: ReadContractPayload,
-    ): Promise<ReadContractResponse | undefined> {
-      const response = await getBffClient(oc).post<
-        ApiResponse<ReadContractResponse>
-      >(this.routes.rawRead, requestBody);
+  /**
+   * Reads data from a smart contract using the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The updated request body containing advanced contract read parameters.
+   * @returns ReadContractResponse the contract read response.
+   * @throws Error if the read fails or throws error.
+   */
+  public static async rawRead(
+    oc: OktoClient,
+    requestBody: ReadContractPayload,
+  ): Promise<ReadContractResponse | undefined> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<ReadContractResponse>
+    >(this.routes.rawRead, requestBody);
 
-      if (response.data.status === 'error') {
-        throw new Error('Failed to read contract data');
-      }
-
-      return response.data.data;
+    if (response.data.status === 'error') {
+      throw new Error('Failed to read contract data');
     }
+
+    return response.data.data;
+  }
 }
 
 export default BffClientRepository;
