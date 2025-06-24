@@ -105,6 +105,7 @@ export class OnrampService {
         payToken: transactionToken,
         platform: 'web',
         app: 'okto_web',
+        host: 'sdk',
       };
 
       return this.buildOnrampUrl(oktoClient.env.onrampUrl, addFundsData);
