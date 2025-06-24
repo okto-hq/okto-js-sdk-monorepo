@@ -221,7 +221,8 @@ export class WebViewManager {
    */
   private get targetOrigin(): string {
     return this.validateTargetOrigin(
-      TARGET_ORIGIN_RESPONSE ??
+      this.currentTargetOrigin ??
+        TARGET_ORIGIN_RESPONSE ??
         this.allowedOrigins?.[0] ??
         window.location.origin,
     );
