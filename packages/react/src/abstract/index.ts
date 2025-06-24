@@ -5,6 +5,7 @@ import {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  svmRawTransaction,
 } from '@okto_web3/core-js-sdk/abstract';
 
 export {
@@ -14,4 +15,5 @@ export {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  svmRawTransaction,
 };
