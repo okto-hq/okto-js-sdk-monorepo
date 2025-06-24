@@ -36,7 +36,6 @@ import type {
 } from '@/types/auth/whatsapp.js';
 import SocialAuthUrlGenerator from '@/authentication/social.js';
 import { OnrampService } from './onRamp.js';
-import { platform } from 'os';
 
 export interface OktoClientConfig {
   environment: Env;
