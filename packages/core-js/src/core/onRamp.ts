@@ -103,6 +103,7 @@ export class OnrampService {
         app_version: options.appVersion || '500000',
         screen_source: options.screenSource || 'portfolio',
         payToken: transactionToken,
+        host: 'sdk',
         platform: 'web',
         app: 'okto_web',
       };
