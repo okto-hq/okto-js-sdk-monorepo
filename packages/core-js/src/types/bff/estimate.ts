@@ -349,7 +349,6 @@ export interface SwapEstimateRequest {
   feePayerAddress?: Address;
 }
 
-
 /**
  * ========================
  * SOLANA Raw Transaction Estimate Types

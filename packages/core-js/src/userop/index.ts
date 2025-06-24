@@ -20,5 +20,5 @@ export type {
   NftCreateCollectionParams,
   EVMRawTransactionIntentParams,
   AptosRawTransactionIntentParams,
-  SolanaRawTransactionIntentParams
+  SolanaRawTransactionIntentParams,
 } from './types.js';

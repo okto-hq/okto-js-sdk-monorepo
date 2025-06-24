@@ -233,8 +233,7 @@ export const TokenTransferIntentParamsSchema = z
         (val) => val.trim() === val,
         'caip2Id cannot have leading or trailing spaces',
       ),
-    recipient: z
-      .string(),
+    recipient: z.string(),
     token: z.string(),
     amount: z.union([
       z.number().gt(0, 'Amount must be greater than 0'),

@@ -19,7 +19,7 @@ import type {
 
 /**
  * Creates a user operation for Solana Raw Transaction with gas estimation.
- * 
+ *
  * This function initiates the process of executing Solana transactions by encoding
  * the necessary parameters into a User Operation. The operation is then
  * submitted through the OktoClient for execution with gas estimation.
@@ -37,9 +37,9 @@ export async function svmRawTransactionWithEstimate(
   if (!oc.isLoggedIn()) {
     throw new BaseError('User not logged in');
   }
-  
+
   validateSchema(SolanaRawTransactionIntentParamsSchema, data);
-  
+
   // if (!feePayerAddress) {
   //   throw new BaseError('Fee payer address is required for Solana transactions');
   // }
@@ -70,7 +70,7 @@ export async function svmRawTransactionWithEstimate(
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
-  const transactions = data.transactions.map(transaction => ({
+  const transactions = data.transactions.map((transaction) => ({
     instructions: transaction.instructions,
     signers: transaction.signers,
   }));
@@ -90,7 +90,7 @@ export async function svmRawTransactionWithEstimate(
     feePayerAddress: feePayerAddress,
   };
 
-  const svmRawTransactionEstimate = 
+  const svmRawTransactionEstimate =
     await BffClientRepository.getSvmRawTransactionEstimate(oc, requestBody);
 
   const details: EstimationDetails = {
@@ -110,7 +110,7 @@ export async function svmRawTransactionWithEstimate(
   const jobId =
     svmRawTransactionEstimate.userOps.nonce ||
     toHex(nonceToBigInt(nonce), { size: 32 });
-    
+
   const userSWA = svmRawTransactionEstimate.userOps.sender || oc.userSWA;
 
   const userOp: UserOp = {
