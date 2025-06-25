@@ -744,7 +744,7 @@ class BffClientRepository {
     return response.data.data;
   }
 
-    /**
+  /**
    * Gets a Solana raw transaction estimate from the BFF API.
    *
    * @param oc - The OktoClient instance
@@ -770,9 +770,6 @@ class BffClientRepository {
 
     return response.data.data;
   }
-  
 }
-
-
 
 export default BffClientRepository;
