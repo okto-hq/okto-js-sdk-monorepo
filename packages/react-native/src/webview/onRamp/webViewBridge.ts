@@ -336,7 +336,7 @@ export class WebViewBridge {
   }
 
   private handleOnRampCompleted(): void {
-    this.callbacks.onClose?.();
+    // this.callbacks.onClose?.();
     this.callbacks.onSuccess?.(
       'Transaction successful. It may take a few minutes to complete!',
     );
@@ -347,7 +347,7 @@ export class WebViewBridge {
   }
 
   private handleOrderFailure(): void {
-    this.callbacks.onClose?.();
+    // this.callbacks.onClose?.();
     this.callbacks.onError?.('Transaction failed. Please try again');
   }
 
