@@ -1,5 +1,4 @@
 import BffClientRepository from '@/api/bff.js';
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
@@ -63,7 +62,7 @@ export async function svmRawTransactionWithEstimate(
     });
   }
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+ const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const paymasterData = await oc.paymasterData({
     nonce: nonce,
