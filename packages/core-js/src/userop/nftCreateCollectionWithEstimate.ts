@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
 import { getChains } from '@/explorer/chain.js';
@@ -41,7 +40,7 @@ export async function nftCreateCollectionWithEstimate(
 
   const nonce = generateUUID();
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const chains = await getChains(oc);
   const currentChain = chains.find(

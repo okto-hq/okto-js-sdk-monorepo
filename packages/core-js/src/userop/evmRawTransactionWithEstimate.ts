@@ -1,4 +1,3 @@
-import GatewayClientRepository from '@/api/gateway.js';
 import BffClientRepository from '@/api/bff.js';
 import type OktoClient from '@/core/index.js';
 import { BaseError } from '@/errors/base.js';
@@ -52,7 +51,7 @@ export async function evmRawTransactionWithEstimate(
 
   const nonce = generateUUID();
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const chains = await getChains(oc);
   const currentChain = chains.find(
