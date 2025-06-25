@@ -6,6 +6,8 @@ import type {
 
 import type OktoClient from '@/core/index.js';
 import type {
+  EstimateGasLimitsPayload,
+  EstimateGasLimitsResponse,
   Order,
   OrderFilterRequest,
   ReadContractPayload,
@@ -72,6 +74,7 @@ class BffClientRepository {
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
+    estimateGasLimits: '/api/oc/v1/estimate-userop',
     verifySession: '/api/oc/v1/verify-session',
     authenticate: '/api/oc/v1/authenticate',
     execute: '/api/oc/v1/execute',
@@ -265,6 +268,31 @@ class BffClientRepository {
   }
 
   /**
+   * Estimates the gas limits for a user operation.
+   */
+
+  public static async estimateGasLimits(
+    oc: OktoClient,
+    payload: EstimateGasLimitsPayload,
+  ): Promise<EstimateGasLimitsResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EstimateGasLimitsResponse>
+    >(this.routes.estimateGasLimits, payload);
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        'Failed to estimate user operation: ' + response.data.error?.message,
+      );
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
    * Retrieves tokens for swap based on different listing criteria
    * @param oc OktoClient instance
    * @param options Listing options (discovery, network filter, or search)
@@ -432,7 +460,7 @@ class BffClientRepository {
     >(this.routes.estimateOrder, requestBody);
 
     if (response.data.status === 'error') {
-      throw new Error('Failed to estimate Aptos raw transaction');
+      throw new Error('Failed to estimate order');
     }
 
     if (!response.data.data) {
@@ -624,7 +652,6 @@ class BffClientRepository {
 
     return response.data.data;
   }
-
   /**
    * Reads data from a smart contract using the BFF API.
    *
