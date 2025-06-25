@@ -71,6 +71,7 @@ export type UserPortfolioData = {
       networkName: string;
       isPrimary: boolean;
       balance: string;
+      viewBalance: string;
       holdingsPriceUsdt: string;
       holdingsPriceInr: string;
     }>;
