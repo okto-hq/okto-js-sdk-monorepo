@@ -1,1 +1,1 @@
-export type SocialAuthType = 'google';
+export type SocialAuthType = 'google' | 'apple';

@@ -56,4 +56,6 @@ export class Constants {
 
   static readonly GOOGLE_CLIENT_ID =
     '625834323626-c0rnc34fogig1n059prr5q73p6a6uulf.apps.googleusercontent.com';
+
+  static readonly APPLE_CLIENT_ID = 'tech.okto.si';
 }
