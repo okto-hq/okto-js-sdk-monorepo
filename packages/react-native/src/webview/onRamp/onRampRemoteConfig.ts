@@ -1,5 +1,5 @@
 import { logger } from '../../utils/logger.js';
-import { OKTO_REMOTE_CONFIG } from './okto_remote_config.js';
+import { OKTO_REMOTE_CONFIG } from './localConfig.js';
 import type { OnrampConfig } from './types.js';
 
 interface ConfigValue {
