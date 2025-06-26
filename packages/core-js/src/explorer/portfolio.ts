@@ -19,6 +19,20 @@ export async function getPortfolio(oc: OktoClient): Promise<UserPortfolioData> {
 }
 
 /**
+ * Retrieves the aggregated portfolio for the Swap with non-whitelisted Tokens.
+ */
+export async function getPortfolioForSwap(
+  oc: OktoClient,
+): Promise<UserPortfolioData> {
+  try {
+    return await BffClientRepository.getPortfolioForSwap(oc);
+  } catch (error) {
+    console.error('Failed to retrieve portfolio: ', error);
+    throw error;
+  }
+}
+
+/**
  * Retrieves the portfolio activity for the authenticated user from the BFF service.
  */
 export async function getPortfolioActivity(

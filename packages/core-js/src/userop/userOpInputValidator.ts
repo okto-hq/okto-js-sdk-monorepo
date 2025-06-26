@@ -56,16 +56,21 @@ export const NFTTransferIntentParamsSchema = z
         (val) => val.trim() === val,
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
+
     collectionAddress: isHexString('Invalid collection address format'),
+
     nftId: isTokenId(
       'Invalid NFT ID format – must be numeric or hexadecimal',
       true,
-    )
-      .transform((id) => Number(id))
-      .refine((n) => n >= 0, 'NFT ID cannot be negative'),
+    ).refine((val) => {
+      const num = Number(val);
+      return !isNaN(num) && num >= 0;
+    }, 'NFT ID cannot be negative'),
+
     recipientWalletAddress: z
       .string()
       .min(1, 'Recipient wallet address cannot be empty'),
+
     amount: z
       .number()
       .int('Amount must be an integer')
@@ -228,9 +233,7 @@ export const TokenTransferIntentParamsSchema = z
         (val) => val.trim() === val,
         'caip2Id cannot have leading or trailing spaces',
       ),
-    recipient: z
-      .string()
-      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid recipient address format'),
+    recipient: z.string(),
     token: z.string(),
     amount: z.union([
       z.number().gt(0, 'Amount must be greater than 0'),
@@ -238,6 +241,87 @@ export const TokenTransferIntentParamsSchema = z
     ]),
   })
   .strict();
+
+/**
+ * Schema for Token Swap Intent parameters validation.
+ */
+export const TokenSwapIntentParamsSchema = z
+  .object({
+    // Chain and token information
+    fromChainCaip2Id: z
+      .string({
+        required_error: 'Source chain CAIP2 ID is required',
+      })
+      .min(1, 'Source chain CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'Source chain CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    toChainCaip2Id: z
+      .string({
+        required_error: 'Destination chain CAIP2 ID is required',
+      })
+      .min(1, 'Destination chain CAIP2 ID cannot be blank')
+      .refine(
+        (val) => val.trim() === val,
+        'Destination chain CAIP2 ID cannot have leading or trailing spaces',
+      ),
+    fromChainTokenAddress: z.string(),
+    toChainTokenAddress: z.string(),
+
+    // Amount information
+    fromChainTokenAmount: z.union([
+      z.string().regex(/^\d+$/, 'Token amount must be a positive number'),
+      z.number().positive('Token amount must be positive'),
+      z.bigint().positive('Token amount must be positive'),
+    ]),
+    minToTokenAmount: z
+      .union([
+        z
+          .string()
+          .regex(/^\d+$/, 'Minimum token amount must be a positive number')
+          .optional(),
+        z
+          .number()
+          .nonnegative('Minimum token amount cannot be negative')
+          .optional(),
+        z
+          .bigint()
+          .nonnegative('Minimum token amount cannot be negative')
+          .optional(),
+      ])
+      .optional(),
+
+    // Fee information
+    sameChainFee: z.string().optional(),
+    sameChainFeeCollector: z.string().optional(),
+    crossChainFee: z.string().optional(),
+    crossChainFeeCollector: z.string().optional(),
+
+    // Route and slippage
+    routeId: z.string().optional(),
+    slippage: z.string().optional(),
+
+    // Advanced settings
+    advancedSettings: z.record(z.unknown()).optional(),
+  })
+  .strict()
+  .refine(
+    (data) => {
+      // Ensure fee collector is provided if fee is specified
+      if (data.sameChainFee && !data.sameChainFeeCollector) {
+        return false;
+      }
+      if (data.crossChainFee && !data.crossChainFeeCollector) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Fee collector address must be provided when specifying a fee',
+      path: ['feeCollector'],
+    },
+  );
 
 export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
   try {
@@ -251,3 +335,39 @@ export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
     throw error;
   }
 };
+
+/** * Schema for Solana Raw Transaction Intent Parameters.
+ * @property caip2Id - The CAIP-2 ID of the Solana network (e.g., "solana:mainnet").
+ * @property transactions - An array of Solana transactions, each containing:
+ *   - instructions: An array of instructions, where each instruction includes:
+ *     - programId: The ID of the program to execute.
+ *     - keys: An array of key objects, each with:
+ *       - pubkey: The public key of the account.
+ *       - isSigner: A boolean indicating if the key is a signer.
+ *       - isWritable: A boolean indicating if the key is writable.
+ *     - data: An array of numbers representing the instruction data.
+ *   - signers: An array of public keys of the signers for the transaction.
+ *   - feePayerAddress: The public key of the fee payer for the transaction.
+ */
+export const SolanaRawTransactionIntentParamsSchema = z.object({
+  caip2Id: z.string().startsWith('solana:'),
+  transactions: z.array(
+    z.object({
+      instructions: z.array(
+        z.object({
+          programId: z.string(),
+          keys: z.array(
+            z.object({
+              pubkey: z.string(),
+              isSigner: z.boolean(),
+              isWritable: z.boolean(),
+            }),
+          ),
+          data: z.array(z.number()),
+        }),
+      ),
+      signers: z.array(z.string()),
+      feePayerAddress: z.string(),
+    }),
+  ),
+});
