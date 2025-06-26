@@ -1,4 +1,5 @@
-import type { Hash } from '../core.js';
+import type { AptosFunctionArgumentTypes } from '@/userop/types.js';
+import type { Address, Hash, Hex } from '../core.js';
 
 /**
  * ========================
@@ -150,6 +151,7 @@ export type UserNFTBalance = {
  */
 export type INTENT_TYPE =
   | 'RAW_TRANSACTION'
+  | 'NFT_CREATE_COLLECTION'
   | 'NFT_MINT'
   | 'TOKEN_TRANSFER'
   | 'NFT_TRANSFER';
@@ -192,6 +194,27 @@ export type NftMintDetails = BaseDetails & {
   uri: string;
 };
 
+export interface AptosRawTransactionDetails extends BaseDetails {
+  transactions: Array<{
+    function: string;
+    typeArguments: string[];
+    functionArguments: AptosFunctionArgumentTypes[];
+  }>;
+  intent_type: 'RAW_TRANSACTION';
+}
+
+export interface NftCreateCollectionDetails extends BaseDetails {
+  name: string;
+  uri: string;
+  data: {
+    attributes?: string;
+    symbol?: string;
+    type?: string;
+    description?: string;
+  };
+  intent_type: 'NFT_CREATE_COLLECTION';
+}
+
 export type TokenTransferDetails = BaseDetails & {
   amount: string;
   caip2Id: string;
@@ -211,6 +234,8 @@ export type OrderDetails =
   | (RawTransactionDetails & { intent_type: 'RAW_TRANSACTION' })
   | (NftMintDetails & { intent_type: 'NFT_MINT' })
   | (TokenTransferDetails & { intent_type: 'TOKEN_TRANSFER' })
+  | (NftCreateCollectionDetails & { intent_type: 'NFT_CREATE_COLLECTION' })
+  | (AptosRawTransactionDetails & { intent_type: 'RAW_TRANSACTION' })
   | (NftTransferDetails & { intent_type: 'NFT_TRANSFER' });
 
 export type OrderFilterRequest = {
@@ -300,3 +325,80 @@ export type OrderEstimateResponse = {
     };
   };
 };
+
+export type EstimateGasLimitsPayload = {
+  sender?: Hex;
+  nonce?: Hex;
+  callData?: Hex;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  paymasterData?: Hex | undefined;
+  paymaster?: Address | undefined;
+};
+
+export type EstimateGasLimitsResponse = {
+  preVerificationGas?: Hex;
+  verificationGasLimit?: Hex;
+  callGasLimit?: Hex;
+  paymasterVerificationGasLimit?: Hex | undefined;
+  paymasterPostOpGasLimit?: Hex | undefined;
+  maxFeePerGas?: Hex;
+  maxPriorityFeePerGas?: Hex;
+};
+
+/**
+ * ========================
+ * Read Contract Types
+ * ========================
+ */
+
+/**
+ * Represents the payload for reading a contract.
+ */
+export type ReadContractPayload =
+  | {
+      caip2Id: string;
+      data: {
+        function: string;
+        typeArguments: string[];
+        functionArguments: string[];
+      };
+    } // For reading a contract function with type arguments - Aptos
+  | {
+      caip2Id?: string;
+      data?: {
+        contractAddress?: string;
+        abi?: {
+          inputs?: Array<{
+            internalType?: string;
+            name?: string;
+            type?: string;
+          }>;
+          name?: string;
+          outputs?: Array<{
+            internalType?: string;
+            name?: string;
+            type?: string;
+          }>;
+          stateMutability?: string;
+          type?: string;
+        };
+        args?: Record<string, unknown>;
+      };
+    };
+
+export type ReadContractResponse =
+  | {
+      status: 'success';
+      data: string[];
+    }
+  | {
+      status: 'error';
+      error: {
+        code: number;
+        errorCode: string;
+        message: string;
+        trace_id?: string;
+        details?: string;
+      };
+    };

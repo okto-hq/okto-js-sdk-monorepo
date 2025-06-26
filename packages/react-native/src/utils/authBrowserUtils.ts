@@ -1,4 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
+import { logger } from './logger.js';
 
 export type AuthPromiseResolver = {
   resolve: (value: string) => void;
@@ -19,7 +20,7 @@ export function createExpoBrowserHandler(
   return async (authUrl: string) => {
     // Check if we already have an auth session in progress
     if (authPromiseResolverRef.current) {
-      console.warn('Existing auth session detected, clearing previous session');
+      logger.warn('Existing auth session detected, clearing previous session');
       authPromiseResolverRef.current.reject(
         new Error('Auth session replaced by new request'),
       );
@@ -40,10 +41,10 @@ export function createExpoBrowserHandler(
 
           WebBrowser.coolDownAsync()
             .then(() =>
-              console.log('[OktoClient] Browser cooled down after timeout'),
+              logger.log('[OktoClient] Browser cooled down after timeout'),
             )
             .catch((error) =>
-              console.error('[OktoClient] Error cooling down browser:', error),
+              logger.error('[OktoClient] Error cooling down browser:', error),
             );
         }
       }, 300000); // 5 minute timeout
@@ -61,9 +62,9 @@ export function createExpoBrowserHandler(
           // Check if we still have an active promise resolver
           if (authPromiseResolverRef.current) {
             if (result.type === 'success') {
-              // If the URL contains an id_token, extract it (fallback mechanism)
               try {
-                if (result.url && result.url.includes('id_token=')) {
+                logger.log('[OktoClient] Auth result URL:', result.url);
+                if (result.url) {
                   const urlObj = new URL(result.url);
                   const idToken = urlObj.searchParams.get('id_token');
                   if (idToken) {
@@ -73,7 +74,7 @@ export function createExpoBrowserHandler(
                   }
                 }
               } catch (error) {
-                console.error(
+                logger.error(
                   '[OktoClient] Error extracting token from success URL:',
                   error,
                 );
@@ -88,13 +89,13 @@ export function createExpoBrowserHandler(
               }
             }
           } else {
-            console.log(
+            logger.log(
               '[OktoClient] No active promise resolver - auth may have completed via deep link',
             );
           }
         })
         .catch((error) => {
-          console.error('[OktoClient] Browser session error:', error);
+          logger.error('[OktoClient] Browser session error:', error);
           clearTimeout(authTimeout);
 
           if (authPromiseResolverRef.current) {

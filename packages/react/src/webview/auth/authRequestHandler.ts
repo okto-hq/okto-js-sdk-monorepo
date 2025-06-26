@@ -1,6 +1,9 @@
 import type { WebViewManager } from '../webViewManager.js';
-import type { WebViewRequestHandler } from '../types.js';
+import type { AppearanceOptions, WebViewRequestHandler } from '../types.js';
 import type { OktoClient } from 'src/core/index.js';
+
+type OtpProvider = 'email' | 'whatsapp';
+type SocialProvider = 'google' | 'apple';
 
 /**
  * @description
@@ -10,364 +13,199 @@ import type { OktoClient } from 'src/core/index.js';
  * It also manages the WebView lifecycle.
  */
 export class AuthRequestHandler {
-  private webViewManager: WebViewManager;
-  private oktoClient?: OktoClient;
+  constructor(
+    private webViewManager: WebViewManager,
+    private oktoClient?: OktoClient,
+  ) {}
 
-  constructor(webViewManager: WebViewManager, oktoClient?: OktoClient) {
-    this.oktoClient = oktoClient;
-    this.webViewManager = webViewManager;
-  }
+  public handleRequest: WebViewRequestHandler = async (
+    actualData,
+    style?: AppearanceOptions,
+  ) => {
+    try {
+      const data = actualData?.data;
+      const id = (actualData as { id?: string })?.id || 'uuid-for-webview';
+      const method =
+        (actualData as { method?: string })?.method || 'okto_sdk_login';
 
-  public handleRequest: WebViewRequestHandler = async (actualData: {
-    data?: { [key: string]: unknown } | undefined;
-  }) => {
-    console.log('Received request:', actualData);
-
-    if (typeof actualData !== 'object' || actualData === null) {
-      throw new Error('Invalid request data');
-    }
-
-    const baseResponse = {
-      id: (actualData as { id?: string }).id || 'uuid-for-webview',
-      method: (actualData as { method?: string }).method || 'okto_sdk_login',
-    };
-
-    if (
-      (actualData as { data?: { provider?: string } }).data?.provider ===
-      'google'
-    ) {
-      try {
-        const response = await this.oktoClient?.loginUsingSocial('google');
-        console.log('Google login response:', response);
-        if (response) {
-          this.webViewManager.sendResponse(
-            baseResponse.id,
-            baseResponse.method,
-            {
-              success: true,
-              message: 'Google login successful',
-              token: response,
-            },
-          );
-          this.webViewManager.triggerSuccess(`${response}`);
-          console.log('Google login successful:', response);
-          this.webViewManager.closeWebView({ triggerCallback: false });
-          return response;
-        } else {
-          this.webViewManager.sendErrorResponse(
-            baseResponse.id,
-            baseResponse.method,
-            (actualData as { data?: { [key: string]: unknown } }).data,
-            `error occurred while logging in with google: ${response}`,
-          );
-          this.webViewManager?.triggerError?.(
-            new Error(
-              `error occurred while logging in with google: ${response}`,
-            ),
-          );
-          setTimeout(() => {
-            this.webViewManager.closeWebView();
-          }, 1000);
-          throw new Error(
-            `error occurred while logging in with google: ${response}`,
-          );
-        }
-      } catch (error) {
-        console.error('Error during Google login:', error);
-        this.webViewManager.sendErrorResponse(
-          baseResponse.id,
-          baseResponse.method,
-          (actualData as { data?: { [key: string]: unknown } }).data,
-          error instanceof Error ? error.message : 'Unknown error',
-        );
-        this.webViewManager?.triggerError?.(
-          error instanceof Error ? error : new Error('Unknown error'),
-        );
-        setTimeout(() => {
-          this.webViewManager.closeWebView();
-        }, 1000);
-        throw error;
-      }
-    }
-
-    switch (actualData.data?.type) {
-      case 'request_otp':
-        this.handleSendOtp(
-          actualData.data.provider == 'email'
-            ? (actualData.data.email as string)
-            : (actualData.data.whatsapp_number as string),
-          actualData.data.provider as 'email' | 'whatsapp',
-          baseResponse,
-          actualData.data,
-        );
-        break;
-
-      case 'verify_otp': {
-        const response = await this.handleVerifyOtp(
-          actualData.data.provider == 'email'
-            ? (actualData.data.email as string)
-            : (actualData.data.whatsapp_number as string),
-          actualData.data.otp as string,
-          actualData.data.provider as 'email' | 'whatsapp',
-          actualData.data.token as string,
-          baseResponse,
-          actualData.data,
-        );
-        console.log('OTP verification response:', response);
-        this.webViewManager.triggerSuccess(`${response}`);
-        return response;
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid request data');
       }
 
-      case 'resend_otp':
-        this.handleResendOtp(
-          actualData.data.provider == 'email'
-            ? (actualData.data.email as string)
-            : (actualData.data.whatsapp_number as string),
-          actualData.data.provider as 'email' | 'whatsapp',
-          actualData.data.token as string,
-          baseResponse,
-          actualData.data,
-        );
-        break;
-      case 'paste_otp':
-        this.handlePasteOtp(
-          actualData.data.provider as 'email' | 'whatsapp',
-          actualData.data.otp as string,
-          baseResponse,
-          actualData.data,
-        );
-        break;
-      case 'close_webview':
-        this.webViewManager.closeWebView();
-        break;
+      const baseResponse = { id, method };
 
-      default:
-        console.warn(
-          'Unhandled request type:',
-          actualData.data?.type ?? 'undefined',
-        );
+      if (data.type === 'ui_config') {
+        return this.sendResponse(baseResponse, {
+          type: 'ui_config',
+          config: { ...style },
+        });
+      }
+
+      const handlerMap: Record<string, () => Promise<unknown> | void> = {
+        request_otp: () => this.handleOtp('send', data, baseResponse),
+        verify_otp: () => this.handleOtp('verify', data, baseResponse),
+        resend_otp: () => this.handleOtp('resend', data, baseResponse),
+        paste_otp: () => this.handlePasteOtp(data, baseResponse),
+        close_webview: () => this.webViewManager.closeWebView(),
+      };
+
+      if (data.provider === 'google' || data.provider === 'apple') {
+        return this.handleSocialLogin(data.provider, baseResponse, data);
+      }
+
+      const type = data.type as keyof typeof handlerMap;
+      const handler = handlerMap[type];
+      if (handler) {
+        return await handler();
+      }
+
+      console.warn(`Unhandled request type: ${data.type}`);
+    } catch (error) {
+      console.error('Unexpected error in handleRequest:', error);
     }
   };
 
-  private async handleSendOtp(
-    contact: string,
-    provider: 'email' | 'whatsapp',
+  private async handleOtp(
+    action: 'send' | 'verify' | 'resend',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any,
     baseResponse: { id: string; method: string },
-    data: unknown,
   ) {
-    try {
-      if (!this.oktoClient) {
-        throw new Error('OktoClient is not initialized');
-      }
-      const response = await this.oktoClient.sendOTP(contact, provider);
-      const payload =
-        provider == 'email'
-          ? { provider: provider, email: contact, token: response?.token }
-          : {
-              provider: provider,
-              whatsapp_number: contact,
-              token: response?.token,
-            };
-      if (response?.token) {
-        this.webViewManager.sendResponse(
-          baseResponse.id,
-          baseResponse.method,
-          payload,
-        );
-      } else {
-        console.warn('Token not found in response:', response);
-        this.webViewManager.sendErrorResponse(
-          baseResponse.id,
-          baseResponse.method,
-          data,
-          'Failed to send OTP: Token missing in response',
-        );
-        this.webViewManager?.triggerError?.(
-          new Error('Failed to send OTP: Token missing in response'),
-        );
-      }
-    } catch (error) {
-      console.error('Error while sending OTP:', error);
-      this.webViewManager.sendErrorResponse(
-        baseResponse.id,
-        baseResponse.method,
-        data,
-        error as string,
-      );
-      if (error instanceof Error) {
-        this.webViewManager?.triggerError?.(error);
-      } else {
-        this.webViewManager?.triggerError?.(new Error('Unknown error'));
-      }
+    if (!this.oktoClient) {
+      throw new Error('OktoClient is not initialized');
     }
-  }
 
-  private async handleVerifyOtp(
-    contact: string,
-    otp: string,
-    provider: 'email' | 'whatsapp',
-    token: string,
-    baseResponse: { id: string; method: string },
-    data: unknown,
-  ) {
+    const provider: OtpProvider = data.provider;
+    const contact = provider === 'email' ? data.email : data.whatsapp_number;
+
     try {
-      if (!this.oktoClient) {
-        throw new Error('OktoClient is not initialized');
+      let response;
+      switch (action) {
+        case 'send': {
+          response = await this.oktoClient.sendOTP(contact, provider);
+          break;
+        }
+        case 'verify': {
+          const loginMethod =
+            provider === 'email'
+              ? this.oktoClient.loginUsingEmail
+              : this.oktoClient.loginUsingWhatsApp;
+          response = await loginMethod.call(
+            this.oktoClient,
+            contact,
+            data.otp,
+            data.token,
+          );
+          break;
+        }
+        case 'resend': {
+          response = await this.oktoClient.resendOTP(
+            contact,
+            data.token,
+            provider,
+          );
+          break;
+        }
       }
 
-      const loginMethod =
-        provider === 'email'
-          ? this.oktoClient.loginUsingEmail
-          : this.oktoClient.loginUsingWhatsApp;
-
-      const response = await loginMethod.call(
-        this.oktoClient,
-        contact,
-        otp,
-        token,
-      );
-
-      if (response) {
-        const payload =
-          provider === 'email'
-            ? { provider, email: contact, token, message: 'Login successful' }
-            : {
-                provider,
-                whatsapp_number: contact,
-                token,
-                message: 'Login successful',
-              };
-
-        this.webViewManager.sendResponse(
-          baseResponse.id,
-          baseResponse.method,
-          payload,
-        );
-
-        setTimeout(() => {
-          this.webViewManager.closeWebView({ triggerCallback: false });
-        }, 1000);
-
-        console.log('Login successful:', response);
-        return response;
-      } else {
-        throw new Error(response || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Error during OTP verification:', error);
-      this.webViewManager.sendErrorResponse(
-        baseResponse.id,
-        baseResponse.method,
-        data,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-      if (error instanceof Error) {
-        this.webViewManager?.triggerError?.(error);
-      } else {
-        console.error('Unknown error type:', error);
-      }
-    }
-  }
-
-  private async handleResendOtp(
-    contact: string,
-    provider: 'email' | 'whatsapp',
-    token: string,
-    baseResponse: { id: string; method: string },
-    data: unknown,
-  ) {
-    try {
-      if (!this.oktoClient) {
-        throw new Error('OktoClient is not initialized');
+      const token =
+        typeof response === 'object' && 'token' in response
+          ? response.token
+          : response || data.token;
+      if (!token) {
+        throw new Error(`Token missing in response from ${action} OTP`);
       }
 
-      const response = await this.oktoClient.resendOTP(
-        contact,
-        token,
+      const payload = {
         provider,
-      );
+        ...(provider === 'email'
+          ? { email: contact }
+          : { whatsapp_number: contact }),
+        token,
+        ...(action === 'verify' && { message: 'Login successful' }),
+      };
 
-      const payload =
-        provider === 'email'
-          ? { provider, email: contact, token: response?.token }
-          : {
-              provider,
-              whatsapp_number: contact,
-              token: response?.token,
-            };
+      this.sendResponse(baseResponse, payload);
 
-      if (response?.token) {
-        this.webViewManager.sendResponse(
-          baseResponse.id,
-          baseResponse.method,
-          payload,
+      if (action === 'verify') {
+        this.webViewManager.triggerSuccess(String(response));
+        setTimeout(
+          () => this.webViewManager.closeWebView({ triggerCallback: false }),
+          1000,
         );
-      } else {
-        console.warn('Token not found in response:', response);
-        this.webViewManager.sendErrorResponse(
-          baseResponse.id,
-          baseResponse.method,
-          data,
-          'Failed to resend OTP: Token missing in response',
-        );
-        this.webViewManager?.triggerError?.(
-          new Error('Failed to resend OTP: Token missing in response'),
-        );
+        return response;
       }
     } catch (error) {
-      console.error('Error while resending OTP:', error);
-
-      this.webViewManager.sendErrorResponse(
-        baseResponse.id,
-        baseResponse.method,
-        data,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-      if (error instanceof Error) {
-        this.webViewManager?.triggerError?.(error);
-      } else {
-        console.error('Unknown error type:', error);
-      }
+      this.sendError(baseResponse, data, error, `OTP ${action} failed`);
     }
   }
 
   private async handlePasteOtp(
-    provider: 'email' | 'whatsapp',
-    otp: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any,
     baseResponse: { id: string; method: string },
-    data: unknown,
   ) {
     try {
       const clipboardText = await navigator.clipboard.readText();
-      if (!clipboardText) {
-        throw new Error('No OTP found on clipboard');
-      }
+      if (!clipboardText) throw new Error('No OTP found on clipboard');
 
       const payload = {
-        provider: provider,
+        provider: data.provider,
         type: 'paste_otp',
         message: clipboardText,
       };
 
-      this.webViewManager.sendResponse(
-        baseResponse.id,
-        baseResponse.method,
-        payload,
-      );
+      this.sendResponse(baseResponse, payload);
     } catch (error) {
-      console.error('Error while fetching OTP from clipboard:', error);
-
-      this.webViewManager.sendErrorResponse(
-        baseResponse.id,
-        baseResponse.method,
-        data,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-      if (error instanceof Error) {
-        this.webViewManager?.triggerError?.(error);
-      } else {
-        this.webViewManager?.triggerError?.(new Error('Unknown error'));
-      }
+      this.sendError(baseResponse, data, error, 'Paste OTP failed');
     }
+  }
+
+  private async handleSocialLogin(
+    provider: SocialProvider,
+    baseResponse: { id: string; method: string },
+    data?: { [key: string]: unknown },
+  ) {
+    try {
+      const response = await this.oktoClient?.loginUsingSocial(provider);
+      if (!response) throw new Error(`${provider} login failed`);
+
+      this.sendResponse(baseResponse, {
+        success: true,
+        message: `${provider} login successful`,
+        token: response,
+      });
+
+      this.webViewManager.triggerSuccess(String(response));
+      setTimeout(
+        () => this.webViewManager.closeWebView({ triggerCallback: false }),
+        1000,
+      );
+      return response;
+    } catch (error) {
+      this.sendError(baseResponse, data, error, `${provider} login failed`);
+      setTimeout(() => this.webViewManager.closeWebView(), 1000);
+    }
+  }
+
+  private sendResponse(
+    base: { id: string; method: string },
+    payload: Record<string, unknown>,
+  ) {
+    this.webViewManager.sendResponse(base.id, base.method, payload);
+  }
+
+  private sendError(
+    base: { id: string; method: string },
+    data: unknown,
+    error: unknown,
+    fallbackMessage = 'Unknown error',
+  ) {
+    const message = error instanceof Error ? error.message : fallbackMessage;
+    console.error('Handler error:', message);
+    this.webViewManager.sendErrorResponse(base.id, base.method, data, message);
+    this.webViewManager?.triggerError?.(
+      error instanceof Error ? error : new Error(message),
+    );
   }
 }

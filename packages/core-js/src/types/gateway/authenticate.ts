@@ -10,14 +10,18 @@ export type AuthData =
   | {
       idToken: string;
       provider: 'client_jwt';
+    }
+  | {
+      idToken: string;
+      provider: 'apple';
     };
 
 export type AuthSessionData = {
   nonce: string;
   clientSWA: string;
   sessionPk: string;
-  maxPriorityFeePerGas: string;
-  maxFeePerGas: string;
+  // maxPriorityFeePerGas: string;
+  // maxFeePerGas: string;
   paymaster: string;
   paymasterData: string;
 };

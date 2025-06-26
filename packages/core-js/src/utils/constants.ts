@@ -12,22 +12,13 @@ export class Constants {
   static readonly FEE_PAYER_ADDRESS =
     '0x0000000000000000000000000000000000000000';
 
-  static readonly GAS_LIMITS = {
-    CALL_GAS_LIMIT: BigInt(600_000),
-    VERIFICATION_GAS_LIMIT: BigInt(400_000),
-    PRE_VERIFICATION_GAS: BigInt(100_000),
-    MAX_FEE_PER_GAS: BigInt(4_000_000_000),
-    MAX_PRIORITY_FEE_PER_GAS: BigInt(4_000_000_000),
-    PAYMASTER_POST_OP_GAS_LIMIT: BigInt(200_000),
-    PAYMASTER_VERIFICATION_GAS_LIMIT: BigInt(200_000),
-  };
-
   static readonly INTENT_TYPE = {
     TOKEN_TRANSFER: 'TOKEN_TRANSFER',
     NFT_TRANSFER: 'NFT_TRANSFER',
     NFT_CREATE_COLLECTION: 'NFT_CREATE_COLLECTION',
     RAW_TRANSACTION: 'RAW_TRANSACTION',
     NFT_MINT: 'NFT_MINT',
+    SWAP: 'SWAP',
   };
 
   static readonly ENV_CONFIG = {
@@ -38,6 +29,8 @@ export class Constants {
         '0x322eF240AD89d19a50Ca092CF70De9603bf6778E' as Hex,
       CHAIN_ID: 124736089,
       AUTH_PAGE_URL: 'https://onboarding.oktostage.com/',
+      AUTH_REDIRECT_URL: 'https://onboarding.oktostage.com/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 3,
       ON_RAMP_URL: 'https://pay.oktostage.com',
     },
     SANDBOX: {
@@ -48,14 +41,24 @@ export class Constants {
       CHAIN_ID: 1802466136,
       AUTH_PAGE_URL: 'https://sandbox-onboarding.okto.tech/',
       ON_RAMP_URL: 'https://sandbox-pay.okto.tech',
+      AUTH_REDIRECT_URL: 'https://sandbox-onboarding.okto.tech/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 2,
     },
-    // PRODUCTION: {
-    //   PAYMASTER_ADDRESS: '0x0871051BfF8C7041c985dEddFA8eF63d23AD3Fa0' as Hex,
-    //   JOB_MANAGER_ADDRESS: '0xED3D17cae886e008D325Ad7c34F3bdE030B80c2E' as Hex,
-    //   CHAIN_ID: 24879,
-    // },
+    PRODUCTION: {
+      PAYMASTER_ADDRESS: '0xB0E2BD2EFb99F982F8cCB8e6737A572B3B0eCE11' as Hex,
+      JOB_MANAGER_ADDRESS: '0x7F1E1e98Dde775Fae0d340D3E5D28004Db58A0d3' as Hex,
+      ENTRYPOINT_CONTRACT_ADDRESS:
+        '0x0b643Bcd21a72b10075F1938Ebebba6E077A1742' as Hex,
+      CHAIN_ID: 8088,
+      AUTH_PAGE_URL: 'https://onboarding.okto.tech/',
+      ON_RAMP_URL: 'https://pay.okto.tech',
+      AUTH_REDIRECT_URL: 'https://onboarding.okto.tech/__/auth/handler',
+      SIGN_MESSAGE_MPC_THRESHOLD: 2,
+    },
   };
 
   static readonly GOOGLE_CLIENT_ID =
-    '54780876714-t59u4t7r1pekdj3p54grd9nh4rfg8qvd.apps.googleusercontent.com';
+    '625834323626-c0rnc34fogig1n059prr5q73p6a6uulf.apps.googleusercontent.com';
+
+  static readonly APPLE_CLIENT_ID = 'tech.okto.si';
 }

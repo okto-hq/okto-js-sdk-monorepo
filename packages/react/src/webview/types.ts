@@ -71,11 +71,14 @@ export interface WebViewRequest {
  * @param {object} data - The structured data received from the webview.
  * @returns {Promise<unknown> | void} - A promise or nothing.
  */
-export type WebViewRequestHandler = (data: {
-  id?: string;
-  method?: string;
-  data?: { [key: string]: unknown };
-}) => Promise<unknown> | void;
+export type WebViewRequestHandler = (
+  data: {
+    id?: string;
+    method?: string;
+    data?: { [key: string]: unknown };
+  },
+  style?: AppearanceOptions,
+) => Promise<unknown> | void;
 
 /**
  * @WhatsAppOtpResponse
@@ -94,4 +97,118 @@ export interface WhatsAppOtpResponse {
   token?: string;
   message?: string;
   error?: string | null;
+}
+
+/****************************** ONBOARDING CUSTOMISATION OPTIONS ***********************************/
+
+/**
+ * @AppearanceOptions
+ * @description Interface for configuring the appearance of the application.
+ * @property {string} version - Version of the appearance configuration.
+ * @property {AppearanceTheme} appearance - Theme configuration.
+ * @property {VendorInfo} vendor - Vendor information.
+ * @property {LoginOptions} loginOptions - Login options configuration.
+ */
+export interface AppearanceOptions {
+  version?: string;
+  appearance?: AppearanceTheme;
+  vendor?: VendorInfo;
+  loginOptions?: LoginOptions;
+}
+
+/**
+ * @AppearanceTheme
+ * @description Interface for theme configuration.
+ * @property {"dark" | "light"} themeName - Pre-defined theme names.
+ * @property {Record<string, string>} theme - Custom theme variables.
+ */
+export interface AppearanceTheme {
+  themeName?: 'dark' | 'light';
+  theme?: ThemeVariables;
+}
+
+/**
+ * @VendorInfo
+ * @description Interface for vendor information.
+ * @property {string} name - Name of the vendor.
+ * @property {string} logo - URL of the vendor logo.
+ */
+export interface VendorInfo {
+  name?: string;
+  logo?: string;
+}
+
+/**
+ * @LoginOptions
+ * @description Interface for login options configuration.
+ * @property {SocialLogin[]} socialLogins - List of social login options.
+ * @property {OtpLoginOption[]} otpLoginOptions - List of OTP login options.
+ * @property {ExternalWallet[]} externalWallets - List of external wallet options.
+ */
+export interface LoginOptions {
+  socialLogins?: SocialLogin[];
+  otpLoginOptions?: OtpLoginOption[];
+  externalWallets?: ExternalWallet[];
+}
+
+/**
+ * @SocialLogin
+ * @description Interface for social login options.
+ * @property {string} type - Type of social login (e.g., "google", "steam", "twitter").
+ * @property {number} position - Position of the social login in the list.
+ */
+export interface SocialLogin {
+  type?: 'google' | 'steam' | 'twitter' | 'apple';
+  position?: number;
+}
+
+/**
+ * @OtpLoginOption
+ * @description Interface for OTP login options.
+ * @property {string} type - Type of OTP login (e.g., "email", "phone").
+ * @property {number} position - Position of the OTP login in the list.
+ */
+export interface OtpLoginOption {
+  type?: 'email' | 'whatsapp';
+  position?: number;
+}
+
+/**
+ * @ExternalWallet
+ * @description Interface for external wallet options.
+ * @property {string} type - Type of external wallet (e.g., "metamask", "walletconnect").
+ * @property {number} position - Position of the external wallet in the list.
+ * @property {Record<string, unknown>} metadata - Additional metadata for the wallet.
+ */
+export interface ExternalWallet {
+  type?: string;
+  position?: number;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * @ThemeVariables
+ * @description Interface for theme variables.
+ * @property {string} [key: string] - Key-value pairs for theme variables.
+ */
+export interface ThemeVariables {
+  '--okto-body-background'?: string; // background for whole page
+  '--okto-body-color-tertiary'?: string; // placeholder text color
+  '--okto-accent-color'?: string; // accent color for buttons etc.
+  '--okto-button-font-weight'?: string | number;
+  '--okto-border-color'?: string; // border color for inputs
+  '--okto-stroke-divider'?: string; // divider color
+  '--okto-font-family'?: string;
+  '--okto-rounded-sm'?: string; // small border radius
+  '--okto-rounded-md'?: string; // medium border radius
+  '--okto-rounded-lg'?: string; // large border radius
+  '--okto-rounded-xl'?: string; // extra large border radius
+  '--okto-rounded-full'?: string; // full border radius
+  '--okto-success-color'?: string; // success color for alerts
+  '--okto-warning-color'?: string; // warning color for alerts
+  '--okto-error-color'?: string; // error color for alerts
+  '--okto-text-primary'?: string; // primary color for texts
+  '--okto-text-secondary'?: string; // secondary colors for texts (ex. subtitles)
+  '--okto-background-surface'?: string; // background color for card header in desktop view
+  [key: string]: string | number | undefined; // additional custom theme variables
 }
