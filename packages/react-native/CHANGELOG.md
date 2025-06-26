@@ -1,5 +1,16 @@
 # @okto_web3/react-native-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- a39296d: Add support for Raw Read functionality, enabling direct, low-level read access to blockchain data. This feature allows developers to perform custom contract calls and retrieve on-chain information without relying on predefined SDK methods, providing greater flexibility and control for advanced use cases.
+
+### Patch Changes
+
+- Updated dependencies [a39296d]
+  - @okto_web3/core-js-sdk@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes

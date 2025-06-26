@@ -1,5 +1,17 @@
 # @okto_web3/react-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- b5172a0: Add support for Apple Authentication, allowing users to sign in to applications using their Apple ID. This integration enhances user convenience and security by leveraging Apple's authentication system, providing a seamless and privacy-focused login experience for iOS users.
+- a39296d: Add support for Raw Read functionality, enabling direct, low-level read access to blockchain data. This feature allows developers to perform custom contract calls and retrieve on-chain information without relying on predefined SDK methods, providing greater flexibility and control for advanced use cases.
+
+### Patch Changes
+
+- Updated dependencies [a39296d]
+  - @okto_web3/core-js-sdk@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes
