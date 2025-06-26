@@ -62,7 +62,7 @@ export async function svmRawTransactionWithEstimate(
     });
   }
 
- const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
+  const gasPrice = await BffClientRepository.getUserOperationGasPrice(oc);
 
   const paymasterData = await oc.paymasterData({
     nonce: nonce,

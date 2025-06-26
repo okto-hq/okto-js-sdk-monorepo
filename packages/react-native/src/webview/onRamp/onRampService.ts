@@ -29,7 +29,7 @@ interface PermissionResponse {
     | 'limited'
     | 'unavailable'
     | 'error';
-  permission: 'camera';
+  permission: 'camera' | 'microphone';
   granted: boolean;
   message?: string;
 }
@@ -42,6 +42,11 @@ export class OnRampService {
   private readonly CAMERA_PERMISSION: Permission = Platform.select({
     ios: PERMISSIONS.IOS.CAMERA,
     android: PERMISSIONS.ANDROID.CAMERA,
+  }) as Permission;
+
+  private readonly MICROPHONE_PERMISSION: Permission = Platform.select({
+    ios: PERMISSIONS.IOS.MICROPHONE,
+    android: PERMISSIONS.ANDROID.RECORD_AUDIO,
   }) as Permission;
 
   constructor(config: Partial<OnrampConfig> = {}, oktoClient: OktoClient) {
@@ -90,19 +95,19 @@ export class OnRampService {
     }
   }
 
-async getOnRampTokens(): Promise<OnRampToken[]> {
+  async getOnRampTokens(): Promise<OnRampToken[]> {
     const [whitelistedTokens, portfolio] = await Promise.all([
       this.getTokenData(this.config.countryCode),
       this.getPortfolioData(),
     ]);
 
-    const portfolioTokens = portfolio?.groupTokens?.flatMap(
-      (group) => group?.tokens ?? []
-    ) ?? [];
+    const portfolioTokens =
+      portfolio?.groupTokens?.flatMap((group) => group?.tokens ?? []) ?? [];
 
     return whitelistedTokens.map((token) => {
       const portfolioToken = portfolioTokens.find(
-        (pt) => pt?.tokenAddress?.toLowerCase() === token?.address?.toLowerCase(),
+        (pt) =>
+          pt?.tokenAddress?.toLowerCase() === token?.address?.toLowerCase(),
       );
 
       return {
@@ -147,6 +152,46 @@ async getOnRampTokens(): Promise<OnRampToken[]> {
         message:
           error instanceof Error ? error.message : 'Unknown error occurred',
       };
+    }
+  }
+
+  async requestMicrophonePermission(): Promise<PermissionResponse> {
+    try {
+      const result = await request(this.MICROPHONE_PERMISSION);
+      console.log(`[OnRampService] Microphone permission status: ${result}`);
+      return {
+        permission: 'microphone',
+        ...this.mapPermissionStatus(result),
+      };
+    } catch (error) {
+      console.error('Error requesting microphone permission:', error);
+      return {
+        permission: 'microphone',
+        status: 'error',
+        granted: false,
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  async requestMediaPermissions(): Promise<{
+    camera: PermissionResponse;
+    microphone: PermissionResponse;
+  }> {
+    try {
+      const [cameraResult, microphoneResult] = await Promise.all([
+        this.requestCameraPermission(),
+        this.requestMicrophonePermission(),
+      ]);
+
+      return {
+        camera: cameraResult,
+        microphone: microphoneResult,
+      };
+    } catch (error) {
+      console.error('Error requesting media permissions:', error);
+      throw error;
     }
   }
 
