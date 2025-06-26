@@ -67,6 +67,8 @@ export type OnRampWebViewParams = {
   source?: string;
   url?: string;
   data?: Record<string, unknown>;
+  type?: string;
+  permissionType?: 'camera' | 'microphone';
   [key: string]: unknown;
 };
 
@@ -88,3 +90,5 @@ export type OnRampWebViewResponse = {
   source: string;
   id: string;
 };
+
+export const SOURCE_NAME = 'okto_web';
