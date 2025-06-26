@@ -6,9 +6,9 @@ import type {
 
 import type OktoClient from '@/core/index.js';
 import type {
-  EstimateOrderPayload,
+  EstimateGasLimitsPayload,
+  EstimateGasLimitsResponse,
   Order,
-  OrderEstimateResponse,
   OrderFilterRequest,
   ReadContractPayload,
   ReadContractResponse,
@@ -18,6 +18,11 @@ import type {
   Wallet,
 } from '@/types/bff/account.js';
 import type { GetSupportedNetworksResponseData } from '@/types/bff/chains.js';
+import type {
+  TokenEntity,
+  TokenListingFilter,
+  TokenListingParams,
+} from '@/types/bff/tokens.js';
 import type { Token } from '@/types/bff/tokens.js';
 import type {
   AuthenticatePayloadParam,
@@ -25,6 +30,22 @@ import type {
   UserSessionResponse,
 } from '@/types/gateway/authenticate.js';
 import { getBffClient } from './client.js';
+import type {
+  TokenTransferEstimateRequest,
+  TokenTransferEstimateResponse,
+  NFTTransferEstimateRequest,
+  NFTTransferEstimateResponse,
+  AptosRawTransactionEstimateRequest,
+  AptosRawTransactionEstimateResponse,
+  EvmRawTransactionEstimateResponse,
+  EvmRawTransactionEstimateRequest,
+  NftMintEstimateRequest,
+  NftMintEstimateResponse,
+  NftCreateCollectionEstimateRequest,
+  NftCreateCollectionEstimateResponse,
+  SwapEstimateRequest,
+  SwapEstimateResponse,
+} from '@/types/bff/estimate.js';
 import type {
   GetUserKeysResult,
   SignMessageParams,
@@ -39,16 +60,19 @@ class BffClientRepository {
     getWallets: '/api/oc/v1/wallets',
     getSupportedNetworks: '/api/oc/v1/supported/networks',
     getSupportedTokens: '/api/oc/v1/supported/tokens',
-    getPortfolio: '/api/oc/v1/aggregated-portfolio',
+    getPortfolio: '/api/oc/v2/aggregated-portfolio',
+    getPortfolioForSwap: '/api/oc/v1/user-unfiltered-portfolio',
     getPortfolioActivity: '/api/oc/v1/portfolio/activity',
     getPortfolioNft: '/api/oc/v1/portfolio/nft',
     getOrders: '/api/oc/v1/orders',
     getNftOrderDetails: '/api/oc/v1/nft/order-details',
+    getEntities: '/api/oc/v1/entities',
     getUserKeys: '/api/oc/v1/user-keys',
     gasValues: '/api/oc/v1/gas-values',
 
     // POST
     estimateOrder: '/api/oc/v1/estimate',
+    estimateGasLimits: '/api/oc/v1/estimate-userop',
     verifySession: '/api/oc/v1/verify-session',
     authenticate: '/api/oc/v1/authenticate',
     execute: '/api/oc/v1/execute',
@@ -145,6 +169,27 @@ class BffClientRepository {
   }
 
   /**
+   * Retrieves the aggregated portfolio for the Swap with non-whitelisted Tokens.
+   */
+  public static async getPortfolioForSwap(
+    oc: OktoClient,
+  ): Promise<UserPortfolioData> {
+    const response = await getBffClient(oc).get<ApiResponse<UserPortfolioData>>(
+      this.routes.getPortfolioForSwap,
+    );
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to retrieve portfolio');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
    * Retrieves the portfolio activity for the authenticated user from the BFF service.
    */
   public static async getPortfolioActivity(
@@ -189,9 +234,6 @@ class BffClientRepository {
   /**
    * Retrieves the list of orders for the authenticated user from the BFF service.
    */
-  /**
-   * Retrieves the list of orders for the authenticated user from the BFF service.
-   */
   public static async getOrders(
     oc: OktoClient,
     filters?: OrderFilterRequest,
@@ -223,15 +265,197 @@ class BffClientRepository {
     return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
   }
 
-  public static async estimateOrder(
+  /**
+   * Estimates the gas limits for a user operation.
+   */
+
+  public static async estimateGasLimits(
     oc: OktoClient,
-    payload: EstimateOrderPayload,
-  ): Promise<OrderEstimateResponse> {
+    payload: EstimateGasLimitsPayload,
+  ): Promise<EstimateGasLimitsResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EstimateGasLimitsResponse>
+    >(this.routes.estimateGasLimits, payload);
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        'Failed to estimate user operation: ' + response.data.error?.message,
+      );
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Retrieves tokens for swap based on different listing criteria
+   * @param oc OktoClient instance
+   * @param options Listing options (discovery, network filter, or search)
+   * @returns Promise with array of TokenEntity objects
+   */
+  public static async getTokensForSwap(
+    oc: OktoClient,
+    filters: TokenListingFilter,
+  ): Promise<TokenEntity[]> {
+    const params: TokenListingParams = {
+      identifier: '',
+    };
+
+    switch (filters.type) {
+      case 'discovery':
+        params.identifier = 'active_tradable_tokens_v1';
+        break;
+      case 'network_filter':
+        if (!filters.networks || filters.networks.length === 0) {
+          throw new Error('Networks must be provided for network filter type');
+        }
+        params.identifier = 'active_tradable_tokens_by_caip2_ids_v1';
+        params.caip2_ids = filters.networks;
+        break;
+      case 'search':
+        if (!filters.searchText) {
+          throw new Error('Search text must be provided for search type');
+        }
+        params.identifier = 'searchable_tokens_v1';
+        params.searchText = filters.searchText;
+        break;
+      default:
+        throw new Error('Invalid listing type specified');
+    }
     const response = await getBffClient(oc).get<
-      ApiResponse<OrderEstimateResponse>
-    >(this.routes.estimateOrder, {
-      data: payload,
-    });
+      ApiResponse<{ entities: TokenEntity[] }>
+    >(this.routes.getEntities, { params });
+
+    if (response.data.status === 'error') {
+      throw new Error(
+        `Failed to retrieve tokens: ${response.data.error?.message || 'Unknown error'}`,
+      );
+    }
+
+    if (!response.data.data || !response.data.data.entities) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data.entities;
+  }
+
+  public static async getSwapEstimate(
+    oc: OktoClient,
+    requestBody: SwapEstimateRequest,
+  ): Promise<SwapEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<SwapEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate token transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets the NFT transfer estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The NFT transfer estimate request parameters.
+   * @returns The NFT transfer estimate response.
+   */
+  public static async getTokenTransferEstimate(
+    oc: OktoClient,
+    requestBody: TokenTransferEstimateRequest,
+  ): Promise<TokenTransferEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<TokenTransferEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets the NFT transfer estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance.
+   * @param requestBody - The NFT transfer estimate request parameters.
+   * @returns The NFT transfer estimate response.
+   */
+  public static async getNFTTransferEstimate(
+    oc: OktoClient,
+    requestBody: NFTTransferEstimateRequest,
+  ): Promise<NFTTransferEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NFTTransferEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT transfer');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a EVM raw transaction estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The EVM raw transaction estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+  public static async getEvmRawTransactionEstimate(
+    oc: OktoClient,
+    requestBody: EvmRawTransactionEstimateRequest,
+  ): Promise<EvmRawTransactionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<EvmRawTransactionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate raw transaction');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a Aptos raw transaction estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The Aptos raw transaction estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+
+  public static async getAptosRawTransactionEstimate(
+    oc: OktoClient,
+    requestBody: AptosRawTransactionEstimateRequest,
+  ): Promise<AptosRawTransactionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<AptosRawTransactionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
 
     if (response.data.status === 'error') {
       throw new Error('Failed to estimate order');
@@ -243,6 +467,66 @@ class BffClientRepository {
 
     return response.data.data;
   }
+
+  /**
+   * Gets a NFT Mint estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The NFT Mint estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+
+  public static async getNftMintEstimate(
+    oc: OktoClient,
+    requestBody: NftMintEstimateRequest,
+  ): Promise<NftMintEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NftMintEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT mint');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets an estimate for NFT collection creation.
+   *
+   * This function provides an estimation of fees and other details for creating
+   * an NFT collection on the blockchain.
+   *
+   * @param oc - The OktoClient instance used to interact with the blockchain.
+   * @param requestBody - The request containing NFT collection details and other parameters.
+   * @returns A promise resolving to the estimation response with details and userOp.
+   * @throws Error if the estimation fails or response data is missing.
+   */
+
+  public static async getNftCreateCollectionEstimate(
+    oc: OktoClient,
+    requestBody: NftCreateCollectionEstimateRequest,
+  ): Promise<NftCreateCollectionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<NftCreateCollectionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate NFT collection creation');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
+    }
+
+    return response.data.data;
+  }
+
   /**
    * Authenticates the user with the Gateway service using BFF API.
    *
@@ -366,7 +650,6 @@ class BffClientRepository {
 
     return response.data.data;
   }
-
   /**
    * Reads data from a smart contract using the BFF API.
    *

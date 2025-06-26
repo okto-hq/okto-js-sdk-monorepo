@@ -5,6 +5,22 @@ import {
   nftCreateCollection,
   nftMint,
   aptosRawTransaction,
+  tokenTransferWithEstimate,
+  nftTransferWithEstimate,
+  evmRawTransactionWithEstimate,
+  aptosRawTransactionWithEstimate,
+  nftMintWithEstimate,
+  nftCreateCollectionWithEstimate,
+  swapToken,
+} from '@okto_web3/core-js-sdk/userop';
+
+import type {
+  TokenTransferIntentParams,
+  NFTTransferIntentParams,
+  NftMintParams,
+  NftCreateCollectionParams,
+  EVMRawTransactionIntentParams,
+  AptosRawTransactionIntentParams,
 } from '@okto_web3/core-js-sdk/userop';
 
 export {
@@ -13,5 +29,21 @@ export {
   tokenTransfer,
   nftCreateCollection,
   nftMint,
+  tokenTransferWithEstimate,
+  nftTransferWithEstimate,
+  evmRawTransactionWithEstimate,
+  aptosRawTransactionWithEstimate,
+  nftMintWithEstimate,
+  nftCreateCollectionWithEstimate,
   aptosRawTransaction,
+  swapToken,
+};
+
+export type {
+  TokenTransferIntentParams,
+  NFTTransferIntentParams,
+  NftMintParams,
+  NftCreateCollectionParams,
+  EVMRawTransactionIntentParams,
+  AptosRawTransactionIntentParams,
 };
