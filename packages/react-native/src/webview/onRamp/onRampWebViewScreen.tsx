@@ -11,6 +11,7 @@ import { WebViewBridge } from './webViewBridge.js';
 import { OnRampService } from './onRampService.js';
 import type { OnrampCallbacks, OnRampParamList } from './types.js';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { logger } from '../../utils/logger.js';
 
 type Props = NativeStackScreenProps<OnRampParamList, 'OnRampScreen'>;
 
@@ -161,18 +162,18 @@ const INJECTED_JAVASCRIPT = `
 `;
 
 export const OnRampScreen = ({ route, navigation }: Props) => {
-  console.log('[OnRampScreen] Initializing with route params:', route.params);
+  logger.log('[OnRampScreen] Initializing with route params:', route.params);
   const { url, tokenId, oktoClient, onClose, onSuccess, onError, onProgress } =
     route.params;
 
   const webViewRef = useRef<WebView>(null);
   const bridgeRef = useRef<WebViewBridge | null>(null);
 
-  console.log('[OnRampScreen] WebView and Bridge refs created');
+  logger.log('[OnRampScreen] WebView and Bridge refs created');
 
   const handleSuccess = useCallback(
     (data?: string) => {
-      console.log('[OnRampScreen] Success callback triggered with data:', data);
+      logger.log('[OnRampScreen] Success callback triggered with data:', data);
       onSuccess?.(data || 'Transaction completed successfully');
       onClose();
     },
@@ -189,7 +190,7 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   );
 
   const handleClose = useCallback(() => {
-    console.log('[OnRampScreen] Close callback triggered');
+    logger.log('[OnRampScreen] Close callback triggered');
     navigation.goBack();
   }, [onClose, navigation]);
 
@@ -241,17 +242,17 @@ export const OnRampScreen = ({ route, navigation }: Props) => {
   ]);
 
   const handleWebViewMessage = useCallback((event: WebViewMessageEvent) => {
-    console.log(
+    logger.log(
       '[OnRampScreen] Received message from WebView:',
       event.nativeEvent.data,
     );
     try {
       // Verify the message can be parsed
       const parsed = JSON.parse(event.nativeEvent.data);
-      console.log('Parsed message:', parsed);
+      logger.log('Parsed message:', parsed);
       bridgeRef.current?.handleMessage(event);
     } catch (e) {
-      console.error('Failed to parse message:', e);
+      logger.error('Failed to parse message:', e);
     }
   }, []);
 

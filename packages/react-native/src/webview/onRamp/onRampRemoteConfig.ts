@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger.js';
 import { OKTO_REMOTE_CONFIG } from './okto_remote_config.js';
 import type { OnrampConfig } from './types.js';
 
@@ -53,7 +54,7 @@ export class RemoteConfigService {
     try {
       this.parseConfig(OKTO_REMOTE_CONFIG as RemoteConfigData);
     } catch (error) {
-      console.error('Error loading config:', error);
+      logger.error('Error loading config:', error);
       this.setDefaultConfig();
     }
     this.isLoaded = true;
@@ -78,7 +79,7 @@ export class RemoteConfigService {
 
   private parseConfig(configData: RemoteConfigData): void {
     if (!configData?.parameters || typeof configData.parameters !== 'object') {
-      console.warn('Invalid config data, using defaults');
+      logger.warn('Invalid config data, using defaults');
       this.setDefaultConfig();
       return;
     }
@@ -92,7 +93,7 @@ export class RemoteConfigService {
           );
         }
       } catch (error) {
-        console.error(`Error parsing config key '${key}':`, error);
+        logger.error(`Error parsing config key '${key}':`, error);
       }
     });
   }
@@ -132,7 +133,7 @@ export class RemoteConfigService {
           result.stringValue = String(value ?? '');
       }
     } catch (error) {
-      console.error(`Failed to parse value of type ${type}:`, error);
+      logger.error(`Failed to parse value of type ${type}:`, error);
     }
 
     return result;
