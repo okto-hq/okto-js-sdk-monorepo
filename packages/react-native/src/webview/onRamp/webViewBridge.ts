@@ -4,6 +4,7 @@ import {
   SOURCE_NAME,
   type OnrampCallbacks,
   type OnRampWebViewMessage,
+  type OnRampWebViewResponse,
 } from './types.js';
 import type { OnRampService } from './onRampService.ts';
 import { logger } from '../../utils/logger.js';

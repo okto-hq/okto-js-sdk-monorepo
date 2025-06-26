@@ -25,7 +25,6 @@ interface NavigationProps {
   navigate: (screen: string, params: unknown) => void;
 }
 
-
 class OktoClient extends OktoCoreClient {
   private readonly config: OktoClientConfig;
   private authPromiseResolverRef: { current: AuthPromiseResolver } = {
