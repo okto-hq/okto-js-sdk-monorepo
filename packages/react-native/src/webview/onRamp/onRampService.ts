@@ -14,10 +14,12 @@ import {
 } from '@okto_web3/core-js-sdk/explorer';
 import type {
   UserPortfolioData,
-  WhitelistedToken,
+  SupportedRampTokensResponse,
 } from '@okto_web3/core-js-sdk/types';
 import type { OnrampConfig, OnRampToken } from './types.js';
 import { RemoteConfigService } from './onRampRemoteConfig.js';
+
+type WhitelistedToken = SupportedRampTokensResponse['onrampTokens'][number];
 
 interface PermissionResponse {
   status:
@@ -88,32 +90,32 @@ export class OnRampService {
     }
   }
 
-  async getOnRampTokens(): Promise<OnRampToken[]> {
+async getOnRampTokens(): Promise<OnRampToken[]> {
     const [whitelistedTokens, portfolio] = await Promise.all([
       this.getTokenData(this.config.countryCode),
       this.getPortfolioData(),
     ]);
 
-    const portfolioTokens = portfolio.groupTokens.flatMap(
-      (group) => group.tokens,
-    );
+    const portfolioTokens = portfolio?.groupTokens?.flatMap(
+      (group) => group?.tokens ?? []
+    ) ?? [];
 
     return whitelistedTokens.map((token) => {
       const portfolioToken = portfolioTokens.find(
-        (pt) => pt.tokenAddress.toLowerCase() === token.address.toLowerCase(),
+        (pt) => pt?.tokenAddress?.toLowerCase() === token?.address?.toLowerCase(),
       );
 
       return {
-        id: token.tokenId,
-        name: token.name,
-        symbol: token.shortName,
-        iconUrl: token.logo,
-        networkId: token.networkId,
-        networkName: token.networkName,
-        address: token.address,
-        balance: portfolioToken?.balance,
-        precision: portfolioToken?.precision ?? token.precision,
-        chainId: token.chainId,
+        id: token?.tokenId,
+        name: token?.name,
+        symbol: token?.shortName,
+        iconUrl: token?.logo,
+        networkId: token?.networkId,
+        networkName: token?.networkName,
+        address: token?.address,
+        balance: portfolioToken?.balance ?? '0',
+        precision: portfolioToken?.precision ?? token?.precision,
+        chainId: token?.chainId,
       };
     });
   }
