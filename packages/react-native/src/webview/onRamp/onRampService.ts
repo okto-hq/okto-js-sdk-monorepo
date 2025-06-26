@@ -91,19 +91,12 @@ export class OnRampService {
   }
 
   async getOnRampTokens(): Promise<OnRampToken[]> {
-    const [whitelistedTokens, portfolio] = await Promise.all([
+    const [whitelistedTokens] = await Promise.all([
       this.getTokenData(this.config.countryCode),
       this.getPortfolioData(),
     ]);
 
-    const portfolioTokens = portfolio.groupTokens.flatMap(
-      (group) => group.tokens,
-    );
-
     return whitelistedTokens.map((token) => {
-      const portfolioToken = portfolioTokens.find(
-        (pt) => pt.tokenAddress.toLowerCase() === token.address.toLowerCase(),
-      );
 
       return {
         id: token.tokenId,
@@ -113,8 +106,7 @@ export class OnRampService {
         networkId: token.networkId,
         networkName: token.networkName,
         address: token.address,
-        balance: portfolioToken?.balance,
-        precision: portfolioToken?.precision ?? token.precision,
+        precision: token.precision,
         chainId: token.chainId,
       };
     });
