@@ -1,5 +1,5 @@
+import { OKTO_REMOTE_CONFIG } from './okto_remote_config.js';
 import type { OnrampConfig } from './types.js';
-import localConfig from './localConfig.json' with { type: 'json' };
 
 interface ConfigValue {
   stringValue: string;
@@ -51,7 +51,7 @@ export class RemoteConfigService {
     if (this.isLoaded) return;
 
     try {
-      this.parseConfig(localConfig as RemoteConfigData);
+      this.parseConfig(OKTO_REMOTE_CONFIG as RemoteConfigData);
     } catch (error) {
       console.error('Error loading config:', error);
       this.setDefaultConfig();
