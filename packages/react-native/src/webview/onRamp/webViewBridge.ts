@@ -3,6 +3,7 @@ import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.ts';
 import type { OnRampService } from './onRampService.ts';
 import { logger } from '../../utils/logger.js';
+import { Linking } from 'react-native';
 
 // Type definitions
 type WebViewParams = {
@@ -11,6 +12,7 @@ type WebViewParams = {
   source?: string;
   url?: string;
   data?: Record<string, unknown>;
+  type?: string;
   permissionType?: 'camera' | 'microphone';
   [key: string]: unknown;
 };
@@ -120,7 +122,7 @@ export class WebViewBridge {
         this.handleCloseEvent();
         break;
       case 'url':
-        this.handleUrl(message.params?.url);
+        this.handleUrl(message.params?.url, message.params?.type);
         break;
       case 'requestPermission':
         await this.handlePermissionRequest(message);
@@ -237,8 +239,13 @@ export class WebViewBridge {
     this.callbacks.onClose?.();
   }
 
-  private handleUrl(url?: string): void {
+  private handleUrl(url?: string, type?: string): void {
     if (!url) return;
+
+    if (type === 'KYC-REDIRECT') {
+      Linking.openURL(url);
+      return;
+    }
 
     logger.log('[WebViewBridge] Handling URL:', url);
 
