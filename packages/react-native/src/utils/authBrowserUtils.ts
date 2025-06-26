@@ -62,9 +62,9 @@ export function createExpoBrowserHandler(
           // Check if we still have an active promise resolver
           if (authPromiseResolverRef.current) {
             if (result.type === 'success') {
-              // If the URL contains an id_token, extract it (fallback mechanism)
               try {
-                if (result.url && result.url.includes('id_token=')) {
+                logger.log('[OktoClient] Auth result URL:', result.url);
+                if (result.url) {
                   const urlObj = new URL(result.url);
                   const idToken = urlObj.searchParams.get('id_token');
                   if (idToken) {
