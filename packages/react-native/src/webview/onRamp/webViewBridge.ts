@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { OnrampCallbacks } from './types.ts';
 import type { OnRampService } from './onRampService.ts';
-import { logger } from 'src/utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 // Type definitions
 type WebViewParams = {
