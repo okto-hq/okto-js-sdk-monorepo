@@ -277,13 +277,13 @@ export class AuthWebViewRequestHandler {
           config: configToSend,
         },
       };
-      console.log(
+      logger.log(
         'Sending UI config response:',
         JSON.stringify(response, null, 2),
       );
       this.bridge.sendResponse(response);
     } catch (error) {
-      console.error('Error sending UI config:', error);
+      logger.error('Error sending UI config:', error);
       this.bridge.sendResponse({
         id: request.id,
         method: request.method,

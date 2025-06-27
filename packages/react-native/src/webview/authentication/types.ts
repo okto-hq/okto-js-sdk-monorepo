@@ -1,4 +1,4 @@
-export type MessageMethod = 'okto_sdk_login' | '';
+export type MessageMethod = 'okto_sdk_login';
 
 export type AuthProvider =
   | 'whatsapp'
