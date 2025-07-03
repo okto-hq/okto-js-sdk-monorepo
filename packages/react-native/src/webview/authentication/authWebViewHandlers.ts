@@ -1,6 +1,6 @@
 // WebViewRequestHandler.ts
-import { WebViewBridge } from '../webViewBridge.js';
-import type { UIConfig, WebViewRequest, WebViewResponse } from '../types.js';
+import { WebViewBridge } from './webViewBridge.js';
+import type { UIConfig, WebViewRequest, WebViewResponse } from './types.js';
 import type { OktoClient } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
 import { Platform } from 'react-native';
