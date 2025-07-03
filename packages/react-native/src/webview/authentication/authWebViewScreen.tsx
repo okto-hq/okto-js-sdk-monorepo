@@ -8,6 +8,7 @@ import { WebViewBridge } from './webViewBridge.js';
 import type { WebViewParamList } from './types.js';
 import { OktoClient } from '@okto_web3/core-js-sdk';
 import { AuthWebViewRequestHandler } from './authWebViewHandlers.js';
+import { logger } from '../../utils/logger.js';
 import type { Env } from '@okto_web3/core-js-sdk/core';
 
 /**
@@ -61,7 +62,7 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   useEffect(() => {
     if (!redirectUrl) {
-      console.error('Missing required redirectUrl parameter');
+      logger.error('Missing required redirectUrl parameter');
       navigateBack();
     }
   }, [redirectUrl]);
@@ -86,13 +87,13 @@ export const WebViewScreen = ({ route, navigation }: Props) => {
 
   // Debug logging for component initialization
   useEffect(() => {
-    console.log('WebView ref:', {
+    logger.log('WebView ref:', {
       refObject: webViewRef,
       currentValue: webViewRef.current,
     });
-    console.log('Request handler:', requestHandler);
+    logger.log('Request handler:', requestHandler);
     if (uiConfig) {
-      console.log('UI config provided:', uiConfig);
+      logger.log('UI config provided:', uiConfig);
     }
   }, []);
 

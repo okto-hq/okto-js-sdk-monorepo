@@ -1,5 +1,6 @@
 import BffClientRepository from '@/api/bff.js';
 import type OktoClient from '@/core/index.js';
+import type { TokenListingFilter } from '@/types/bff/tokens.js';
 import type { SupportedRampTokensResponse } from '@/types/onramp.js';
 
 /**
@@ -51,5 +52,20 @@ export async function getSupportedRampTokens(
   } catch (error) {
     console.error('Error fetching supported ramp tokens:', error);
     throw new Error('Failed to fetch supported ramp tokens from the backend.');
+  }
+}
+
+export async function getTokensForSwap(
+  oc: OktoClient,
+  filters: TokenListingFilter,
+) {
+  try {
+    const response = await BffClientRepository.getTokensForSwap(oc, filters);
+    return response;
+  } catch (error) {
+    console.error('Error fetching supported tokens for swap:', error);
+    throw new Error(
+      'Failed to fetch supported tokens for swap from the backend.',
+    );
   }
 }

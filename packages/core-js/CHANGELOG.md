@@ -1,5 +1,23 @@
 # @okto_web3/core-js-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- a39296d: Add support for Raw Read functionality, enabling direct, low-level read access to blockchain data. This feature allows developers to perform custom contract calls and retrieve on-chain information without relying on predefined SDK methods, providing greater flexibility and control for advanced use cases.
+
+## 0.7.0
+
+### Minor Changes
+
+- fb75c3c: feat(core-sdk, react, react-native): add Aptos raw transaction support, NFT mint, and NFT create collection intents
+- fb75c3c: added whatsapp and email apis to the core sdk
+- fb75c3c: Added Onboarding Screen UI and communication channels
+
+### Patch Changes
+
+- 17cf7f3: added production setup for core-js sdk
+
 ## 0.6.3
 
 ### Patch Changes

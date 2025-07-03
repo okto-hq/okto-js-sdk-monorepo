@@ -16,7 +16,7 @@ import { z } from 'zod';
 
 // **Schema for Okto Client configuration**
 export const OktoClientConfigSchema = z.object({
-  environment: z.enum(['sandbox', 'staging']),
+  environment: z.enum(['sandbox', 'staging', 'production']),
   clientPrivateKey: isPrivateKey(),
   clientSWA: isAddress('Invalid clientSWA format'),
 });
@@ -34,6 +34,10 @@ export const AuthDataSchema = z.union([
   z.object({
     idToken: z.string(),
     provider: z.literal('client_jwt'),
+  }),
+  z.object({
+    idToken: z.string(),
+    provider: z.literal('apple'),
   }),
 ]);
 

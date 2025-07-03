@@ -1,12 +1,14 @@
 import type { MutableRefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
-import type {
-  OnrampCallbacks,
-  OnRampWebViewMessage,
-  OnRampWebViewResponse,
-} from './types.ts';
+import {
+  SOURCE_NAME,
+  type OnrampCallbacks,
+  type OnRampWebViewMessage,
+  type OnRampWebViewResponse,
+} from './types.js';
 import type { OnRampService } from './onRampService.ts';
-const SOURCE_NAME = 'okto_web';
+import { logger } from '../../utils/logger.js';
+import { Linking } from 'react-native';
 
 export class WebViewBridge {
   private readonly webViewRef: MutableRefObject<WebView | null>;
@@ -37,16 +39,16 @@ export class WebViewBridge {
 
       await this.routeMessage(message);
     } catch (error) {
-      console.error('[WebViewBridge] Error handling message:', error);
+      logger.error('[WebViewBridge] Error handling message:', error);
     }
   }
 
   public cleanup(): void {
-    console.log('[WebViewBridge] Cleaning up resources');
+    logger.log('[WebViewBridge] Cleaning up resources');
   }
 
   private logInitialization(): void {
-    console.log('[WebViewBridge] Initializing with:', {
+    logger.log('[WebViewBridge] Initializing with:', {
       webViewRef: !!this.webViewRef.current,
       callbacks: Object.keys(this.callbacks),
       onRampService: this.onRampService,
@@ -56,12 +58,12 @@ export class WebViewBridge {
 
   private shouldSkipMessage(message: OnRampWebViewMessage): boolean {
     if (message.params?.source === SOURCE_NAME) {
-      console.log('[WebViewBridge] Skipping own response message');
+      logger.log('[WebViewBridge] Skipping own response message');
       return true;
     }
 
     if (message.type === 'bridge_ready') {
-      console.log('[WebViewBridge] Bridge is ready');
+      logger.log('[WebViewBridge] Bridge is ready');
       return true;
     }
 
@@ -69,7 +71,7 @@ export class WebViewBridge {
   }
 
   private async routeMessage(message: OnRampWebViewMessage): Promise<void> {
-    console.log('[WebViewBridge] Handling message:', message);
+    logger.log('[WebViewBridge] Handling message:', message);
 
     // Handle meta events first
     if (message.type === 'onMetaHandler') {
@@ -92,7 +94,7 @@ export class WebViewBridge {
         this.handleCloseEvent();
         break;
       case 'url':
-        this.handleUrl(message.params?.url);
+        this.handleUrl(message.params?.url, message.params?.type);
         break;
       case 'requestPermission':
         await this.handlePermissionRequest(message);
@@ -104,7 +106,7 @@ export class WebViewBridge {
         this.handleAnalytics(message);
         break;
       default:
-        console.warn(`[WebViewBridge] Unhandled event: ${message.type}`);
+        logger.warn(`[WebViewBridge] Unhandled event: ${message.type}`);
     }
   }
 
@@ -114,7 +116,7 @@ export class WebViewBridge {
     try {
       return typeof data === 'string' ? JSON.parse(data) : data;
     } catch (error) {
-      console.error('Error parsing message:', error);
+      logger.error('Error parsing message:', error);
       return null;
     }
   }
@@ -147,7 +149,7 @@ export class WebViewBridge {
           this.handleOrderFailure();
           break;
         default:
-          console.warn(`Unknown data key: ${key}`);
+          logger.warn(`Unknown data key: ${key}`);
       }
     } catch (error) {
       this.sendErrorResponse(message.type, key, id, error);
@@ -209,17 +211,22 @@ export class WebViewBridge {
   }
 
   private handleCloseEvent(): void {
-    console.log('[WebViewBridge] Handling close event');
+    logger.log('[WebViewBridge] Handling close event');
     this.callbacks.onClose?.();
   }
 
-  private handleUrl(url?: string): void {
+  private handleUrl(url?: string, type?: string): void {
     if (!url) return;
 
-    console.log('[WebViewBridge] Handling URL:', url);
+    if (type === 'KYC-REDIRECT') {
+      Linking.openURL(url);
+      return;
+    }
+
+    logger.log('[WebViewBridge] Handling URL:', url);
 
     if (!this.webViewRef.current) {
-      console.warn('[WebViewBridge] WebView reference is null');
+      logger.warn('[WebViewBridge] WebView reference is null');
       return;
     }
 
@@ -241,12 +248,33 @@ export class WebViewBridge {
   ): Promise<void> {
     if (!message.params?.data) return;
 
-    const permissionResult = await this.onRampService.requestCameraPermission();
+    const permissionType = message.params.permissionType || 'camera';
 
-    if (permissionResult.granted) {
-      this.handlePermissionGranted(message);
-    } else {
-      this.handlePermissionDenied(message);
+    try {
+      let permissionResult;
+
+      switch (permissionType) {
+        case 'camera':
+          permissionResult = await this.onRampService.requestCameraPermission();
+          break;
+        case 'microphone':
+          permissionResult =
+            await this.onRampService.requestMicrophonePermission();
+          break;
+        default:
+          logger.warn(
+            `[WebViewBridge] Unknown permission type: ${permissionType}`,
+          );
+          return;
+      }
+
+      if (permissionResult.granted) {
+        this.handlePermissionGranted(message);
+      } else {
+        this.handlePermissionDenied(message);
+      }
+    } catch (error) {
+      logger.error('[WebViewBridge] Error handling permission request:', error);
     }
   }
 
@@ -272,7 +300,7 @@ export class WebViewBridge {
   }
 
   private handlePermissionDenied(message: OnRampWebViewMessage): void {
-    console.log('[WebViewBridge] Permission denied, showing retry dialog');
+    logger.log('[WebViewBridge] Permission denied, showing retry dialog');
     this.showPermissionRetryDialog(() => {
       this.handlePermissionRequest(message);
     });
@@ -293,7 +321,7 @@ export class WebViewBridge {
   }
 
   private handleAnalytics(message: OnRampWebViewMessage): void {
-    console.log('[WebViewBridge] Analytics event:', message.params);
+    logger.log('[WebViewBridge] Analytics event:', message.params);
   }
 
   private handleMetaEvent(message: OnRampWebViewMessage): void {
@@ -309,12 +337,11 @@ export class WebViewBridge {
         this.callbacks.onError?.(JSON.stringify(detail, null, 2));
       }
     } catch (error) {
-      console.error('[WebViewBridge] Error handling meta event:', error);
+      logger.error('[WebViewBridge] Error handling meta event:', error);
     }
   }
 
   private handleOnRampCompleted(): void {
-    this.callbacks.onClose?.();
     this.callbacks.onSuccess?.(
       'Transaction successful. It may take a few minutes to complete!',
     );
@@ -325,12 +352,11 @@ export class WebViewBridge {
   }
 
   private handleOrderFailure(): void {
-    this.callbacks.onClose?.();
     this.callbacks.onError?.('Transaction failed. Please try again');
   }
 
   private showPermissionRetryDialog(onRetry: () => void): void {
-    console.log('[WebViewBridge] Showing permission retry dialog');
+    logger.log('[WebViewBridge] Showing permission retry dialog');
     setTimeout(onRetry, 2000);
   }
 
@@ -365,7 +391,7 @@ export class WebViewBridge {
 
   private sendMessageToWebView(message: string): void {
     if (!this.webViewRef.current) {
-      console.warn('[WebViewBridge] WebView reference is null');
+      logger.warn('[WebViewBridge] WebView reference is null');
       return;
     }
 
@@ -397,13 +423,13 @@ export class WebViewBridge {
 
   private sendResponse(response: OnRampWebViewResponse): void {
     if (!this.webViewRef.current) {
-      console.warn(
+      logger.warn(
         '[WebViewBridge] WebView reference is null, cannot send response',
       );
       return;
     }
 
-    console.log(
+    logger.log(
       '[WebViewBridge] Sending response to WebView:',
       JSON.stringify(response),
     );

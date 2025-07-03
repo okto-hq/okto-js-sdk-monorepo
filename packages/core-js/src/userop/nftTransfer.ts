@@ -1,4 +1,4 @@
-import GatewayClientRepository from '@/api/gateway.js';
+import BffClientRepository from '@/api/bff.js';
 import type OktoClient from '@/core/index.js';
 import { getChains } from '@/explorer/chain.js';
 import type { Address, UserOp } from '@/types/core.js';
@@ -39,7 +39,7 @@ export async function nftTransfer(
     throw new BaseError('User not logged in');
   }
 
-  validateSchema(NFTTransferIntentParamsSchema as any, data);
+  validateSchema(NFTTransferIntentParamsSchema, data);
 
   if (data.recipientWalletAddress === oc.userSWA) {
     throw new BaseError(
@@ -111,28 +111,32 @@ export async function nftTransfer(
     ],
   );
 
-  const gasPrice = await GatewayClientRepository.getUserOperationGasPrice(oc);
+  const paymasterData = await oc.paymasterData({
+    nonce: nonce,
+    validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
+  });
+
+  const gasEstimation = await BffClientRepository.estimateGasLimits(oc, {
+    sender: oc.userSWA,
+    nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
+    callData: calldata,
+    paymasterData: paymasterData,
+    paymaster: oc.env.paymasterAddress,
+  });
 
   const userOp: UserOp = {
     sender: oc.userSWA,
     nonce: toHex(nonceToBigInt(nonce), { size: 32 }),
     paymaster: oc.env.paymasterAddress,
-    callGasLimit: toHex(Constants.GAS_LIMITS.CALL_GAS_LIMIT),
-    verificationGasLimit: toHex(Constants.GAS_LIMITS.VERIFICATION_GAS_LIMIT),
-    preVerificationGas: toHex(Constants.GAS_LIMITS.PRE_VERIFICATION_GAS),
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-    paymasterPostOpGasLimit: toHex(
-      Constants.GAS_LIMITS.PAYMASTER_POST_OP_GAS_LIMIT,
-    ),
-    paymasterVerificationGasLimit: toHex(
-      Constants.GAS_LIMITS.PAYMASTER_VERIFICATION_GAS_LIMIT,
-    ),
+    callGasLimit: gasEstimation.callGasLimit,
+    verificationGasLimit: gasEstimation.verificationGasLimit,
+    preVerificationGas: gasEstimation.preVerificationGas,
+    maxFeePerGas: gasEstimation.maxFeePerGas,
+    maxPriorityFeePerGas: gasEstimation.maxPriorityFeePerGas,
+    paymasterPostOpGasLimit: gasEstimation.paymasterPostOpGasLimit,
+    paymasterVerificationGasLimit: gasEstimation.paymasterVerificationGasLimit,
     callData: calldata,
-    paymasterData: await oc.paymasterData({
-      nonce: nonce,
-      validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
-    }),
+    paymasterData: paymasterData,
   };
 
   return userOp;

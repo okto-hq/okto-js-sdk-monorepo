@@ -16,6 +16,7 @@ export interface AddFundsData {
   payToken: string;
   platform?: string;
   app?: string;
+  host?: string;
 }
 
 export interface CombinedToken {

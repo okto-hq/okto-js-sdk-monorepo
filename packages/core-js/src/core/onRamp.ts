@@ -82,10 +82,15 @@ export class OnrampService {
       );
 
       if (groupToken) {
-        const token =
-          groupToken.tokens.find((t) => t.id === tokenId) || groupToken;
-        tokenBalance = token.balance || '0';
-        tokenName = token.shortName || tokenName;
+        const nestedToken = groupToken.tokens.find((t) => t.id === tokenId);
+
+        if (nestedToken) {
+          tokenBalance = nestedToken.viewBalance || nestedToken.balance || '0';
+          tokenName = nestedToken.shortName || tokenName;
+        } else {
+          tokenBalance = groupToken.balance || '0';
+          tokenName = groupToken.shortName || tokenName;
+        }
       }
 
       // Create add funds data
@@ -105,6 +110,7 @@ export class OnrampService {
         payToken: transactionToken,
         platform: 'web',
         app: 'okto_web',
+        host: 'sdk',
       };
 
       return this.buildOnrampUrl(oktoClient.env.onrampUrl, addFundsData);

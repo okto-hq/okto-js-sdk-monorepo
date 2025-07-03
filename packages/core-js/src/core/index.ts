@@ -1,5 +1,4 @@
 import BffClientRepository from '@/api/bff.js';
-import GatewayClientRepository from '@/api/gateway.js';
 import { RpcError } from '@/errors/rpc.js';
 import type { Address, Hash, Hex, UserOp } from '@/types/core.js';
 import type { GetUserKeysResult } from '@/types/gateway/signMessage.js';
@@ -8,7 +7,11 @@ import { getPublicKey, SessionKey } from '@/utils/sessionKey.js';
 import { generatePackedUserOp, generateUserOpHash } from '@/utils/userop.js';
 import { BaseError, fromHex } from 'viem';
 import { signMessage as viemSignMessage } from 'viem/accounts';
-import { sandboxEnvConfig, stagingEnvConfig } from './config.js';
+import {
+  productionEnvConfig,
+  sandboxEnvConfig,
+  stagingEnvConfig,
+} from './config.js';
 import { generateAuthenticatePayload } from './login.js';
 import {
   validateAuthData,
@@ -76,10 +79,10 @@ class OktoClient {
         return stagingEnvConfig;
       case 'sandbox':
         return sandboxEnvConfig;
-      // case 'production':
-      //   return productionEnvConfig;
+      case 'production':
+        return productionEnvConfig;
       default:
-        return sandboxEnvConfig;
+        return productionEnvConfig;
     }
   }
 
@@ -190,10 +193,7 @@ class OktoClient {
     );
 
     try {
-      const authRes = await GatewayClientRepository.authenticate(
-        this,
-        authPayload,
-      );
+      const authRes = await BffClientRepository.authenticate(this, authPayload);
 
       const sessionConfig: SessionConfig = {
         sessionPrivKey: session.privateKeyHexWith0x,
@@ -353,7 +353,11 @@ class OktoClient {
 
     try {
       // Generate the authentication URL
-      const url = this._socialAuthUrlGenerator.generateAuthUrl(provider, state);
+      const url = this._socialAuthUrlGenerator.generateAuthUrl(
+        provider,
+        state,
+        this.env,
+      );
 
       // Get the ID token using the provided window override function
       const idToken = await overrideOpenWindow(url);
@@ -432,7 +436,7 @@ class OktoClient {
         throw new BaseError('User must be logged in to sync user keys');
       }
 
-      const res = await GatewayClientRepository.GetUserKeys(this);
+      const res = await BffClientRepository.GetUserKeys(this);
       this._userKeys = res;
 
       console.log(res);
@@ -501,7 +505,7 @@ class OktoClient {
     }
     validateUserOp(userop);
     try {
-      return await GatewayClientRepository.execute(this, userop);
+      return await BffClientRepository.execute(this, userop);
     } catch (error) {
       console.error('Error executing user operation:', error);
       throw error;
@@ -553,10 +557,11 @@ class OktoClient {
       this._sessionConfig,
       message,
       'EIP191',
+      this.env,
     );
 
     try {
-      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      const res = await BffClientRepository.SignMessage(this, signPayload);
       return `0x${res[0]?.signature}`;
     } catch (error) {
       if (error instanceof RpcError) {
@@ -592,10 +597,11 @@ class OktoClient {
       this._sessionConfig,
       data,
       'EIP712',
+      this.env,
     );
 
     try {
-      const res = await GatewayClientRepository.SignMessage(this, signPayload);
+      const res = await BffClientRepository.SignMessage(this, signPayload);
       return `0x${res[0]?.signature}`;
     } catch (error) {
       if (error instanceof RpcError) {

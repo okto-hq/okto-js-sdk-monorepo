@@ -7,6 +7,9 @@ import {
   getPortfolioActivity,
   getPortfolioNFT,
   getTokens,
+  getTokensForSwap,
+  getPortfolioForSwap,
+  rawRead,
   getSupportedRampTokens,
   generateTransactionToken,
 } from '@okto_web3/core-js-sdk/explorer';
@@ -22,4 +25,7 @@ export {
   getTokens,
   getSupportedRampTokens,
   generateTransactionToken,
+  getTokensForSwap,
+  getPortfolioForSwap,
+  rawRead,
 };

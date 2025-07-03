@@ -3,7 +3,7 @@ import {
   type OktoClientConfig,
 } from '@okto_web3/core-js-sdk';
 import type { SessionConfig } from '@okto_web3/core-js-sdk/core';
-import type { RpcError } from '@okto_web3/core-js-sdk/errors';
+import { RpcError } from '@okto_web3/core-js-sdk/errors';
 import type {
   Address,
   AuthData,
@@ -11,6 +11,7 @@ import type {
   SocialAuthType,
 } from '@okto_web3/core-js-sdk/types';
 import { clearStorage, getStorage, setStorage } from '../utils/storageUtils.js';
+import { logger } from '../utils/logger.js';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -108,7 +109,7 @@ class OktoClient extends OktoCoreClient {
       WebBrowser.maybeCompleteAuthSession();
       await WebBrowser.warmUpAsync();
     } catch (error) {
-      console.error('[OktoClient] Error preparing browser:', error);
+      logger.error('[OktoClient] Error preparing browser:', error);
     }
 
     try {
@@ -118,13 +119,13 @@ class OktoClient extends OktoCoreClient {
         createExpoBrowserHandler(redirectUrl, this.authPromiseResolverRef),
       );
     } catch (error) {
-      console.error('[OktoClient] Social login error:', error);
+      logger.error('[OktoClient] Social login error:', error);
       throw error;
     } finally {
       try {
         await WebBrowser.coolDownAsync();
       } catch (error) {
-        console.error('[OktoClient] Error cooling down browser:', error);
+        logger.error('[OktoClient] Error cooling down browser:', error);
       }
     }
   }
@@ -153,7 +154,7 @@ class OktoClient extends OktoCoreClient {
       uiConfig,
       onWebViewClose: () => {
         const newClient = new OktoClient(this.config);
-        console.log('Client SWA After Login', newClient.clientSWA);
+        logger.log('Client SWA After Login', newClient.clientSWA);
         this.initializeSession();
       },
     });

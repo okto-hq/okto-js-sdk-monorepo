@@ -1,9 +1,6 @@
-import type { Network } from './common.js';
-
 /**
  * Represents Token data
  */
-
 export type Token = {
   address: string;
   caipId: string;
@@ -20,13 +17,68 @@ export type Token = {
 };
 
 /**
- * Represents NFT data
+ * Represents GSN Token data
  */
+export interface GSNToken {
+  caip2Id: string;
+  address: string;
+  amount: string;
+  amountInUSDT: string;
+}
 
-export type NftCollection = {
-  nftCollectionId: string;
-  collectionAddress: string;
-  network: Network;
-  whitelisted: boolean | undefined;
-  ercType: 'ERC721' | 'ERC1155';
+/**
+ * Represents Token data for SWAP
+ */
+export type TokenEntity = {
+  id: string;
+  entityType: string;
+  details: {
+    address: string;
+    chainId: string;
+    decimals: string;
+    name: string;
+    symbol: string;
+    logo: string;
+    price: string;
+    networkName: string;
+    isActive: boolean;
+    isTradable: boolean;
+    groupId?: string;
+    isPrimary?: boolean;
+    tags?: string[];
+    totalSupply?: string;
+    type?: string;
+    age?: number;
+    priority?: number;
+    fdv?: number;
+    priceChange_24h?: number;
+    priceVolData?: Record<string, unknown>;
+    tokenRank?: number;
+    category?: string[];
+    [key: string]:
+      | string
+      | number
+      | boolean
+      | string[]
+      | Record<string, unknown>
+      | undefined;
+  };
+};
+
+/**
+ * Parameters for token listing requests
+ */
+export type TokenListingParams = {
+  identifier: string;
+  caip2_ids?: string[];
+  searchText?: string;
+};
+
+/**
+ * Options for the getTokensForSwap method
+ */
+export type TokenListingFilter = {
+  type: 'discovery' | 'network_filter' | 'search';
+  networks?: string[]; // Networks in caip2 format (e.g., "eip155:222")
+  searchText?: string;
 };
