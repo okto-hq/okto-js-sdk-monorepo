@@ -32,7 +32,7 @@ export type NFTTransferIntentParams = {
   nftId: string;
   recipientWalletAddress: Address | string;
   amount: number | bigint;
-  nftType: 'ERC721' | 'ERC1155';
+  nftType?: 'ERC721' | 'ERC1155';
 };
 
 /**

@@ -102,7 +102,7 @@ export async function nftTransfer(
               recipientWalletAddress: data.recipientWalletAddress,
               nftId: data.nftId,
               collectionAddress: data.collectionAddress,
-              nftType: data.nftType,
+              nftType: data.nftType ?? '',
             },
           ]),
           Constants.INTENT_TYPE.NFT_TRANSFER,
