@@ -57,7 +57,11 @@ export const NFTTransferIntentParamsSchema = z
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
 
-    collectionAddress: isHexString('Invalid collection address format'),
+    collectionAddress: z
+      .string({
+        required_error: 'Collection address is required',
+      })
+      .min(1, 'Collection address cannot be blank'),
 
     nftId: isTokenId(
       'Invalid NFT ID format – must be numeric or hexadecimal',
