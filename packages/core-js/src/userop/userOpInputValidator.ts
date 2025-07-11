@@ -1,5 +1,5 @@
 import { z, ZodError } from 'zod';
-import { isHexString, isTokenId } from '@/utils/customValidators.js';
+import { isHexString } from '@/utils/customValidators.js';
 import { BaseError } from '@/errors/base.js';
 
 /**
@@ -63,13 +63,11 @@ export const NFTTransferIntentParamsSchema = z
       })
       .min(1, 'Collection address cannot be blank'),
 
-    nftId: isTokenId(
-      'Invalid NFT ID format – must be numeric or hexadecimal',
-      true,
-    ).refine((val) => {
-      const num = Number(val);
-      return !isNaN(num) && num >= 0;
-    }, 'NFT ID cannot be negative'),
+    nftId: z
+      .string({
+        required_error: 'NFT ID is required',
+      })
+      .min(1, 'NFT ID cannot be empty'),
 
     recipientWalletAddress: z
       .string()
