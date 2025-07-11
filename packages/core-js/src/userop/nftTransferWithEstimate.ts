@@ -59,6 +59,29 @@ export async function nftTransferWithEstimate(
     validUntil: new Date(Date.now() + 6 * Constants.HOURS_IN_MS),
   });
 
+  // Determine if caip2Id is a Solana chain
+  const isSolana = data.caip2Id.toLowerCase().startsWith('solana:');
+
+  const transferDetails: {
+    caip2Id: string;
+    collectionAddress?: string;
+    nftId?: string;
+    recipientWalletAddress: string;
+    amount?: string;
+    nftType?: string;
+  } = {
+    caip2Id: data.caip2Id,
+    collectionAddress: data.collectionAddress || '',
+    nftId: data.nftId || '',
+    recipientWalletAddress: data.recipientWalletAddress,
+    amount: data.amount?.toString() || '1',
+  };
+
+  // Only include nftType if not Solana and nftType is provided
+  if (!isSolana && data.nftType) {
+    transferDetails.nftType = data.nftType;
+  }
+
   const requestBody: NFTTransferEstimateRequest = {
     type: Constants.INTENT_TYPE.NFT_TRANSFER,
     jobId: nonce,
@@ -68,14 +91,7 @@ export async function nftTransferWithEstimate(
       maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
     },
     feePayerAddress: feePayerAddress,
-    details: {
-      caip2Id: data.caip2Id,
-      collectionAddress: data.collectionAddress || '',
-      nftId: data.nftId || '',
-      recipientWalletAddress: data.recipientWalletAddress,
-      amount: data.amount.toString() || '1',
-      nftType: data.nftType || '',
-    },
+    details: transferDetails,
   };
 
   // Get estimate from BFF API

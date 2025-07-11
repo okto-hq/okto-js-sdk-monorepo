@@ -11,7 +11,7 @@ import type { PartialBy } from 'viem';
  */
 export type TokenTransferIntentParams = {
   amount: number | bigint;
-  recipient: Address;
+  recipient: Address | string;
   token: Address | '';
   caip2Id: string;
 };
@@ -28,11 +28,11 @@ export type TokenTransferIntentParams = {
  */
 export type NFTTransferIntentParams = {
   caip2Id: string;
-  collectionAddress: Address;
+  collectionAddress: Address | string;
   nftId: string;
-  recipientWalletAddress: Address;
+  recipientWalletAddress: Address | string;
   amount: number | bigint;
-  nftType: 'ERC721' | 'ERC1155';
+  nftType?: 'ERC721' | 'ERC1155' | 'NFT';
 };
 
 /**
@@ -149,3 +149,29 @@ export type EVMRawTransactionIntentParams = {
     value?: number | bigint;
   };
 };
+
+/**
+ * Represents a raw Solana transaction.
+ *
+ * @property instructions - Array of instructions to be executed in the transaction.
+ * @property signers - Array of public keys of the signers for the transaction.
+ * @property feePayerAddress - The public key of the fee payer for the transaction.
+ */
+export interface SolanaRawTransaction {
+  instructions: {
+    programId: string;
+    keys: {
+      pubkey: string;
+      isSigner: boolean;
+      isWritable: boolean;
+    }[];
+    data: number[]; // base-10 encoded bytes
+  }[];
+  signers: string[];
+  feePayerAddress: string;
+}
+
+export interface SolanaRawTransactionIntentParams {
+  caip2Id: string;
+  transactions: SolanaRawTransaction[];
+}

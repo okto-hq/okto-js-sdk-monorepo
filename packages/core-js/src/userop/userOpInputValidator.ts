@@ -1,5 +1,5 @@
 import { z, ZodError } from 'zod';
-import { isHexString, isTokenId } from '@/utils/customValidators.js';
+import { isHexString } from '@/utils/customValidators.js';
 import { BaseError } from '@/errors/base.js';
 
 /**
@@ -57,15 +57,17 @@ export const NFTTransferIntentParamsSchema = z
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
 
-    collectionAddress: isHexString('Invalid collection address format'),
+    collectionAddress: z
+      .string({
+        required_error: 'Collection address is required',
+      })
+      .min(1, 'Collection address cannot be blank'),
 
-    nftId: isTokenId(
-      'Invalid NFT ID format – must be numeric or hexadecimal',
-      true,
-    ).refine((val) => {
-      const num = Number(val);
-      return !isNaN(num) && num >= 0;
-    }, 'NFT ID cannot be negative'),
+    nftId: z
+      .string({
+        required_error: 'NFT ID is required',
+      })
+      .min(1, 'NFT ID cannot be empty'),
 
     recipientWalletAddress: z
       .string()
@@ -76,9 +78,8 @@ export const NFTTransferIntentParamsSchema = z
       .int('Amount must be an integer')
       .min(1, 'Minimum transfer amount is 1')
       .default(1),
-    nftType: z.string(),
+    nftType: z.string().nullable(),
   })
-  .strict()
   .refine((obj) => obj.nftType !== 'ERC721' || obj.amount === 1, {
     message: 'ERC721 transfers must have amount exactly 1',
     path: ['amount'],
@@ -233,9 +234,7 @@ export const TokenTransferIntentParamsSchema = z
         (val) => val.trim() === val,
         'caip2Id cannot have leading or trailing spaces',
       ),
-    recipient: z
-      .string()
-      .regex(/^0x[a-fA-F0-9]+$/, 'Invalid recipient address format'),
+    recipient: z.string(),
     token: z.string(),
     amount: z.union([
       z.number().gt(0, 'Amount must be greater than 0'),
@@ -337,3 +336,39 @@ export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
     throw error;
   }
 };
+
+/** * Schema for Solana Raw Transaction Intent Parameters.
+ * @property caip2Id - The CAIP-2 ID of the Solana network (e.g., "solana:mainnet").
+ * @property transactions - An array of Solana transactions, each containing:
+ *   - instructions: An array of instructions, where each instruction includes:
+ *     - programId: The ID of the program to execute.
+ *     - keys: An array of key objects, each with:
+ *       - pubkey: The public key of the account.
+ *       - isSigner: A boolean indicating if the key is a signer.
+ *       - isWritable: A boolean indicating if the key is writable.
+ *     - data: An array of numbers representing the instruction data.
+ *   - signers: An array of public keys of the signers for the transaction.
+ *   - feePayerAddress: The public key of the fee payer for the transaction.
+ */
+export const SolanaRawTransactionIntentParamsSchema = z.object({
+  caip2Id: z.string().startsWith('solana:'),
+  transactions: z.array(
+    z.object({
+      instructions: z.array(
+        z.object({
+          programId: z.string(),
+          keys: z.array(
+            z.object({
+              pubkey: z.string(),
+              isSigner: z.boolean(),
+              isWritable: z.boolean(),
+            }),
+          ),
+          data: z.array(z.number()),
+        }),
+      ),
+      signers: z.array(z.string()),
+      feePayerAddress: z.string(),
+    }),
+  ),
+});

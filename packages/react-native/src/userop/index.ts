@@ -12,6 +12,8 @@ import {
   nftMintWithEstimate,
   nftCreateCollectionWithEstimate,
   swapToken,
+  svmRawTransaction,
+  svmRawTransactionWithEstimate,
 } from '@okto_web3/core-js-sdk/userop';
 
 export {
@@ -28,4 +30,6 @@ export {
   nftMintWithEstimate,
   nftCreateCollectionWithEstimate,
   swapToken,
+  svmRawTransaction,
+  svmRawTransactionWithEstimate,
 };

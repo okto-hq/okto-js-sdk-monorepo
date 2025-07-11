@@ -45,6 +45,8 @@ import type {
   NftCreateCollectionEstimateResponse,
   SwapEstimateRequest,
   SwapEstimateResponse,
+  SolanaRawTransactionEstimateRequest,
+  SolanaRawTransactionEstimateResponse,
 } from '@/types/bff/estimate.js';
 import type {
   GetUserKeysResult,
@@ -668,6 +670,33 @@ class BffClientRepository {
 
     if (response.data.status === 'error') {
       throw new Error('Failed to read contract data');
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Gets a Solana raw transaction estimate from the BFF API.
+   *
+   * @param oc - The OktoClient instance
+   * @param requestBody - The Solana raw transaction estimate request
+   * @returns The raw transaction estimate response
+   * @throws Error if the estimate fails or response is missing
+   */
+  public static async getSvmRawTransactionEstimate(
+    oc: OktoClient,
+    requestBody: SolanaRawTransactionEstimateRequest,
+  ): Promise<SolanaRawTransactionEstimateResponse> {
+    const response = await getBffClient(oc).post<
+      ApiResponse<SolanaRawTransactionEstimateResponse>
+    >(this.routes.estimateOrder, requestBody);
+
+    if (response.data.status === 'error') {
+      throw new Error('Failed to estimate Solana raw transaction');
+    }
+
+    if (!response.data.data) {
+      throw new Error('Response data is missing');
     }
 
     return response.data.data;

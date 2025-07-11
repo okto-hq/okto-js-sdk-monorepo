@@ -12,6 +12,8 @@ import {
   nftMintWithEstimate,
   nftCreateCollectionWithEstimate,
   swapToken,
+  svmRawTransaction,
+  svmRawTransactionWithEstimate,
 } from '@okto_web3/core-js-sdk/userop';
 
 import type {
@@ -21,6 +23,7 @@ import type {
   NftCreateCollectionParams,
   EVMRawTransactionIntentParams,
   AptosRawTransactionIntentParams,
+  SolanaRawTransactionIntentParams,
 } from '@okto_web3/core-js-sdk/userop';
 
 export {
@@ -37,6 +40,8 @@ export {
   nftCreateCollectionWithEstimate,
   aptosRawTransaction,
   swapToken,
+  svmRawTransaction,
+  svmRawTransactionWithEstimate,
 };
 
 export type {
@@ -46,4 +51,5 @@ export type {
   NftCreateCollectionParams,
   EVMRawTransactionIntentParams,
   AptosRawTransactionIntentParams,
+  SolanaRawTransactionIntentParams,
 };
