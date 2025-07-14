@@ -270,32 +270,7 @@ class BffClientRepository {
   public static async getNftOrderDetails(oc: OktoClient): Promise<Order[]> {
     return await this.getOrders(oc, { intentType: 'NFT_TRANSFER' });
   }
-
-  /**
-   * Estimates the gas limits for a user operation.
-   */
-
-  public static async estimateGasLimits(
-    oc: OktoClient,
-    payload: EstimateGasLimitsPayload,
-  ): Promise<EstimateGasLimitsResponse> {
-    const response = await getBffClient(oc).post<
-      ApiResponse<EstimateGasLimitsResponse>
-    >(this.routes.estimateGasLimits, payload);
-
-    if (response.data.status === 'error') {
-      throw new Error(
-        'Failed to estimate user operation: ' + response.data.error?.message,
-      );
-    }
-
-    if (!response.data.data) {
-      throw new Error('Response data is missing');
-    }
-
-    return response.data.data;
-  }
-
+  
   /**
    * Retrieves tokens for swap based on different listing criteria
    * @param oc OktoClient instance
