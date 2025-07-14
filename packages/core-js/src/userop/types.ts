@@ -28,11 +28,11 @@ export type TokenTransferIntentParams = {
  */
 export type NFTTransferIntentParams = {
   caip2Id: string;
-  collectionAddress: Address;
+  collectionAddress: Address | string;
   nftId: string;
   recipientWalletAddress: Address | string;
   amount: number | bigint;
-  nftType: 'ERC721' | 'ERC1155';
+  nftType?: 'ERC721' | 'ERC1155' | 'NFT';
 };
 
 /**

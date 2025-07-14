@@ -158,7 +158,7 @@ export interface LoginOptions {
  * @property {number} position - Position of the social login in the list.
  */
 export interface SocialLogin {
-  type?: 'google' | 'steam' | 'twitter';
+  type?: 'google' | 'steam' | 'twitter' | 'apple';
   position?: number;
 }
 
@@ -169,7 +169,7 @@ export interface SocialLogin {
  * @property {number} position - Position of the OTP login in the list.
  */
 export interface OtpLoginOption {
-  type?: 'email' | 'phone';
+  type?: 'email' | 'whatsapp';
   position?: number;
 }
 

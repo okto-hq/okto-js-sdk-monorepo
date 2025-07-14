@@ -1,5 +1,5 @@
-import type { Address, Hash, Hex } from '../core.js';
 import type { AptosFunctionArgumentTypes } from '@/userop/types.js';
+import type { Address, Hash, Hex } from '../core.js';
 
 /**
  * ========================

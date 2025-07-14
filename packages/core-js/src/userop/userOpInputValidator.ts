@@ -1,5 +1,5 @@
 import { z, ZodError } from 'zod';
-import { isHexString, isTokenId } from '@/utils/customValidators.js';
+import { isHexString } from '@/utils/customValidators.js';
 import { BaseError } from '@/errors/base.js';
 
 /**
@@ -57,15 +57,17 @@ export const NFTTransferIntentParamsSchema = z
         'CAIP2 ID cannot have leading or trailing spaces',
       ),
 
-    collectionAddress: isHexString('Invalid collection address format'),
+    collectionAddress: z
+      .string({
+        required_error: 'Collection address is required',
+      })
+      .min(1, 'Collection address cannot be blank'),
 
-    nftId: isTokenId(
-      'Invalid NFT ID format – must be numeric or hexadecimal',
-      true,
-    ).refine((val) => {
-      const num = Number(val);
-      return !isNaN(num) && num >= 0;
-    }, 'NFT ID cannot be negative'),
+    nftId: z
+      .string({
+        required_error: 'NFT ID is required',
+      })
+      .min(1, 'NFT ID cannot be empty'),
 
     recipientWalletAddress: z
       .string()
@@ -76,9 +78,8 @@ export const NFTTransferIntentParamsSchema = z
       .int('Amount must be an integer')
       .min(1, 'Minimum transfer amount is 1')
       .default(1),
-    nftType: z.string(),
+    nftType: z.string().nullable(),
   })
-  .strict()
   .refine((obj) => obj.nftType !== 'ERC721' || obj.amount === 1, {
     message: 'ERC721 transfers must have amount exactly 1',
     path: ['amount'],
