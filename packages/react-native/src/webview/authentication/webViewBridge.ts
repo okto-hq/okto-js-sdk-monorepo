@@ -2,7 +2,7 @@
 import type { MutableRefObject } from 'react';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { WebViewRequest, WebViewResponse } from './types.js';
-import { logger } from '../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * WebViewBridge - Manages communication between React Native and WebView
